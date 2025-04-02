@@ -38,7 +38,7 @@ export const blogsRepository = {
         const index = db.blogs.findIndex((v) => v.id === id);
 
         if (index === -1) {
-            throw new Error('Driver not exist');
+            throw new Error('Blog not exist');
         }
 
         db.blogs.splice(index, 1);
