@@ -2,14 +2,14 @@ import {FieldValidationError, ValidationError, validationResult} from "express-v
 import {NextFunction, Request, Response} from "express";
 import {HttpStatus} from "../../types/httpStatus";
 import {ValidationErrorType} from "../../types/validationError";
-import {ValidationErrorDto} from "../../types/validationError.dto";
+// import {ValidationErrorDto} from "../../types/validationError.dto";
 
 const formatErrors = (error: ValidationError): ValidationErrorType => {
     const expressError = error as unknown as FieldValidationError;
 
     return {
-        field: expressError.path,
-        message: expressError.msg
+        message: expressError.msg,
+        field: expressError.path
     }
 }
 

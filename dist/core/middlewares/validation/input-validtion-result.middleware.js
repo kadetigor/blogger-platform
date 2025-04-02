@@ -3,11 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.inputValidationResultMiddleware = void 0;
 const express_validator_1 = require("express-validator");
 const httpStatus_1 = require("../../types/httpStatus");
+// import {ValidationErrorDto} from "../../types/validationError.dto";
 const formatErrors = (error) => {
     const expressError = error;
     return {
-        field: expressError.path,
-        message: expressError.msg
+        message: expressError.msg,
+        field: expressError.path
     };
 };
 const inputValidationResultMiddleware = (req, res, next) => {
