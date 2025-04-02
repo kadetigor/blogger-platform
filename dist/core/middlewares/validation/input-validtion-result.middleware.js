@@ -14,7 +14,7 @@ const formatErrors = (error) => {
 const inputValidationResultMiddleware = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req)
         .formatWith(formatErrors)
-        .array({ onlyFirstError: false });
+        .array({ onlyFirstError: true });
     if (errors.length > 0) {
         res.status(httpStatus_1.HttpStatus.BadRequest).json({ errorsMessages: errors });
         return;
