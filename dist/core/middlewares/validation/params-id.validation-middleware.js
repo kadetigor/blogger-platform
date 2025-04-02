@@ -4,5 +4,4 @@ exports.idValidationMiddleware = void 0;
 const express_validator_1 = require("express-validator");
 exports.idValidationMiddleware = (0, express_validator_1.param)('id')
     .exists().withMessage('id is required')
-    .isString().withMessage('id must be a string')
-    .isLength({ max: 1 }).withMessage('id must not empty');
+    .isString().withMessage('id must be a string');
