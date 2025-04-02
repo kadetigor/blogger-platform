@@ -3,7 +3,7 @@ import { body } from 'express-validator';
 export const nameValidationMiddleware = body('name')
     .exists().withMessage('Name is required')
     .isString().withMessage('Name must be a string')
-    .isLength({ max: 15 }).withMessage('Name must not be more than 15 characters long');
+    .trim().isLength({ max: 15 }).withMessage('Name must not be more than 15 characters long');
 
 export const descriptionValidationMiddleware = body('description')
     .exists().withMessage('Description is required')

@@ -5,7 +5,7 @@ const express_validator_1 = require("express-validator");
 exports.nameValidationMiddleware = (0, express_validator_1.body)('name')
     .exists().withMessage('Name is required')
     .isString().withMessage('Name must be a string')
-    .isLength({ max: 15 }).withMessage('Name must not be more than 15 characters long');
+    .trim().isLength({ max: 15 }).withMessage('Name must not be more than 15 characters long');
 exports.descriptionValidationMiddleware = (0, express_validator_1.body)('description')
     .exists().withMessage('Description is required')
     .isString().withMessage('Description must be a string')
