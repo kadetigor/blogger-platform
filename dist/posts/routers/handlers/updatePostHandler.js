@@ -5,14 +5,14 @@ const httpStatus_1 = require("../../../core/types/httpStatus");
 const errorUtils_1 = require("../../../core/utils/errorUtils");
 const postsRepository_1 = require("../../repositories/postsRepository");
 function updatePostHandler(req, res) {
-    const id = parseInt(req.params.id);
-    const post = postsRepository_1.postsRepository.findById(id.toString());
+    const id = req.params.id;
+    const post = postsRepository_1.postsRepository.findById(id);
     if (!post) {
         res
             .status(httpStatus_1.HttpStatus.NotFound)
             .send((0, errorUtils_1.createErrorMessages)([{ field: 'id', message: 'Vehicle not found' }]));
         return;
     }
-    postsRepository_1.postsRepository.update(id.toString(), req.body);
+    postsRepository_1.postsRepository.update(id, req.body);
     res.sendStatus(httpStatus_1.HttpStatus.NoContent);
 }
