@@ -8,8 +8,8 @@ export function updateBlogHandler(
     req: Request<{id: string}, {}, blogInputDto>,
     res: Response,
 ) {
-    const id = parseInt(req.params.id);
-    const blog = blogsRepository.findById(id.toString());
+    const id = req.params.id;
+    const blog = blogsRepository.findById(id);
 
     if (!blog) {
         res
@@ -19,6 +19,6 @@ export function updateBlogHandler(
             );
         return;
     }
-    blogsRepository.update(id.toString(), req.body);
+    blogsRepository.update(id, req.body);
     res.sendStatus(HttpStatus.NoContent);
 }

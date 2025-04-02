@@ -8,8 +8,8 @@ export function updatePostHandler(
     req: Request<{ id: string }, {}, PostInputDto>,
     res: Response,
 ) {
-    const id = parseInt(req.params.id);
-    const post = postsRepository.findById(id.toString());
+    const id = req.params.id;
+    const post = postsRepository.findById(id);
 
     if (!post) {
         res
@@ -20,6 +20,6 @@ export function updatePostHandler(
         return;
     }
 
-    postsRepository.update(id.toString(), req.body);
+    postsRepository.update(id, req.body);
     res.sendStatus(HttpStatus.NoContent);
 }

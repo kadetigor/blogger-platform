@@ -4,8 +4,8 @@ import { createErrorMessages } from '../../../core/utils/errorUtils';
 import { postsRepository } from '../../repositories/postsRepository';
 
 export function deletePostHandler(req: Request, res: Response) {
-    const id = parseInt(req.params.id);
-    const post = postsRepository.findById(id.toString());
+    const id = req.params.id;
+    const post = postsRepository.findById(id);
 
     if (!post) {
         res
@@ -16,6 +16,6 @@ export function deletePostHandler(req: Request, res: Response) {
         return;
     }
 
-    postsRepository.delete(id.toString());
+    postsRepository.delete(id);
     res.sendStatus(HttpStatus.NoContent);
 }

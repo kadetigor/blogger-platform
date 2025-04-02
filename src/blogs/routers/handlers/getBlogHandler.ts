@@ -4,8 +4,8 @@ import { createErrorMessages } from '../../../core/utils/errorUtils';
 import { blogsRepository } from '../../repositories/blogsRepository';
 
 export function getBlogHandler(req: Request, res: Response) {
-    const id = parseInt(req.params.id);
-    const blog = blogsRepository.findById(id.toString());
+    const id = req.params.id;
+    const blog = blogsRepository.findById(id);
 
     if (!blog) {
         res
