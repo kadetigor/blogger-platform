@@ -1,10 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { HttpStatus } from '../../core/types/httpStatus';
 
-// process - это глобальный объект в Node.js, который предоставляет информацию о текущем процессе Node.js
-// env — это объект, который хранит все переменные окружения текущего процесса. Переменные окружения — это значения,
-// которые могут быть установлены на уровне операционной системы или приложения и которые могут использоваться для
-// настройки поведения программного обеспечения (например, пароли, ключи API, пути к файлам и т. д.)
 export const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'qwerty';
 

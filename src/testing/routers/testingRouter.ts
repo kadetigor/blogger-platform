@@ -6,7 +6,7 @@ import {superAdminGuardMiddleware} from "../../auth/middlewares/super-admin.guar
 export const testingRouter = Router({});
 
 testingRouter
-    .delete('/all-data', superAdminGuardMiddleware, (req: Request, res: Response) => {
+    .delete('/all-data', (req: Request, res: Response) => {
     db.posts = [];
     db.blogs = [];
     res.sendStatus(HttpStatus.NoContent);
