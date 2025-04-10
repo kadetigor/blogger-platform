@@ -1,13 +1,15 @@
 import { Router, Request, Response } from 'express';
 import { db } from '../../db/db';
 import { HttpStatus } from '../../core/types/httpStatus';
-import {superAdminGuardMiddleware} from "../../auth/middlewares/super-admin.guard-middleware";
+import { blogCollection, postCollection } from '../../db/mongoDb';
 
 export const testingRouter = Router({});
 
 testingRouter
-    .delete('/all-data', (req: Request, res: Response) => {
-    db.posts = [];
-    db.blogs = [];
+  .delete('/all-data', async (req: Request, res: Response) => {
+    await Promise.all([
+      postCollection.deleteMany(),
+      blogCollection.deleteMany(),
+    ]);
     res.sendStatus(HttpStatus.NoContent);
-});
+  });

@@ -1,9 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.inputValidationResultMiddleware = void 0;
+exports.inputValidationResultMiddleware = exports.createErrorMessages = void 0;
 const express_validator_1 = require("express-validator");
 const httpStatus_1 = require("../../types/httpStatus");
-// import {ValidationErrorDto} from "../../types/validationError.dto";
+//
+const createErrorMessages = (errors) => {
+    return { errorMessages: errors };
+};
+exports.createErrorMessages = createErrorMessages;
 const formatErrors = (error) => {
     const expressError = error;
     return {
