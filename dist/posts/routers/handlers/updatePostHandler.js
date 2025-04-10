@@ -17,7 +17,7 @@ function updatePostHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const id = req.params.id;
-            const post = postsRepository_1.postsRepository.findById(id);
+            const post = yield postsRepository_1.postsRepository.findById(id);
             if (!post) {
                 res
                     .status(httpStatus_1.HttpStatus.NotFound)
