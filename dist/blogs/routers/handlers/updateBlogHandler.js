@@ -17,11 +17,11 @@ function updateBlogHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const id = req.params.id;
-            const blog = blogsRepository_1.blogsRepository.findById(id);
+            const blog = yield blogsRepository_1.blogsRepository.findById(id);
             if (!blog) {
                 res
                     .status(httpStatus_1.HttpStatus.NotFound)
-                    .send((0, input_validtion_result_middleware_1.createErrorMessages)([{ field: 'id', message: 'Vehicle not found' }]));
+                    .send((0, input_validtion_result_middleware_1.createErrorMessages)([{ field: 'id', message: 'Blog not found' }]));
                 return;
             }
             yield blogsRepository_1.blogsRepository.update(id, req.body);
