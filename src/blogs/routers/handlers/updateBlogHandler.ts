@@ -1,24 +1,28 @@
-import {Request, Response} from "express";
-import {blogInputDto} from "../../dto/blogsDto";
-import {HttpStatus} from "../../../core/types/httpStatus";
-import {createErrorMessages} from "../../../core/utils/errorUtils";
-import {blogsRepository} from "../../repositories/blogsRepository";
+import { Request, Response } from "express";
+import { blogInputDto } from "../../dto/blogsDto";
+import { HttpStatus } from "../../../core/types/httpStatus";
+import { createErrorMessages } from "../../../core/middlewares/validation/input-validtion-result.middleware";
+import { blogsRepository } from "../../repositories/blogsRepository";
 
-export function updateBlogHandler(
-    req: Request<{id: string}, {}, blogInputDto>,
-    res: Response,
+export async function updateBlogHandler(
+  req: Request<{ id: string }, {}, blogInputDto>,
+  res: Response,
 ) {
+  try {
     const id = req.params.id;
     const blog = blogsRepository.findById(id);
 
     if (!blog) {
-        res
-            .status(HttpStatus.NotFound)
-            .send(
-                createErrorMessages([{ field: 'id', message: 'Vehicle not found' }]),
-            );
-        return;
+      res
+        .status(HttpStatus.NotFound)
+        .send(
+          createErrorMessages([{ field: 'id', message: 'Vehicle not found' }]),
+        );
+      return;
     }
-    blogsRepository.update(id, req.body);
+    await blogsRepository.update(id, req.body);
     res.sendStatus(HttpStatus.NoContent);
+  } catch (e: unknown) {
+    res.sendStatus(HttpStatus.InternalServerError)
+  }
 }

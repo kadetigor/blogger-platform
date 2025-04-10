@@ -1,5 +1,4 @@
 import {Router, Request, Response} from 'express';
-import {db} from "../../db/db";
 import {getBlogHandler} from "./handlers/getBlogHandler";
 import {createBlogHandler} from "./handlers/createBlogHandler";
 import {deleteBlogHandler} from "./handlers/deleteBlogHandler";

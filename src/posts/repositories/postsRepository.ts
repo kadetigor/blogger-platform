@@ -1,49 +1,52 @@
 import { Post } from "../types/post";
-import { db } from "../../db/db";
-import { PostInputDto } from '../dto/postInputDto'
+import { postInputDto } from '../dto/postInputDto'
 import { blogsRepository } from '../../blogs/repositories/blogsRepository';
+import { postCollection } from "../../db/mongoDb";
+import { ObjectId, WithId } from "mongodb";
 
 export const postsRepository = {
-    // Найти все посты
-    findAll(): Post[] {
-        return db.posts;
-    },
+  // Найти все посты
+  async findAll(): Promise<WithId<Post>[]> {
+    return postCollection.find().toArray();
+  },
 
-    // Найти пост по ID
-    findById(id: string): Post | null {
-        return db.posts.find((p) => p.id === id) ?? null;
-    },
+  // Найти пост по ID
+  async findById(id: string): Promise<WithId<Post> | null> {
+    return postCollection.findOne({ _id: new ObjectId(id) });
+  },
 
-    // Создать новый пост
-    create(newPost: Post): Post {
-        db.posts.push(newPost);
-        return newPost;
-    },
+  // Создать новый пост
+  async create(newPost: Post): Promise<WithId<Post>> {
+    const insertResult = await postCollection.insertOne(newPost);
+    return { ...newPost, _id: insertResult.insertedId };
+  },
 
-    // Обновить данные поста
-    update(id: string, dto: PostInputDto): void {
-        const post = db.posts.find((a) => a.id === id);
-
-        if (!post) {
-            throw new Error('Post not exist');
+  // Обновить данные поста
+  async update(id: string, dto: postInputDto): Promise<void> {
+    const updateResult = await postCollection.updateOne(
+      {
+        _id: new ObjectId(id),
+      },
+      {
+        $set: {
+          title: dto.title,
+          shortDescription: dto.shortDescription,
+          content: dto.content,
+          blogId: dto.blogId
         }
+      }
+    )
+  },
 
-        post.title = dto.title;
-        post.shortDescription = dto.shortDescription;
-        post.content = dto.content;
-        post.blogId = dto.blogId;
-        return;
-    },
+  // Удалить пост
+  async delete(id: string): Promise<void> {
+    const deleteResult = await postCollection.deleteOne({
+      _id: new ObjectId(id),
+    });
 
-    // Удалить пост
-    delete(id: string): void {
-        const index = db.posts.findIndex((p) => p.id === id);
-
-        if (index === -1) {
-            throw new Error('Post not exist');
-        }
-
-        db.posts.splice(index, 1);
-        return;
-    },
+    if (deleteResult.deletedCount < 1) {
+      throw new Error('Driver not exist');
+    }
+    return;
+  },
 };
