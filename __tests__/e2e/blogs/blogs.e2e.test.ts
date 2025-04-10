@@ -19,11 +19,11 @@ describe('Blog API', () => {
   const adminToken = generateBasicAuthToken();
 
   beforeAll(async () => {
-    await runDB('mongodb://localhost:27017/ed-back-lessons-uber-test');
+    await runDB('mongodb://localhost:27017');
     await clearDb(app);
   });
 
-  it('✅ should create driver; POST /api/blogs', async () => {
+  it('✅ should create blog; POST /api/blogs', async () => {
     const newBlog: blogInputDto = {
       ...getBlogDto(),
       name: 'Vlad blog',
