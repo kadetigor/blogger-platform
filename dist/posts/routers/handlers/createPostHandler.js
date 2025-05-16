@@ -17,11 +17,8 @@ const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 function createPostHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            // A) get the new ID
             const createdPostId = yield postsService_1.postsService.create(req.body);
-            // B) fetch the full post (now with blogName)
             const createdPost = yield postsService_1.postsService.findByIdOrFail(createdPostId);
-            // C) map & send
             const postViewModel = (0, mapToPostViewModel_1.mapToPostViewModel)(createdPost);
             res.status(httpStatus_1.HttpStatus.Created).send(postViewModel);
         }
