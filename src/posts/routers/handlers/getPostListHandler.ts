@@ -6,7 +6,7 @@ import { mapToPostListPaginatedOutput } from '../mappers/mapToPostListPaginatedO
 import { errorsHandler } from '../../../core/errors/errorsHandler';
 
 export async function getPostListHandler(
-  req: Request<{}, {}, {}, postQueryInput>, 
+  req: Request<{}, {}, {}, any>, 
   res: Response) {
   try {
     const queryInput = setDefaultSortAndPaginationIfNotExist(req.query)
