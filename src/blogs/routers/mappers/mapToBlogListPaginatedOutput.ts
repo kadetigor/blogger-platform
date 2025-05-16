@@ -10,24 +10,17 @@ export function mapToBlogListPaginatedOutput(
   meta: { pageNumber: number; pageSize: number; totalCount: number },
 ): blogListPaginatedOutput {
   return {
-    meta: {
-      page: meta.pageNumber,
-      pageSize: meta.pageSize,
-      pageCount: Math.ceil(meta.totalCount / meta.pageSize),
-      totalCount: meta.totalCount,
-    },
-    data: blogs.map(
-      (blog): blogDataOutput => ({
-        type: resourceType.Blogs,
-        id: blog._id.toString(),
-        attributes: {
-          name: blog.name,
-          description: blog.description,
-          websiteUrl: blog.websiteUrl,
-          createdAt: blog.createdAt,
-          isMembership: blog.isMembership
-        },
-      }),
-    ),
+    pagesCount: Math.ceil(meta.totalCount / meta.pageSize),
+    page: meta.pageNumber,
+    pageSize: meta.pageSize,
+    totalCount: meta.totalCount,
+    items: blogs.map((blog) => ({
+      id: blog._id.toString(),
+      name: blog.name,
+      description: blog.description,
+      websiteUrl: blog.websiteUrl,
+      createdAt: blog.createdAt,
+      isMembership: blog.isMembership
+    })),
   };
 }

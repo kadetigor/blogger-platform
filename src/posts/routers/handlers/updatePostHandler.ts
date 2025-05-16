@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import { HttpStatus } from '../../../core/types/httpStatus';
-import { createErrorMessages } from '../../../core/middlewares/validation/input-validtion-result.middleware';
-import { postsRepository } from '../../repositories/postsRepository';
 import { postUpdateInput } from '../input/postUpdateInput';
+import { errorsHandler } from '../../../core/errors/errorsHandler';
+import { postsService } from '../../application/postsService';
 
 export async function updatePostHandler(
   req: Request<{ id: string }, {}, postUpdateInput>,
@@ -10,21 +10,9 @@ export async function updatePostHandler(
 ) {
   try {
     const id = req.params.id;
-    const post = await postsRepository.findByIdOrFail(id);
-
-    if (!post) {
-      res
-        .status(HttpStatus.NotFound)
-        .send(
-          createErrorMessages([{ field: 'id', message: 'Post not found' }])
-        );
-      return;
-
-    }
-
-    await postsRepository.update(id, req.body.data.attributes);
+    await postsService.update(id, req.body.data.attributes);
     res.sendStatus(HttpStatus.NoContent);
   } catch (e: unknown) {
-    res.sendStatus(HttpStatus.InternalServerError)
+    errorsHandler(e, res);
   }
 }

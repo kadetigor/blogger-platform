@@ -17,7 +17,13 @@ const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 function getPostListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const queryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(req.query);
+            const baseQueryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(req.query);
+            const queryInput = {
+                pageNumber: baseQueryInput.pageNumber,
+                pageSize: baseQueryInput.pageSize,
+                sortBy: baseQueryInput.sortBy,
+                sortDirection: baseQueryInput.sortDirection
+            };
             const { items, totalCount } = yield postsService_1.postsService.findMany(queryInput);
             const postsListOutput = (0, mapToPostListPaginatedOutput_1.mapToPostListPaginatedOutput)(items, {
                 pageNumber: queryInput.pageNumber,

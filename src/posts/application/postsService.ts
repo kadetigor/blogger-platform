@@ -17,9 +17,7 @@ export const postsService = {
     queryDto: postQueryInput,
     blogId: string,
   ): Promise<{items: WithId<Post>[]; totalCount: number}> {
-    
     await blogsRepository.findByIdOrFail(blogId);
-
     return postsRepository.findPostsbyBlog(queryDto, blogId);
   },
 

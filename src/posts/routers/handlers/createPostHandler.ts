@@ -12,13 +12,8 @@ export async function createPostHandler(
   res: Response,
 ): Promise<void> {
   try {
-    // A) get the new ID
     const createdPostId = await postsService.create(req.body);
-
-    // B) fetch the full post (now with blogName)
     const createdPost = await postsService.findByIdOrFail(createdPostId);
-
-    // C) map & send
     const postViewModel = mapToPostViewModel(createdPost);
     res.status(HttpStatus.Created).send(postViewModel);
   } catch (e: unknown) {

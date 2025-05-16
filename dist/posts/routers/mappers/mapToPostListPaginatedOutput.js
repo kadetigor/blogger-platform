@@ -1,26 +1,20 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mapToPostListPaginatedOutput = mapToPostListPaginatedOutput;
-const resourceType_1 = require("../../../core/types/resourceType");
 function mapToPostListPaginatedOutput(posts, meta) {
     return {
-        meta: {
-            page: meta.pageNumber,
-            pageSize: meta.pageSize,
-            pageCount: Math.ceil(meta.totalCount / meta.pageSize),
-            totalCount: meta.totalCount,
-        },
-        data: posts.map((post) => ({
-            type: resourceType_1.resourceType.Posts,
+        pagesCount: Math.ceil(meta.totalCount / meta.pageSize),
+        page: meta.pageNumber,
+        pageSize: meta.pageSize,
+        totalCount: meta.totalCount,
+        items: posts.map((post) => ({
             id: post._id.toString(),
-            attributes: {
-                title: post.title,
-                shortDescription: post.shortDescription,
-                content: post.content,
-                blogId: post.blogId,
-                blogName: post.blogName,
-                createdAt: post.createdAt,
-            },
+            title: post.title,
+            shortDescription: post.shortDescription,
+            content: post.content,
+            blogId: post.blogId,
+            blogName: post.blogName,
+            createdAt: post.createdAt,
         })),
     };
 }

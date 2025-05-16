@@ -4,12 +4,22 @@ import { setDefaultSortAndPaginationIfNotExist } from '../../../core/helpers/set
 import { postsService } from '../../application/postsService';
 import { mapToPostListPaginatedOutput } from '../mappers/mapToPostListPaginatedOutput';
 import { errorsHandler } from '../../../core/errors/errorsHandler';
+import { postSortField } from '../input/postSortField';
+import { sortDirection } from '../../../core/types/sortDirection';
 
 export async function getPostListHandler(
-  req: Request<{}, {}, {}, any>, 
-  res: Response) {
+  req: Request, 
+  res: Response,
+) {
   try {
-    const queryInput = setDefaultSortAndPaginationIfNotExist(req.query)
+    const baseQueryInput = setDefaultSortAndPaginationIfNotExist(req.query as any)
+    
+    const queryInput: postQueryInput = {
+      pageNumber: baseQueryInput.pageNumber,
+      pageSize: baseQueryInput.pageSize,
+      sortBy: baseQueryInput.sortBy as unknown as postSortField,
+      sortDirection: baseQueryInput.sortDirection as sortDirection
+    };
 
     const { items, totalCount } = await postsService.findMany(queryInput)
     

@@ -25,5 +25,5 @@ blogsRouter
     idValidationMiddleware,
     paginationAndSortingValidation(postSortField),
     inputValidationResultMiddleware,
-    getBlogPostsListHandler,
+    getBlogPostsListHandler
   );

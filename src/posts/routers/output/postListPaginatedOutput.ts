@@ -1,7 +1,9 @@
-import { paginatedOutput } from "../../../core/types/paginatedOutput"
-import { postDataOutput } from "./postDataOutput";
+import { postViewModel } from "../../types/postViewModel";
 
 export type postListPaginatedOutput = {
-  meta: paginatedOutput;
-  data: postDataOutput[];
+  pagesCount: number;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  items: postViewModel[];
 };

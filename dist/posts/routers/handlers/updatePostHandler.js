@@ -11,24 +11,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updatePostHandler = updatePostHandler;
 const httpStatus_1 = require("../../../core/types/httpStatus");
-const input_validtion_result_middleware_1 = require("../../../core/middlewares/validation/input-validtion-result.middleware");
-const postsRepository_1 = require("../../repositories/postsRepository");
+const errorsHandler_1 = require("../../../core/errors/errorsHandler");
+const postsService_1 = require("../../application/postsService");
 function updatePostHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const id = req.params.id;
-            const post = yield postsRepository_1.postsRepository.findByIdOrFail(id);
-            if (!post) {
-                res
-                    .status(httpStatus_1.HttpStatus.NotFound)
-                    .send((0, input_validtion_result_middleware_1.createErrorMessages)([{ field: 'id', message: 'Post not found' }]));
-                return;
-            }
-            yield postsRepository_1.postsRepository.update(id, req.body.data.attributes);
+            yield postsService_1.postsService.update(id, req.body.data.attributes);
             res.sendStatus(httpStatus_1.HttpStatus.NoContent);
         }
         catch (e) {
-            res.sendStatus(httpStatus_1.HttpStatus.InternalServerError);
+            (0, errorsHandler_1.errorsHandler)(e, res);
         }
     });
 }
