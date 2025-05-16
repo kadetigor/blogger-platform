@@ -3,7 +3,6 @@ import { NextFunction, Request, Response } from "express";
 import { HttpStatus } from "../../types/httpStatus";
 import { ValidationErrorType } from "../../types/validationError";
 import { ValidationErrorDto } from "../../types/validationError.dto";
-//
 
 export const createErrorMessages = (
   errors: ValidationErrorType[],
@@ -11,12 +10,12 @@ export const createErrorMessages = (
   return { errorMessages: errors };
 };
 
-const formatErrors = (error: ValidationError): ValidationErrorType => {
+const formatValidationErrors = (error: ValidationError): ValidationErrorType => {
   const expressError = error as unknown as FieldValidationError;
 
   return {
+    field: expressError.path,
     message: expressError.msg,
-    field: expressError.path
   }
 }
 
@@ -26,10 +25,10 @@ export const inputValidationResultMiddleware = (
   next: NextFunction
 ) => {
   const errors = validationResult(req)
-    .formatWith(formatErrors)
+    .formatWith(formatValidationErrors)
     .array({ onlyFirstError: true })
   if (errors.length > 0) {
-    res.status(HttpStatus.BadRequest).json({ errorsMessages: errors })
+    res.status(HttpStatus.BadRequest).json({ errorMessages: errors })
     return;
   }
 

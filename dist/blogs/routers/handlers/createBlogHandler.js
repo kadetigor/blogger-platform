@@ -10,25 +10,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createBlogHandler = createBlogHandler;
-const blogsRepository_1 = require("../../repositories/blogsRepository");
+const blogsService_1 = require("../../application/blogsService");
 const httpStatus_1 = require("../../../core/types/httpStatus");
-const mapToBlogViewModel_1 = require("../mappers/mapToBlogViewModel");
+const mapToBlogOutput_1 = require("../mappers/mapToBlogOutput");
+const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 function createBlogHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const newBlog = {
-                name: req.body.name,
-                description: req.body.description,
-                websiteUrl: req.body.websiteUrl,
-                createdAt: new Date(),
-                isMembership: false,
-            };
-            const createdBlog = yield blogsRepository_1.blogsRepository.create(newBlog);
-            const blogViewModel = (0, mapToBlogViewModel_1.mapToBlogViewModel)(createdBlog);
-            res.status(httpStatus_1.HttpStatus.Created).send(blogViewModel);
+            const createdBlogId = yield blogsService_1.blogsService.create(req.body.data.attributes);
+            const createdBlog = yield blogsService_1.blogsService.findByIdOrFail(createdBlogId);
+            const blogOutput = (0, mapToBlogOutput_1.mapToBlogOutput)(createdBlog);
+            res.status(httpStatus_1.HttpStatus.Created).send(blogOutput);
         }
         catch (e) {
-            res.sendStatus(httpStatus_1.HttpStatus.InternalServerError);
+            (0, errorsHandler_1.errorsHandler)(e, res);
         }
     });
 }

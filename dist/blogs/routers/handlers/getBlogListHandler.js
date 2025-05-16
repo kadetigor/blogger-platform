@@ -9,19 +9,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBlogsListHandler = getBlogsListHandler;
-const blogsRepository_1 = require("../../repositories/blogsRepository");
-const httpStatus_1 = require("../../../core/types/httpStatus");
-const mapToBlogViewModel_1 = require("../mappers/mapToBlogViewModel");
-function getBlogsListHandler(req, res) {
+exports.getBlogListHandler = getBlogListHandler;
+const setDefaultSortAndPagination_1 = require("../../../core/helpers/setDefaultSortAndPagination");
+const mapToBlogListPaginatedOutput_1 = require("../mappers/mapToBlogListPaginatedOutput");
+const errorsHandler_1 = require("../../../core/errors/errorsHandler");
+const blogsService_1 = require("../../application/blogsService");
+function getBlogListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const blogs = yield blogsRepository_1.blogsRepository.findAll();
-            const blogViewModel = blogs.map(mapToBlogViewModel_1.mapToBlogViewModel);
-            res.send(blogViewModel);
+            const queryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(req.query);
+            const { items, totalCount } = yield blogsService_1.blogsService.findMany(queryInput);
+            const blogsListOutput = (0, mapToBlogListPaginatedOutput_1.mapToBlogListPaginatedOutput)(items, {
+                pageNumber: queryInput.pageNumber,
+                pageSize: queryInput.pageSize,
+                totalCount,
+            });
+            res.send(blogsListOutput);
         }
         catch (e) {
-            res.sendStatus(httpStatus_1.HttpStatus.InternalServerError);
+            (0, errorsHandler_1.errorsHandler)(e, res);
         }
     });
 }

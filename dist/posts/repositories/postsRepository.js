@@ -12,27 +12,55 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.postsRepository = void 0;
 const mongoDb_1 = require("../../db/mongoDb");
 const mongodb_1 = require("mongodb");
+const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 exports.postsRepository = {
-    // Найти все посты
-    findAll() {
+    findMany(queryDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            return mongoDb_1.postCollection.find().toArray();
+            const { pageNumber, pageSize, sortBy, sortDirection, } = queryDto;
+            const skip = (pageNumber - 1) * pageSize;
+            const filter = {};
+            const items = yield mongoDb_1.postCollection
+                .find(filter)
+                .sort({ [sortBy]: sortDirection })
+                .skip(skip)
+                .limit(pageSize)
+                .toArray();
+            const totalCount = yield mongoDb_1.postCollection.countDocuments(filter);
+            return { items, totalCount };
         });
     },
-    // Найти пост по ID
-    findById(id) {
+    findPostsbyBlog(queryDto, blogId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return mongoDb_1.postCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
+            const { pageNumber, pageSize, sortBy, sortDirection } = queryDto;
+            const filter = { 'blog.id': blogId };
+            const skip = (pageNumber - 1) * pageSize;
+            const [items, totalCount] = yield Promise.all([
+                mongoDb_1.postCollection
+                    .find(filter)
+                    .sort({ [sortBy]: sortDirection })
+                    .skip(skip)
+                    .limit(pageSize)
+                    .toArray(),
+                mongoDb_1.postCollection.countDocuments(filter),
+            ]);
+            return { items, totalCount };
         });
     },
-    // Создать новый пост
+    findByIdOrFail(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const res = yield mongoDb_1.postCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
+            if (!res) {
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('Post does not exist');
+            }
+            return res;
+        });
+    },
     create(newPost) {
         return __awaiter(this, void 0, void 0, function* () {
             const insertResult = yield mongoDb_1.postCollection.insertOne(newPost);
-            return Object.assign(Object.assign({}, newPost), { _id: insertResult.insertedId });
+            return insertResult.insertedId.toString();
         });
     },
-    // Обновить данные поста
     update(id, dto) {
         return __awaiter(this, void 0, void 0, function* () {
             const updateResult = yield mongoDb_1.postCollection.updateOne({
@@ -42,21 +70,24 @@ exports.postsRepository = {
                     title: dto.title,
                     shortDescription: dto.shortDescription,
                     content: dto.content,
-                    blogId: dto.blogId
-                }
+                    blogId: dto.blogId,
+                },
             });
+            if (updateResult.matchedCount < 1) {
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('Post does not exist');
+            }
+            return;
         });
     },
-    // Удалить пост
     delete(id) {
         return __awaiter(this, void 0, void 0, function* () {
             const deleteResult = yield mongoDb_1.postCollection.deleteOne({
                 _id: new mongodb_1.ObjectId(id),
             });
             if (deleteResult.deletedCount < 1) {
-                throw new Error('Driver not exist');
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('Post does not exist');
             }
             return;
         });
-    },
+    }
 };

@@ -11,25 +11,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBlogHandler = getBlogHandler;
 const httpStatus_1 = require("../../../core/types/httpStatus");
-const input_validtion_result_middleware_1 = require("../../../core/middlewares/validation/input-validtion-result.middleware");
-const blogsRepository_1 = require("../../repositories/blogsRepository");
-const mapToBlogViewModel_1 = require("../mappers/mapToBlogViewModel");
+const mapToBlogOutput_1 = require("../mappers/mapToBlogOutput");
+const errorsHandler_1 = require("../../../core/errors/errorsHandler");
+const blogsService_1 = require("../../application/blogsService");
 function getBlogHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const id = req.params.id;
-            const blog = yield blogsRepository_1.blogsRepository.findById(id);
-            if (!blog) {
-                res
-                    .status(httpStatus_1.HttpStatus.NotFound)
-                    .send((0, input_validtion_result_middleware_1.createErrorMessages)([{ field: 'id', message: 'Blog not found' }]));
-                return;
-            }
-            const blogViewModel = (0, mapToBlogViewModel_1.mapToBlogViewModel)(blog);
-            res.status(httpStatus_1.HttpStatus.Ok).send(blogViewModel);
+            const blog = yield blogsService_1.blogsService.findByIdOrFail(id);
+            const blogOutput = (0, mapToBlogOutput_1.mapToBlogOutput)(blog);
+            res.status(httpStatus_1.HttpStatus.Ok).send(blogOutput);
         }
         catch (e) {
-            res.sendStatus(httpStatus_1.HttpStatus.InternalServerError);
+            (0, errorsHandler_1.errorsHandler)(e, res);
         }
     });
 }

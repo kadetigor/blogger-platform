@@ -1,14 +1,27 @@
 import { Request, Response } from "express";
-import { blogsRepository } from "../../repositories/blogsRepository";
-import { HttpStatus } from "../../../core/types/httpStatus";
-import { mapToBlogViewModel } from "../mappers/mapToBlogViewModel";
+import { blogQueryInput } from "../input/blogQueryInput";
+import { setDefaultSortAndPaginationIfNotExist } from "../../../core/helpers/setDefaultSortAndPagination";
+import { mapToBlogListPaginatedOutput } from "../mappers/mapToBlogListPaginatedOutput";
+import { errorsHandler } from "../../../core/errors/errorsHandler";
+import { blogsService } from "../../application/blogsService";
 
-export async function getBlogsListHandler(req: Request, res: Response) {
+export async function getBlogListHandler(
+  req: Request<{}, {}, {}, blogQueryInput>,
+  res: Response,
+) {
   try {
-    const blogs = await blogsRepository.findAll();
-    const blogViewModel = blogs.map(mapToBlogViewModel)
-    res.send(blogViewModel);
+    const queryInput = setDefaultSortAndPaginationIfNotExist(req.query);
+
+    const { items, totalCount } = await blogsService.findMany(queryInput);
+
+    const blogsListOutput = mapToBlogListPaginatedOutput(items, {
+      pageNumber: queryInput.pageNumber,
+      pageSize: queryInput.pageSize,
+      totalCount,
+    });
+
+    res.send(blogsListOutput);
   } catch (e: unknown) {
-    res.sendStatus(HttpStatus.InternalServerError)
+    errorsHandler(e, res);
   }
 }

@@ -17,7 +17,7 @@ function deletePostHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const id = req.params.id;
-            const post = yield postsRepository_1.postsRepository.findById(id);
+            const post = yield postsRepository_1.postsRepository.findByIdOrFail(id);
             if (!post) {
                 res
                     .status(httpStatus_1.HttpStatus.NotFound)

@@ -1,28 +1,75 @@
-import { Post } from "../types/post";
-import { postInputDto } from '../dto/postInputDto'
+import { Post } from "../domain/post";
+import { postAttributes } from '../application/dtos/postAttributes';
 import { blogsRepository } from '../../blogs/repositories/blogsRepository';
 import { postCollection } from "../../db/mongoDb";
 import { ObjectId, WithId } from "mongodb";
+import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
+import { postQueryInput } from "../routers/input/postQueryInput";
 
 export const postsRepository = {
-  // Найти все посты
-  async findAll(): Promise<WithId<Post>[]> {
-    return postCollection.find().toArray();
+
+  async findMany(
+    queryDto: postQueryInput,
+  ): Promise<{ items: WithId<Post>[]; totalCount: number }> {
+    const {
+      pageNumber,
+      pageSize,
+      sortBy,
+      sortDirection,
+    } = queryDto
+
+    const skip = (pageNumber - 1) * pageSize;
+    const filter: any = {};
+
+    const items = await postCollection
+      .find(filter)
+      .sort({ [sortBy]: sortDirection })
+      .skip(skip)
+      .limit(pageSize)
+      .toArray();
+
+    const totalCount = await postCollection.countDocuments(filter);
+
+    return { items, totalCount };
   },
 
-  // Найти пост по ID
-  async findById(id: string): Promise<WithId<Post> | null> {
-    return postCollection.findOne({ _id: new ObjectId(id) });
+  async findPostsbyBlog(
+    queryDto: postQueryInput,
+    blogId: string,
+  ): Promise<{ items: WithId<Post>[]; totalCount: number }> {
+
+    const { pageNumber, pageSize, sortBy, sortDirection } = queryDto;
+    const filter = { 'blog.id': blogId };
+    const skip = (pageNumber - 1) * pageSize;
+
+    const [items, totalCount] = await Promise.all([
+      postCollection
+        .find(filter)
+        .sort({ [sortBy]: sortDirection })
+        .skip(skip)
+        .limit(pageSize)
+        .toArray(),
+      postCollection.countDocuments(filter),
+    ]);
+    return { items, totalCount };
   },
 
-  // Создать новый пост
-  async create(newPost: Post): Promise<WithId<Post>> {
+  async findByIdOrFail(id: string): Promise<WithId<Post>> {
+    const res = await postCollection.findOne({ _id: new ObjectId(id) });
+
+    if (!res) {
+      throw new repositoryNotFoundError('Post does not exist')
+    }
+    return res;
+  },
+
+  async create(newPost: Post): Promise<string> {
     const insertResult = await postCollection.insertOne(newPost);
-    return { ...newPost, _id: insertResult.insertedId };
+
+    return insertResult.insertedId.toString();
   },
 
-  // Обновить данные поста
-  async update(id: string, dto: postInputDto): Promise<void> {
+  async update(id: string, dto: postAttributes): Promise<void> {
     const updateResult = await postCollection.updateOne(
       {
         _id: new ObjectId(id),
@@ -32,21 +79,28 @@ export const postsRepository = {
           title: dto.title,
           shortDescription: dto.shortDescription,
           content: dto.content,
-          blogId: dto.blogId
-        }
-      }
-    )
+          blogId: dto.blogId,
+        },
+      },
+    );
+
+    if (updateResult.matchedCount < 1) {
+      throw new repositoryNotFoundError('Post does not exist')
+    }
+
+    return;
   },
 
-  // Удалить пост
   async delete(id: string): Promise<void> {
     const deleteResult = await postCollection.deleteOne({
       _id: new ObjectId(id),
     });
 
     if (deleteResult.deletedCount < 1) {
-      throw new Error('Driver not exist');
+      throw new repositoryNotFoundError('Post does not exist')
     }
+
     return;
-  },
+  }
 };
+

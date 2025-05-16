@@ -11,24 +11,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteBlogHandler = deleteBlogHandler;
 const httpStatus_1 = require("../../../core/types/httpStatus");
-const input_validtion_result_middleware_1 = require("../../../core/middlewares/validation/input-validtion-result.middleware");
-const blogsRepository_1 = require("../../repositories/blogsRepository");
+const blogsService_1 = require("../../application/blogsService");
+const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 function deleteBlogHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const id = req.params.id;
-            const blog = yield blogsRepository_1.blogsRepository.findById(id);
-            if (!blog) {
-                res
-                    .status(httpStatus_1.HttpStatus.NotFound)
-                    .send((0, input_validtion_result_middleware_1.createErrorMessages)([{ message: 'Blog not found', field: 'id' }]));
-                return;
-            }
-            yield blogsRepository_1.blogsRepository.delete(id);
+            yield blogsService_1.blogsService.delete(id);
             res.sendStatus(httpStatus_1.HttpStatus.NoContent);
         }
         catch (e) {
-            res.sendStatus(httpStatus_1.HttpStatus.InternalServerError);
+            (0, errorsHandler_1.errorsHandler)(e, res);
         }
     });
 }

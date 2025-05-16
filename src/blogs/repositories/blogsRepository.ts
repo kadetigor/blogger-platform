@@ -1,66 +1,96 @@
-import {Blog} from "../types/blog";
+import { Blog } from "../domain/blog";
 import { blogCollection } from "../../db/mongoDb";
-import {blogInputDto} from "../dto/blogsDto";
 import { ObjectId, WithId } from "mongodb";
+import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
+import { blogAttributes } from "../application/dtos/blogAttributes";
+import { blogQueryInput } from "../routers/input/blogQueryInput";
 
 export const blogsRepository = {
-    // Найти все блоги
-    async findAll(): Promise<WithId<Blog>[]> {
-        return blogCollection.find().toArray();
-    },
 
-    // Найти блог по ID
-    async findById(id: string): Promise<WithId<Blog> | null> {
-        return blogCollection.findOne({_id: new ObjectId(id)})
-    },
+  async findMany(
+    queryDto: blogQueryInput,
+  ): Promise<{ items: WithId<Blog>[]; totalCount: number }> {
+    const {
+      pageNumber,
+      pageSize,
+      sortBy,
+      sortDirection,
+    } = queryDto
 
-    // Создать новый блог
-    async create(newBlog: Blog): Promise<WithId<Blog>> {
-        const insertResult = await blogCollection.insertOne(newBlog)
-        return { ...newBlog, _id: insertResult.insertedId}
-    },
+    const skip = (pageNumber - 1) * pageSize;
+    const filter: any = {};
 
-    // Обновить данные поста
-    async update(id: string, dto: blogInputDto): Promise<void> {
-        const updateResult = await blogCollection.updateOne(
-            {
-                _id: new ObjectId(id),
-            },
-            {
-                $set: {
-                    name: dto.name,
-                    description: dto.description,
-                    websiteUrl: dto.websiteUrl
-                }
-            },
-        );
+    const items = await blogCollection
+      .find(filter)
+      .sort({ [sortBy]: sortDirection })
+      .skip(skip)
+      .limit(pageSize)
+      .toArray();
 
-        if (updateResult.matchedCount < 1) {
-            throw new Error('Blog does not exist')
-        }
-        return;
-    },
+    const totalCount = await blogCollection.countDocuments(filter);
 
-    // Удалить пост
-    async delete(id: string): Promise<void> {
-        const deleteResult = await blogCollection.deleteOne({
-            _id: new ObjectId(id),
-        })
+    return { items, totalCount };
+  },
 
-        if (deleteResult.deletedCount < 1) {
-            throw new Error('Blog does not exist')
-        }
+  // async findById(id: string): Promise<WithId<Blog> | null> {
+  //  return blogCollection.findOne({ _id: new ObjectId(id) });
+  // },
 
-        return;
-    },
+  async findByIdOrFail(id: string): Promise<WithId<Blog>> {
+    const res = await blogCollection.findOne({ _id: new ObjectId(id) });
 
-    async getBlogName(id: string): Promise<string> {
-        const blogResult = await blogCollection.findOne({_id: new ObjectId(id)});
-
-        if(!blogResult) {
-            throw new Error('No blog with this id')
-        }
-
-        return blogResult.name;
+    if (!res) {
+      throw new repositoryNotFoundError('Blog does not exist')
     }
+    return res;
+  },
+
+  async create(newBlog: Blog): Promise<string> {
+    const insertResult = await blogCollection.insertOne(newBlog);
+
+    return insertResult.insertedId.toString();
+  },
+
+  async update(id: string, dto: blogAttributes): Promise<void> {
+    const updateResult = await blogCollection.updateOne(
+      {
+        _id: new ObjectId(id),
+      },
+      {
+        $set: {
+          name: dto.name,
+          description: dto.description,
+          websiteUrl: dto.websiteUrl,
+        },
+      },
+    );
+
+    if (updateResult.matchedCount < 1) {
+      throw new repositoryNotFoundError('Blog does not Exist')
+    }
+
+    return;
+  },
+
+  async delete(id: string): Promise<void> {
+    const deleteResult = await blogCollection.deleteOne({
+      _id: new ObjectId(id),
+    });
+
+    if (deleteResult.deletedCount < 1) {
+      throw new repositoryNotFoundError('Blog does not exist')
+    }
+
+    return;
+  },
+
+  async getBlogName(id: string): Promise<string> {
+    const blogResult = await blogCollection.findOne({_id: new ObjectId(id)});
+
+    if(!blogResult) {
+        throw new Error('No blog with this id')
+    }
+
+    return blogResult.name;
+  }
 };

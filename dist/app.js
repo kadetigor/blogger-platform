@@ -19,21 +19,12 @@ const blogsRouter_1 = require("./blogs/routers/blogsRouter");
 const postsRouter_1 = require("./posts/routers/postsRouter");
 const testingRouter_1 = require("./testing/routers/testingRouter");
 const paths_1 = require("./core/paths/paths");
-const super_admin_guard_middleware_1 = require("./auth/middlewares/super-admin.guard-middleware");
 const setupApp = (app) => __awaiter(void 0, void 0, void 0, function* () {
     // export const app = express();
     app.use(express_1.default.json());
     app.use((0, cors_1.default)());
     app.get('/', (_req, res) => {
         res.status(200).send('Hello my blogger-platform');
-    });
-    app.get('/test-auth', super_admin_guard_middleware_1.superAdminGuardMiddleware, (req, res) => {
-        res.json({ message: 'Authentication successful',
-            env: {
-                admin: process.env.ADMIN_USERNAME,
-                hasPassword: !!process.env.ADMIN_PASSWORD
-            }
-        });
     });
     app.use(paths_1.POSTS_PATH, postsRouter_1.postsRouter);
     app.use(paths_1.BLOGS_PATH, blogsRouter_1.blogsRouter);

@@ -12,27 +12,41 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.blogsRepository = void 0;
 const mongoDb_1 = require("../../db/mongoDb");
 const mongodb_1 = require("mongodb");
+const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 exports.blogsRepository = {
-    // Найти все блоги
-    findAll() {
+    findMany(queryDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            return mongoDb_1.blogCollection.find().toArray();
+            const { pageNumber, pageSize, sortBy, sortDirection, } = queryDto;
+            const skip = (pageNumber - 1) * pageSize;
+            const filter = {};
+            const items = yield mongoDb_1.blogCollection
+                .find(filter)
+                .sort({ [sortBy]: sortDirection })
+                .skip(skip)
+                .limit(pageSize)
+                .toArray();
+            const totalCount = yield mongoDb_1.blogCollection.countDocuments(filter);
+            return { items, totalCount };
         });
     },
-    // Найти блог по ID
-    findById(id) {
+    // async findById(id: string): Promise<WithId<Blog> | null> {
+    //  return blogCollection.findOne({ _id: new ObjectId(id) });
+    // },
+    findByIdOrFail(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            return mongoDb_1.blogCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
+            const res = yield mongoDb_1.blogCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
+            if (!res) {
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('Blog does not exist');
+            }
+            return res;
         });
     },
-    // Создать новый блог
     create(newBlog) {
         return __awaiter(this, void 0, void 0, function* () {
             const insertResult = yield mongoDb_1.blogCollection.insertOne(newBlog);
-            return Object.assign(Object.assign({}, newBlog), { _id: insertResult.insertedId });
+            return insertResult.insertedId.toString();
         });
     },
-    // Обновить данные поста
     update(id, dto) {
         return __awaiter(this, void 0, void 0, function* () {
             const updateResult = yield mongoDb_1.blogCollection.updateOne({
@@ -41,23 +55,22 @@ exports.blogsRepository = {
                 $set: {
                     name: dto.name,
                     description: dto.description,
-                    websiteUrl: dto.websiteUrl
-                }
+                    websiteUrl: dto.websiteUrl,
+                },
             });
             if (updateResult.matchedCount < 1) {
-                throw new Error('Blog does not exist');
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('Blog does not Exist');
             }
             return;
         });
     },
-    // Удалить пост
     delete(id) {
         return __awaiter(this, void 0, void 0, function* () {
             const deleteResult = yield mongoDb_1.blogCollection.deleteOne({
                 _id: new mongodb_1.ObjectId(id),
             });
             if (deleteResult.deletedCount < 1) {
-                throw new Error('Blog does not exist');
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('Blog does not exist');
             }
             return;
         });

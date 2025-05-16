@@ -10,18 +10,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPostListHandler = getPostListHandler;
-const postsRepository_1 = require("../../repositories/postsRepository");
-const httpStatus_1 = require("../../../core/types/httpStatus");
-const mapToPostViewModel_1 = require("../mappers/mapToPostViewModel");
+const setDefaultSortAndPagination_1 = require("../../../core/helpers/setDefaultSortAndPagination");
+const postsService_1 = require("../../application/postsService");
+const mapToPostListPaginatedOutput_1 = require("../mappers/mapToPostListPaginatedOutput");
+const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 function getPostListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const posts = yield postsRepository_1.postsRepository.findAll();
-            const postViewModel = posts.map(mapToPostViewModel_1.mapToPostViewModel);
-            res.send(postViewModel);
+            const queryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(req.query);
+            const { items, totalCount } = yield postsService_1.postsService.findMany(queryInput);
+            const postsListOutput = (0, mapToPostListPaginatedOutput_1.mapToPostListPaginatedOutput)(items, {
+                pageNumber: queryInput.pageNumber,
+                pageSize: queryInput.pageSize,
+                totalCount,
+            });
+            res.send(postsListOutput);
         }
         catch (e) {
-            res.sendStatus(httpStatus_1.HttpStatus.InternalServerError);
+            (0, errorsHandler_1.errorsHandler)(e, res);
         }
     });
 }
