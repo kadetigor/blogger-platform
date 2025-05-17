@@ -20,7 +20,9 @@ exports.postsService = {
     },
     findPostsbyBlog(queryDto, blogId) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log(`got to findPostsbyBlog`);
             yield blogsRepository_1.blogsRepository.findByIdOrFail(blogId);
+            console.log(`recieved ${blogId} at findPostsbyBlog`);
             return postsRepository_1.postsRepository.findPostsbyBlog(queryDto, blogId);
         });
     },

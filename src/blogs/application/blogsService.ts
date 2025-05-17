@@ -16,6 +16,7 @@ export const blogsService = {
   },
 
   async create(dto: blogAttributes): Promise<string> {
+    console.log(`got into blogService with such Attributes ${dto}`)
     const newBlog: Blog = {
       name: dto.name,
       description: dto.description,

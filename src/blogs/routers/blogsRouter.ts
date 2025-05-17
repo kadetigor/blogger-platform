@@ -11,6 +11,8 @@ import { inputValidationResultMiddleware } from "../../core/middlewares/validati
 import { paginationAndSortingValidation } from '../../core/middlewares/validation/queryPaginationSortingValidationMiddleware';
 import { postSortField } from '../../posts/routers/input/postSortField';
 import { getBlogPostsListHandler } from '../../posts/routers/handlers/getBlogPostsListHandler';
+import { postInputDtoValidation } from '../../posts/routers/postInputDtoValidationMiddleware';
+import { createPostHandler } from '../../posts/routers/handlers/createPostHandler';
 
 export const blogsRouter = Router()
 
@@ -26,4 +28,11 @@ blogsRouter
     paginationAndSortingValidation(postSortField),
     inputValidationResultMiddleware,
     getBlogPostsListHandler
+  )
+  .post('/:id/posts',
+    superAdminGuardMiddleware,
+    idValidationMiddleware,
+    postInputDtoValidation,
+    inputValidationResultMiddleware,
+    createPostHandler
   );

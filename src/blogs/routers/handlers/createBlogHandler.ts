@@ -10,9 +10,7 @@ export async function createBlogHandler(
   res: Response,
 ) {
   try {
-    const createdBlogId = await blogsService.create(
-      req.body.data.attributes,
-    );
+    const createdBlogId = await blogsService.create(req.body);
 
     const createdBlog = await blogsService.findByIdOrFail(createdBlogId);
 

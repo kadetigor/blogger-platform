@@ -17,7 +17,7 @@ const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 function createBlogHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const createdBlogId = yield blogsService_1.blogsService.create(req.body.data.attributes);
+            const createdBlogId = yield blogsService_1.blogsService.create(req.body);
             const createdBlog = yield blogsService_1.blogsService.findByIdOrFail(createdBlogId);
             const blogOutput = (0, mapToBlogOutput_1.mapToBlogOutput)(createdBlog);
             res.status(httpStatus_1.HttpStatus.Created).send(blogOutput);

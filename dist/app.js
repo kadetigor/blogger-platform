@@ -23,6 +23,11 @@ const setupApp = (app) => __awaiter(void 0, void 0, void 0, function* () {
     // export const app = express();
     app.use(express_1.default.json());
     app.use((0, cors_1.default)());
+    // The following block allows us to write into consol requested endpoint address
+    app.use((_req, res, next) => {
+        console.log(_req.path);
+        next();
+    });
     app.get('/', (_req, res) => {
         res.status(200).send('Hello my blogger-platform');
     });

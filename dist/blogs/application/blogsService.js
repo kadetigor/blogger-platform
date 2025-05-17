@@ -24,6 +24,7 @@ exports.blogsService = {
     },
     create(dto) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log(`got into blogService with such Attributes ${dto}`);
             const newBlog = {
                 name: dto.name,
                 description: dto.description,

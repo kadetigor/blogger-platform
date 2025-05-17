@@ -13,6 +13,12 @@ export const setupApp = async (app: Express) => {
   app.use(express.json());
   app.use(cors());
 
+  // The following block allows us to write into consol requested endpoint address
+  app.use((_req, res, next) => {
+    console.log(_req.path);
+    next()
+  });
+
   app.get('/', (_req, res) => {
     res.status(200).send('Hello my blogger-platform');
   });

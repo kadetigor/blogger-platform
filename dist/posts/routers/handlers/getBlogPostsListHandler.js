@@ -15,10 +15,14 @@ const postsService_1 = require("../../application/postsService");
 const mapToPostListPaginatedOutput_1 = require("../mappers/mapToPostListPaginatedOutput");
 function getBlogPostsListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
+        // Debug
+        console.log('got to getBlogPostsListHandler');
         try {
             const blogId = req.params.id;
             const queryInput = req.query;
             const { items, totalCount } = yield postsService_1.postsService.findPostsbyBlog(queryInput, blogId);
+            // Debug
+            console.log({ items, totalCount });
             const postListOutput = (0, mapToPostListPaginatedOutput_1.mapToPostListPaginatedOutput)(items, {
                 pageNumber: queryInput.pageNumber,
                 pageSize: queryInput.pageSize,

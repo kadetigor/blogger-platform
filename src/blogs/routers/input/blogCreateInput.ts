@@ -3,8 +3,7 @@ import { blogAttributes } from "../../application/dtos/blogAttributes";
 
 
 export type blogCreateInput = {
-  data: {
-    type: resourceType.Blogs;
-    attributes: blogAttributes;
-  };
+  name: string,
+  description: string,
+  websiteUrl: string,
 };

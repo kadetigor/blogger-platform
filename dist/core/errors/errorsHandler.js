@@ -7,6 +7,7 @@ const input_validtion_result_middleware_1 = require("../middlewares/validation/i
 const domainError_1 = require("./domainError");
 function errorsHandler(error, res) {
     if (error instanceof repositoryNotFoundError_1.repositoryNotFoundError) {
+        console.log(`got into repositoryNotFoundError`);
         const httpStatus = httpStatus_1.HttpStatus.NotFound;
         res.status(httpStatus).send((0, input_validtion_result_middleware_1.createErrorMessages)([
             {
@@ -17,6 +18,7 @@ function errorsHandler(error, res) {
         return;
     }
     if (error instanceof domainError_1.domainError) {
+        console.log(`got into domainError`);
         const httpStatus = httpStatus_1.HttpStatus.UnprocessableEntity;
         res.status(httpStatus).send((0, input_validtion_result_middleware_1.createErrorMessages)([
             {
@@ -26,6 +28,7 @@ function errorsHandler(error, res) {
         ]));
         return;
     }
+    console.log(`got into InternalServerError with ${error} and ${res}`);
     res.status(httpStatus_1.HttpStatus.InternalServerError);
     return;
 }
