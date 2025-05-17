@@ -15,9 +15,11 @@ const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 const postsService_1 = require("../../application/postsService");
 function updatePostHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log('got to updatePostHandler');
         try {
             const id = req.params.id;
-            yield postsService_1.postsService.update(id, req.body.data.attributes);
+            console.log(`got id it is ${id}`);
+            yield postsService_1.postsService.update(id, req.body);
             res.sendStatus(httpStatus_1.HttpStatus.NoContent);
         }
         catch (e) {

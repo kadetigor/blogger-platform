@@ -8,9 +8,11 @@ export async function updatePostHandler(
   req: Request<{ id: string }, {}, postUpdateInput>,
   res: Response,
 ) {
+  console.log('got to updatePostHandler')
   try {
     const id = req.params.id;
-    await postsService.update(id, req.body.data.attributes);
+    console.log(`got id it is ${id}`)
+    await postsService.update(id, req.body);
     res.sendStatus(HttpStatus.NoContent);
   } catch (e: unknown) {
     errorsHandler(e, res);

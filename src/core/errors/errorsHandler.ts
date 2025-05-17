@@ -6,7 +6,6 @@ import { domainError } from './domainError';
 
 export function errorsHandler(error: unknown, res: Response): void {
   if (error instanceof repositoryNotFoundError) {
-    console.log(`got into repositoryNotFoundError`)
     const httpStatus = HttpStatus.NotFound;
 
     res.status(httpStatus).send(
@@ -22,7 +21,6 @@ export function errorsHandler(error: unknown, res: Response): void {
   }
 
   if (error instanceof domainError) {
-    console.log(`got into domainError`)
     const httpStatus = HttpStatus.UnprocessableEntity;
 
     res.status(httpStatus).send(
@@ -36,7 +34,6 @@ export function errorsHandler(error: unknown, res: Response): void {
 
     return;
   }
-  console.log(`got into InternalServerError with ${error} and ${res}`)
   res.status(HttpStatus.InternalServerError);
   return;
 }

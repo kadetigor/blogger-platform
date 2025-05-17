@@ -38,7 +38,6 @@ export const postsRepository = {
     blogId: string,
   ): Promise<{ items: WithId<Post>[]; totalCount: number }> {
 
-    console.log(`recieved ${queryDto} and ${blogId} at findPostsbyBlog`)
 
     const {
       pageNumber    = 1,
@@ -47,10 +46,6 @@ export const postsRepository = {
       sortDirection = 'desc',
     } = queryDto;
     
-
-    console.log(
-      `queryDto → pageNumber=${pageNumber}, pageSize=${pageSize}, sortBy=${sortBy}, sortDirection=${sortDirection}`
-    );
 
     const filter = { blogId: blogId };
     const skip = (pageNumber - 1) * pageSize;
@@ -63,7 +58,6 @@ export const postsRepository = {
         .toArray(),
       postCollection.countDocuments(filter),
     ]);
-    console.log(`got ${items} and ${totalCount} at findPostsbyBlog before returning them`)
     return { items, totalCount };
   },
 

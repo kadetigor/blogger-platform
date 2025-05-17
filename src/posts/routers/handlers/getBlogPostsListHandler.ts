@@ -8,8 +8,6 @@ export async function getBlogPostsListHandler(
   req: Request,
   res: Response,
 ) {
-  // Debug
-  console.log('got to getBlogPostsListHandler')
 
   try {
     const blogId = req.params.id;
@@ -19,9 +17,7 @@ export async function getBlogPostsListHandler(
       queryInput,
       blogId,
     );
-    
-    // Debug
-    console.log({ items, totalCount })                         
+                      
 
     const postListOutput = mapToPostListPaginatedOutput(items, {
       pageNumber: queryInput.pageNumber,

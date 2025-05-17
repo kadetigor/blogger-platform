@@ -18,11 +18,9 @@ export const postsService = {
     blogId: string,
   ): Promise<{items: WithId<Post>[]; totalCount: number}> {
 
-    console.log(`got to findPostsbyBlog`)
 
     await blogsRepository.findByIdOrFail(blogId);
 
-    console.log(`recieved ${blogId} at findPostsbyBlog`)
     
     return postsRepository.findPostsbyBlog(queryDto, blogId);
   },
@@ -32,6 +30,7 @@ export const postsService = {
   },
 
   async create(dto: postAttributes): Promise<string> {
+
 
     const blog = await blogsRepository.findByIdOrFail(dto.blogId);
 
@@ -47,6 +46,7 @@ export const postsService = {
   },
 
   async update(id: string, dto: postAttributes): Promise<void> {
+    console.log(`got to update`)
     await postsRepository.update(id, dto)
     return;
   },

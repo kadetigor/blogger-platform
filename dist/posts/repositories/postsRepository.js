@@ -31,9 +31,7 @@ exports.postsRepository = {
     },
     findPostsbyBlog(queryDto, blogId) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log(`recieved ${queryDto} and ${blogId} at findPostsbyBlog`);
             const { pageNumber = 1, pageSize = 10, sortBy = 'createdAt', sortDirection = 'desc', } = queryDto;
-            console.log(`queryDto → pageNumber=${pageNumber}, pageSize=${pageSize}, sortBy=${sortBy}, sortDirection=${sortDirection}`);
             const filter = { blogId: blogId };
             const skip = (pageNumber - 1) * pageSize;
             const [items, totalCount] = yield Promise.all([
@@ -45,7 +43,6 @@ exports.postsRepository = {
                     .toArray(),
                 mongoDb_1.postCollection.countDocuments(filter),
             ]);
-            console.log(`got ${items} and ${totalCount} at findPostsbyBlog before returning them`);
             return { items, totalCount };
         });
     },

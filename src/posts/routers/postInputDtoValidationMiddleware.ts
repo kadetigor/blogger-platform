@@ -16,20 +16,20 @@ const contentValidation = body('content')
   .isString().withMessage('content should be string')
   .trim().isLength({ min: 1, max: 1000 }).withMessage('Content is too long');
 
-const blogIdValidation = body('blogId')
-  .isString().withMessage('blogId should be string')
-  .custom((value) => {
-    const blog = blogsRepository.findByIdOrFail(value);
-    if (!blog) {
-      throw new Error('No blog with this id');
-    }
-    return true;
-  });
+// const blogIdValidation = body('blogId')
+//   .isString().withMessage('blogId should be string')
+//   .custom((value) => {
+//     const blog = blogsRepository.findByIdOrFail(value);
+//     if (!blog) {
+//       throw new Error('No blog with this id');
+//     }
+//     return true;
+//   });
 
 
 export const postInputDtoValidation = [
   titleValidation,
   shortDescriptionValidation,
   contentValidation,
-  blogIdValidation
+  // blogIdValidation
 ];
