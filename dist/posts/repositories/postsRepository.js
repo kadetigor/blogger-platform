@@ -32,7 +32,7 @@ exports.postsRepository = {
     findPostsbyBlog(queryDto, blogId) {
         return __awaiter(this, void 0, void 0, function* () {
             const { pageNumber, pageSize, sortBy, sortDirection } = queryDto;
-            const filter = { 'blog.id': blogId };
+            const filter = { blogId: blogId };
             const skip = (pageNumber - 1) * pageSize;
             const [items, totalCount] = yield Promise.all([
                 mongoDb_1.postCollection
