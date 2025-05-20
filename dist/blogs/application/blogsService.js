@@ -29,7 +29,7 @@ exports.blogsService = {
                 description: dto.description,
                 websiteUrl: dto.websiteUrl,
                 createdAt: new Date(),
-                isMembership: true
+                isMembership: false
             };
             return blogsRepository_1.blogsRepository.create(newBlog);
         });
