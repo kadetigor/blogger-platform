@@ -21,7 +21,7 @@ export const blogsService = {
       description: dto.description,
       websiteUrl: dto.websiteUrl,
       createdAt: new Date(),
-      isMembership: true || false
+      isMembership: false
     };
     return blogsRepository.create(newBlog);
   },
