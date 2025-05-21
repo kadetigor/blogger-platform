@@ -10,8 +10,8 @@ exports.createErrorMessages = createErrorMessages;
 const formatValidationErrors = (error) => {
     const expressError = error;
     return {
-        field: expressError.path,
         message: expressError.msg,
+        field: expressError.path,
     };
 };
 const inputValidationResultMiddleware = (req, res, next) => {
