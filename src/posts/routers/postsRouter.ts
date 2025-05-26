@@ -10,6 +10,7 @@ import { superAdminGuardMiddleware } from "../../auth/middlewares/super-admin.gu
 import { deletePostHandler } from "./handlers/deletePostHandler";
 import { postSortField } from './input/postSortField';
 import { paginationAndSortingValidation } from '../../core/middlewares/validation/queryPaginationSortingValidationMiddleware';
+import { validateBlogExistsMiddleware } from './validateBlogExistsMiddleware';
 
 export const postsRouter = Router({})
 
@@ -31,6 +32,7 @@ postsRouter
     superAdminGuardMiddleware,
     postInputDtoValidation,
     inputValidationResultMiddleware,
+    validateBlogExistsMiddleware,
     createPostHandler
   )
   .put(
@@ -39,6 +41,7 @@ postsRouter
     idValidationMiddleware,
     postInputDtoValidation,
     inputValidationResultMiddleware,
+    validateBlogExistsMiddleware,
     updatePostHandler
   )
   .delete(

@@ -14,18 +14,13 @@ const contentValidation = (0, express_validator_1.body)('content')
     .exists().withMessage('Content is required')
     .isString().withMessage('content should be string')
     .trim().isLength({ min: 1, max: 1000 }).withMessage('Content is too long');
-// const blogIdValidation = body('blogId')
-//   .isString().withMessage('blogId should be string')
-//   .custom((value) => {
-//     const blog = blogsRepository.findByIdOrFail(value);
-//     if (!blog) {
-//       throw new Error('No blog with this id');
-//     }
-//     return true;
-//   });
+const blogIdValidation = (0, express_validator_1.body)('blogId')
+    .exists().withMessage('blogId is required')
+    .isString().withMessage('blogId should be string')
+    .isMongoId().withMessage('blogId must be a valid MongoDB ObjectId');
 exports.postInputDtoValidation = [
     titleValidation,
     shortDescriptionValidation,
     contentValidation,
-    // blogIdValidation
+    blogIdValidation
 ];

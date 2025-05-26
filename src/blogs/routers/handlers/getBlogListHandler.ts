@@ -4,13 +4,22 @@ import { setDefaultSortAndPaginationIfNotExist } from "../../../core/helpers/set
 import { mapToBlogListPaginatedOutput } from "../mappers/mapToBlogListPaginatedOutput";
 import { errorsHandler } from "../../../core/errors/errorsHandler";
 import { blogsService } from "../../application/blogsService";
+import { blogSortField } from "../input/blogSortField";
+import { sortDirection } from "../../../core/types/sortDirection";
 
 export async function getBlogListHandler(
-  req: Request<{}, {}, {}, blogQueryInput>,
+  req: Request,
   res: Response,
 ) {
   try {
-    const queryInput = setDefaultSortAndPaginationIfNotExist(req.query);
+    const baseQueryInput = setDefaultSortAndPaginationIfNotExist(req.query as any);
+    
+    const queryInput: blogQueryInput = {
+      pageNumber: baseQueryInput.pageNumber,
+      pageSize: baseQueryInput.pageSize,
+      sortBy: baseQueryInput.sortBy as blogSortField,
+      sortDirection: baseQueryInput.sortDirection as sortDirection
+    };
 
     const { items, totalCount } = await blogsService.findMany(queryInput);
 

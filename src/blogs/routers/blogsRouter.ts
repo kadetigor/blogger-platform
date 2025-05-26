@@ -13,11 +13,12 @@ import { postSortField } from '../../posts/routers/input/postSortField';
 import { getBlogPostsListHandler } from './handlers/getBlogPostsListHandler';
 import { postInputDtoValidation } from '../../posts/routers/postInputDtoValidationMiddleware';
 import { createPostHandler } from '../../posts/routers/handlers/createPostHandler';
+import { blogSortField } from './input/blogSortField';
 
 export const blogsRouter = Router()
 
 blogsRouter
-  .get('/', getBlogListHandler) // blogsController.getBlogs
+  .get('/', paginationAndSortingValidation(blogSortField), inputValidationResultMiddleware, getBlogListHandler) // blogsController.getBlogs
   .get('/:id', idValidationMiddleware, inputValidationResultMiddleware, getBlogHandler)
   .post('/', superAdminGuardMiddleware, blogInputDtoValidation, inputValidationResultMiddleware, createBlogHandler)
   .put('/:id', superAdminGuardMiddleware, idValidationMiddleware, blogInputDtoValidation, inputValidationResultMiddleware, updateBlogHandler)

@@ -17,7 +17,7 @@ export async function getPostListHandler(
     const queryInput: postQueryInput = {
       pageNumber: baseQueryInput.pageNumber,
       pageSize: baseQueryInput.pageSize,
-      sortBy: baseQueryInput.sortBy as unknown as postSortField,
+      sortBy: baseQueryInput.sortBy as postSortField,
       sortDirection: baseQueryInput.sortDirection as sortDirection
     };
 

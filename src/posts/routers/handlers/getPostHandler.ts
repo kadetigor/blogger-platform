@@ -5,7 +5,7 @@ import { postsRepository } from '../../repositories/postsRepository';
 import { mapToPostViewModel } from '../mappers/mapToPostViewModel';
 import { errorsHandler } from '../../../core/errors/errorsHandler';
 
-export async function getPostHandler(req: Request<{ id: string }>, res: Response) {
+export async function getPostHandler(req: Request, res: Response) {
   try {
     const id = req.params.id;
     const post = await postsRepository.findByIdOrFail(id);

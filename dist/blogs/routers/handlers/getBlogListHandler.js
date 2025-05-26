@@ -17,7 +17,13 @@ const blogsService_1 = require("../../application/blogsService");
 function getBlogListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const queryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(req.query);
+            const baseQueryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(req.query);
+            const queryInput = {
+                pageNumber: baseQueryInput.pageNumber,
+                pageSize: baseQueryInput.pageSize,
+                sortBy: baseQueryInput.sortBy,
+                sortDirection: baseQueryInput.sortDirection
+            };
             const { items, totalCount } = yield blogsService_1.blogsService.findMany(queryInput);
             const blogsListOutput = (0, mapToBlogListPaginatedOutput_1.mapToBlogListPaginatedOutput)(items, {
                 pageNumber: queryInput.pageNumber,
