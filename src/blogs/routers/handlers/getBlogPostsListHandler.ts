@@ -6,13 +6,13 @@ import { postQueryInput } from '../../../posts/routers/input/postQueryInput';
 import { setDefaultSortAndPaginationIfNotExist } from '../../../core/helpers/setDefaultSortAndPagination';
 
 export async function getBlogPostsListHandler(
-  req: Request,
+  req: Request<{ id: string }, {}, {}, postQueryInput>,
   res: Response,
 ) {
 
   try {
     const blogId = req.params.id;
-    const queryInput = setDefaultSortAndPaginationIfNotExist(req.query);
+    const queryInput = req.query;
 
     const { items, totalCount } = await postsService.findPostsbyBlog(
       queryInput,
