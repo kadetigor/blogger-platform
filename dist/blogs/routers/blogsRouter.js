@@ -16,9 +16,10 @@ const postSortField_1 = require("../../posts/routers/input/postSortField");
 const getBlogPostsListHandler_1 = require("./handlers/getBlogPostsListHandler");
 const postInputDtoValidationMiddleware_1 = require("../../posts/routers/postInputDtoValidationMiddleware");
 const createPostHandler_1 = require("../../posts/routers/handlers/createPostHandler");
+const blogSortField_1 = require("./input/blogSortField");
 exports.blogsRouter = (0, express_1.Router)();
 exports.blogsRouter
-    .get('/', getBlogListHandler_1.getBlogListHandler) // blogsController.getBlogs
+    .get('/', (0, queryPaginationSortingValidationMiddleware_1.paginationAndSortingValidation)(blogSortField_1.blogSortField), input_validtion_result_middleware_1.inputValidationResultMiddleware, getBlogListHandler_1.getBlogListHandler) // blogsController.getBlogs
     .get('/:id', params_id_validation_middleware_1.idValidationMiddleware, input_validtion_result_middleware_1.inputValidationResultMiddleware, getBlogHandler_1.getBlogHandler)
     .post('/', super_admin_guard_middleware_1.superAdminGuardMiddleware, blogInputDtoValidationMiddleware_1.blogInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, createBlogHandler_1.createBlogHandler)
     .put('/:id', super_admin_guard_middleware_1.superAdminGuardMiddleware, params_id_validation_middleware_1.idValidationMiddleware, blogInputDtoValidationMiddleware_1.blogInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, updateBlogHandler_1.updateBlogHandler)
