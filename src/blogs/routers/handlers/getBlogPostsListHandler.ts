@@ -3,16 +3,15 @@ import { errorsHandler } from '../../../core/errors/errorsHandler';
 import { postsService } from '../../../posts/application/postsService';
 import { mapToPostListPaginatedOutput } from '../mappers/mapToPostListPaginatedOutput';
 import { postQueryInput } from '../../../posts/routers/input/postQueryInput';
-import { setDefaultSortAndPaginationIfNotExist } from '../../../core/helpers/setDefaultSortAndPagination';
 
 export async function getBlogPostsListHandler(
-  req: Request<{ id: string }, {}, {}, postQueryInput>,
+  req: Request<{ id: string }>,
   res: Response,
 ) {
 
   try {
     const blogId = req.params.id;
-    const queryInput = req.query;
+    const queryInput = req.query as any;
 
     const { items, totalCount } = await postsService.findPostsbyBlog(
       queryInput,
@@ -21,8 +20,8 @@ export async function getBlogPostsListHandler(
                       
 
     const postListOutput = mapToPostListPaginatedOutput(items, {
-      pageNumber: queryInput.pageNumber,
-      pageSize: queryInput.pageSize,
+      pageNumber: queryInput.pageNumber || 1,
+      pageSize: queryInput.pageSize || 10,
       totalCount,
     });
     res.send(postListOutput);
