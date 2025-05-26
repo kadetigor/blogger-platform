@@ -4,7 +4,7 @@ exports.inputValidationResultMiddleware = exports.createErrorMessages = void 0;
 const express_validator_1 = require("express-validator");
 const httpStatus_1 = require("../../types/httpStatus");
 const createErrorMessages = (errors) => {
-    return { errorMessages: errors };
+    return { errorsMessages: errors };
 };
 exports.createErrorMessages = createErrorMessages;
 const formatValidationErrors = (error) => {
