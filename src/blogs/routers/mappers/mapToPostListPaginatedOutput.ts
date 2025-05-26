@@ -1,17 +1,15 @@
 import { WithId } from "mongodb";
-import { resourceType } from "../../../core/types/resourceType";
-import { postDataOutput } from '../output/postDataOutput'
-import { Post } from "../../domain/post";
-import { postListPaginatedOutput } from "../output/postListPaginatedOutput";
+import { Post } from "../../../posts/domain/post";
+import { postListPaginatedOutput } from "../../../posts/routers/output/postListPaginatedOutput";
 
 export function mapToPostListPaginatedOutput(
   posts: WithId<Post>[],
-  meta: { pageNumber: number; pageSize: number; totalCount: number },
+  meta: { pageNumber: number; pageSize: number; totalCount: number; },
 ): postListPaginatedOutput {
   return {
-    pagesCount: Math.ceil(meta.totalCount / meta.pageSize),
     page: meta.pageNumber,
     pageSize: meta.pageSize,
+    pagesCount: Math.ceil(meta.totalCount / meta.pageSize),
     totalCount: meta.totalCount,
     items: posts.map((post) => ({
       id: post._id.toString(),

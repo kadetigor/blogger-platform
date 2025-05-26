@@ -40,16 +40,16 @@ export const postsRepository = {
 
 
     const {
-      pageNumber    = 1,
-      pageSize      = 10,
-      sortBy        = 'createdAt',
+      pageNumber = 1,
+      pageSize = 10,
+      sortBy = 'createdAt',
       sortDirection = 'desc',
     } = queryDto;
     
 
     const filter = { blogId: blogId };
     const skip = (pageNumber - 1) * pageSize;
-    const [items, totalCount] = await Promise.all([
+    const [ items, totalCount ] = await Promise.all([
       postCollection
         .find(filter)
         .sort({ [sortBy]: sortDirection })

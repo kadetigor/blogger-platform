@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPostListHandler = getPostListHandler;
 const setDefaultSortAndPagination_1 = require("../../../core/helpers/setDefaultSortAndPagination");
 const postsService_1 = require("../../application/postsService");
-const mapToPostListPaginatedOutput_1 = require("../mappers/mapToPostListPaginatedOutput");
+const mapToPostListPaginatedOutput_1 = require("../../../blogs/routers/mappers/mapToPostListPaginatedOutput");
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 function getPostListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {

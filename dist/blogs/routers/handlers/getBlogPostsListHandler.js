@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBlogPostsListHandler = getBlogPostsListHandler;
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 const postsService_1 = require("../../../posts/application/postsService");
-const mapToPostListPaginatedOutput_1 = require("../../../posts/routes/mappers/mapToPostListPaginatedOutput");
+const mapToPostListPaginatedOutput_1 = require("../mappers/mapToPostListPaginatedOutput");
 function getBlogPostsListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {

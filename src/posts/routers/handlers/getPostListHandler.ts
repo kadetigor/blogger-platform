@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { postQueryInput } from '../input/postQueryInput';
 import { setDefaultSortAndPaginationIfNotExist } from '../../../core/helpers/setDefaultSortAndPagination';
 import { postsService } from '../../application/postsService';
-import { mapToPostListPaginatedOutput } from '../mappers/mapToPostListPaginatedOutput';
+import { mapToPostListPaginatedOutput } from '../../../blogs/routers/mappers/mapToPostListPaginatedOutput';
 import { errorsHandler } from '../../../core/errors/errorsHandler';
 import { postSortField } from '../input/postSortField';
 import { sortDirection } from '../../../core/types/sortDirection';

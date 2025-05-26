@@ -20,6 +20,8 @@ function getBlogPostsListHandler(req, res) {
             const queryInput = req.query;
             const { items, totalCount } = yield postsService_1.postsService.findPostsbyBlog(queryInput, blogId);
             const postListOutput = (0, mapToPostListPaginatedOutput_1.mapToPostListPaginatedOutput)(items, {
+                //pagesCount: queryInput.pageCount,
+                // page: queryInput.page,
                 pageNumber: queryInput.pageNumber,
                 pageSize: queryInput.pageSize,
                 totalCount,

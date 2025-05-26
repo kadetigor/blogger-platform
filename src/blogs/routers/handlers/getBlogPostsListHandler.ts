@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { errorsHandler } from '../../../core/errors/errorsHandler';
-import { postsService } from '../../application/postsService';
+import { postsService } from '../../../posts/application/postsService';
 import { mapToPostListPaginatedOutput } from '../mappers/mapToPostListPaginatedOutput';
-import { postQueryInput } from '../input/postQueryInput';
+import { postQueryInput } from '../../../posts/routers/input/postQueryInput';
+import { setDefaultSortAndPaginationIfNotExist } from '../../../core/helpers/setDefaultSortAndPagination';
 
 export async function getBlogPostsListHandler(
   req: Request,
@@ -11,7 +12,7 @@ export async function getBlogPostsListHandler(
 
   try {
     const blogId = req.params.id;
-    const queryInput = req.query as any;
+    const queryInput = setDefaultSortAndPaginationIfNotExist(req.query);
 
     const { items, totalCount } = await postsService.findPostsbyBlog(
       queryInput,
