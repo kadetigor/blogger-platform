@@ -28,7 +28,7 @@ export const inputValidationResultMiddleware = (
     .formatWith(formatValidationErrors)
     .array({ onlyFirstError: true })
   if (errors.length > 0) {
-    res.status(HttpStatus.BadRequest).json({ errorMessages: errors })
+    res.status(HttpStatus.BadRequest).json({ errorsMessages: errors })
     return;
   }
 
