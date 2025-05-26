@@ -19,7 +19,8 @@ function getBlogPostsListHandler(req, res) {
         try {
             const blogId = req.params.id;
             // Properly handle the query parameters with defaults
-            const baseQueryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(req.query);
+            const rawQuery = req.query;
+            const baseQueryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(rawQuery);
             const queryInput = {
                 pageNumber: baseQueryInput.pageNumber,
                 pageSize: baseQueryInput.pageSize,

@@ -15,12 +15,13 @@ export async function getBlogPostsListHandler(
   try {
     const blogId = req.params.id;
     // Properly handle the query parameters with defaults
-    const baseQueryInput = setDefaultSortAndPaginationIfNotExist(req.query as any);
+    const rawQuery = req.query as any;
+    const baseQueryInput = setDefaultSortAndPaginationIfNotExist(rawQuery);
     
     const queryInput: postQueryInput = {
       pageNumber: baseQueryInput.pageNumber,
       pageSize: baseQueryInput.pageSize,
-      sortBy: baseQueryInput.sortBy as unknown as postSortField,
+      sortBy: baseQueryInput.sortBy as postSortField,
       sortDirection: baseQueryInput.sortDirection as sortDirection
     };
 
