@@ -5,7 +5,7 @@ import { mapToPostListPaginatedOutput } from '../mappers/mapToPostListPaginatedO
 import { postQueryInput } from '../../../posts/routers/input/postQueryInput';
 
 export async function getBlogPostsListHandler(
-  req: Request<{ id: string }>,
+  req: Request,
   res: Response,
 ) {
 
