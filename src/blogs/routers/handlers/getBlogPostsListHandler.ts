@@ -3,6 +3,9 @@ import { errorsHandler } from '../../../core/errors/errorsHandler';
 import { postsService } from '../../../posts/application/postsService';
 import { mapToPostListPaginatedOutput } from '../mappers/mapToPostListPaginatedOutput';
 import { postQueryInput } from '../../../posts/routers/input/postQueryInput';
+import { setDefaultSortAndPaginationIfNotExist } from '../../../core/helpers/setDefaultSortAndPagination';
+import { postSortField } from '../../../posts/routers/input/postSortField';
+import { sortDirection } from '../../../core/types/sortDirection';
 
 export async function getBlogPostsListHandler(
   req: Request,
@@ -11,7 +14,15 @@ export async function getBlogPostsListHandler(
 
   try {
     const blogId = req.params.id;
-    const queryInput = req.query as any;
+    // Properly handle the query parameters with defaults
+    const baseQueryInput = setDefaultSortAndPaginationIfNotExist(req.query as any);
+    
+    const queryInput: postQueryInput = {
+      pageNumber: baseQueryInput.pageNumber,
+      pageSize: baseQueryInput.pageSize,
+      sortBy: baseQueryInput.sortBy as unknown as postSortField,
+      sortDirection: baseQueryInput.sortDirection as sortDirection
+    };
 
     const { items, totalCount } = await postsService.findPostsbyBlog(
       queryInput,

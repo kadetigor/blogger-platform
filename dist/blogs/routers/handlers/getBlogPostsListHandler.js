@@ -13,11 +13,19 @@ exports.getBlogPostsListHandler = getBlogPostsListHandler;
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 const postsService_1 = require("../../../posts/application/postsService");
 const mapToPostListPaginatedOutput_1 = require("../mappers/mapToPostListPaginatedOutput");
+const setDefaultSortAndPagination_1 = require("../../../core/helpers/setDefaultSortAndPagination");
 function getBlogPostsListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const blogId = req.params.id;
-            const queryInput = req.query;
+            // Properly handle the query parameters with defaults
+            const baseQueryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(req.query);
+            const queryInput = {
+                pageNumber: baseQueryInput.pageNumber,
+                pageSize: baseQueryInput.pageSize,
+                sortBy: baseQueryInput.sortBy,
+                sortDirection: baseQueryInput.sortDirection
+            };
             const { items, totalCount } = yield postsService_1.postsService.findPostsbyBlog(queryInput, blogId);
             const postListOutput = (0, mapToPostListPaginatedOutput_1.mapToPostListPaginatedOutput)(items, {
                 pageNumber: queryInput.pageNumber || 1,
