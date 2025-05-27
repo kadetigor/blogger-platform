@@ -10,19 +10,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBlogListHandler = getBlogListHandler;
-const setDefaultSortAndPagination_1 = require("../../../core/helpers/setDefaultSortAndPagination");
 const mapToBlogListPaginatedOutput_1 = require("../mappers/mapToBlogListPaginatedOutput");
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 const blogsService_1 = require("../../application/blogsService");
+const queryPaginationSortingValidationMiddleware_1 = require("../../../core/middlewares/validation/queryPaginationSortingValidationMiddleware");
 function getBlogListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const baseQueryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(req.query);
             const queryInput = {
-                pageNumber: baseQueryInput.pageNumber,
-                pageSize: baseQueryInput.pageSize,
-                sortBy: baseQueryInput.sortBy,
-                sortDirection: baseQueryInput.sortDirection
+                pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.pageNumber,
+                pageSize: req.query.pageSize ? Number(req.query.pageSize) : queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.pageSize,
+                sortBy: req.query.sortBy || queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.sortBy,
+                sortDirection: req.query.sortDirection || queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.sortDirection
             };
             const { items, totalCount } = yield blogsService_1.blogsService.findMany(queryInput);
             const blogsListOutput = (0, mapToBlogListPaginatedOutput_1.mapToBlogListPaginatedOutput)(items, {

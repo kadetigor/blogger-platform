@@ -1,24 +1,22 @@
 import { Request, Response } from "express";
 import { blogQueryInput } from "../input/blogQueryInput";
-import { setDefaultSortAndPaginationIfNotExist } from "../../../core/helpers/setDefaultSortAndPagination";
 import { mapToBlogListPaginatedOutput } from "../mappers/mapToBlogListPaginatedOutput";
 import { errorsHandler } from "../../../core/errors/errorsHandler";
 import { blogsService } from "../../application/blogsService";
 import { blogSortField } from "../input/blogSortField";
 import { sortDirection } from "../../../core/types/sortDirection";
+import { paginationAndSortingDefault } from "../../../core/middlewares/validation/queryPaginationSortingValidationMiddleware";
 
 export async function getBlogListHandler(
   req: Request,
   res: Response,
 ) {
   try {
-    const baseQueryInput = setDefaultSortAndPaginationIfNotExist(req.query as any);
-    
     const queryInput: blogQueryInput = {
-      pageNumber: baseQueryInput.pageNumber,
-      pageSize: baseQueryInput.pageSize,
-      sortBy: baseQueryInput.sortBy as blogSortField,
-      sortDirection: baseQueryInput.sortDirection as sortDirection
+      pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : paginationAndSortingDefault.pageNumber,
+      pageSize: req.query.pageSize ? Number(req.query.pageSize) : paginationAndSortingDefault.pageSize,
+      sortBy: (req.query.sortBy as blogSortField) || paginationAndSortingDefault.sortBy,
+      sortDirection: (req.query.sortDirection as sortDirection) || paginationAndSortingDefault.sortDirection
     };
 
     const { items, totalCount } = await blogsService.findMany(queryInput);
