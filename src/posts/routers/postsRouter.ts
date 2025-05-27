@@ -40,7 +40,6 @@ postsRouter
     idValidationMiddleware,
     postInputDtoValidation,
     inputValidationResultMiddleware,
-    validateBlogExistsMiddleware,
     updatePostHandler
   )
   .delete(

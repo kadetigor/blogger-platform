@@ -46,7 +46,6 @@ export const postsService = {
   },
 
   async update(id: string, dto: postAttributes): Promise<void> {
-    console.log(`got to update`)
     await postsRepository.update(id, dto)
     return;
   },

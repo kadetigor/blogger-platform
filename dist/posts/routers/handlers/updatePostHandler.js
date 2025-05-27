@@ -17,8 +17,7 @@ function updatePostHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         console.log('got to updatePostHandler');
         try {
-            const id = req.body.blogId;
-            console.log(`got id it is ${id}`);
+            const id = req.params.id;
             yield postsService_1.postsService.update(id, req.body);
             res.sendStatus(httpStatus_1.HttpStatus.NoContent);
         }

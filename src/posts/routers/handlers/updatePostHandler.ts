@@ -10,8 +10,7 @@ export async function updatePostHandler(
 ) {
   console.log('got to updatePostHandler')
   try {
-    const id = req.body.blogId;
-    console.log(`got id it is ${id}`)
+    const id = req.params.id;
     await postsService.update(id, req.body);
     res.sendStatus(HttpStatus.NoContent);
   } catch (e: unknown) {

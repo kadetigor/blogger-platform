@@ -45,7 +45,6 @@ exports.postsService = {
     },
     update(id, dto) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log(`got to update`);
             yield postsRepository_1.postsRepository.update(id, dto);
             return;
         });
