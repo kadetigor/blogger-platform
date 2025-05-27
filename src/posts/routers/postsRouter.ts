@@ -32,7 +32,6 @@ postsRouter
     superAdminGuardMiddleware,
     postInputDtoValidation,
     inputValidationResultMiddleware,
-    validateBlogExistsMiddleware,
     createPostHandler
   )
   .put(

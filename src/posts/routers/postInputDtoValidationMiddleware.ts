@@ -1,5 +1,4 @@
 import { body } from 'express-validator';
-import { blogsRepository } from '../../blogs/repositories/blogsRepository';
 
 const titleValidation = body('title')
   .exists().withMessage('Title is required')
