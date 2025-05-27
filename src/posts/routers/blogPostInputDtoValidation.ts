@@ -1,5 +1,4 @@
 import { body } from 'express-validator';
-import { blogsRepository } from '../../blogs/repositories/blogsRepository';
 
 const titleValidation = body('title')
   .exists().withMessage('Title is required')
@@ -8,7 +7,7 @@ const titleValidation = body('title')
 
 const shortDescriptionValidation = body('shortDescription')
   .exists().withMessage('shortDescription is required')
-  .isString().withMessage('phoneNumber should be string')
+  .isString().withMessage('shortDescription should be string')
   .trim().isLength({ min: 1, max: 100 }).withMessage('shortDescription is too long');
 
 const contentValidation = body('content')
@@ -16,15 +15,9 @@ const contentValidation = body('content')
   .isString().withMessage('content should be string')
   .trim().isLength({ min: 1, max: 1000 }).withMessage('Content is too long');
 
-const blogIdValidation = body('blogId')
-  .exists().withMessage('blogId is required')
-  .isString().withMessage('blogId should be string')
-  .isMongoId().withMessage('blogId must be a valid MongoDB ObjectId');
-
-
-export const postInputDtoValidation = [
+// No blogId validation for /blogs/:id/posts route
+export const blogPostInputDtoValidation = [
   titleValidation,
   shortDescriptionValidation,
-  contentValidation,
-  blogIdValidation
+  contentValidation
 ];

@@ -9,7 +9,7 @@ export async function validateBlogExistsMiddleware(
   next: NextFunction
 ) {
   try {
-    const blogId = req.params.id
+    const blogId = req.params.id || req.body.blogId;
     
     if (!blogId) {
       res.status(HttpStatus.BadRequest).json(
@@ -25,6 +25,11 @@ export async function validateBlogExistsMiddleware(
 
     // Check if blog exists
     const blog = await blogsRepository.findByIdOrFail(blogId);
+
+    // If blogId came from URL params, add it to the body for the service
+    if (req.params.id && !req.body.blogId) {
+      req.body.blogId = req.params.id;
+    }
     
     // Attach the blogName to the request body for later use
     req.body.blogName = blog.name;

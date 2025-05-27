@@ -16,7 +16,7 @@ const input_validtion_result_middleware_1 = require("../../core/middlewares/vali
 function validateBlogExistsMiddleware(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const blogId = req.params.id;
+            const blogId = req.params.id || req.body.blogId;
             if (!blogId) {
                 res.status(httpStatus_1.HttpStatus.BadRequest).json((0, input_validtion_result_middleware_1.createErrorMessages)([
                     {
@@ -28,6 +28,10 @@ function validateBlogExistsMiddleware(req, res, next) {
             }
             // Check if blog exists
             const blog = yield blogsRepository_1.blogsRepository.findByIdOrFail(blogId);
+            // If blogId came from URL params, add it to the body for the service
+            if (req.params.id && !req.body.blogId) {
+                req.body.blogId = req.params.id;
+            }
             // Attach the blogName to the request body for later use
             req.body.blogName = blog.name;
             next();
