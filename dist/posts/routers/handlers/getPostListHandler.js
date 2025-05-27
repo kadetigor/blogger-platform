@@ -11,9 +11,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPostListHandler = getPostListHandler;
 const setDefaultSortAndPagination_1 = require("../../../core/helpers/setDefaultSortAndPagination");
-const postsService_1 = require("../../application/postsService");
 const mapToPostListPaginatedOutput_1 = require("../../../blogs/routers/mappers/mapToPostListPaginatedOutput");
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
+const postsQueryRepository_1 = require("../../repositories/postsQueryRepository");
 function getPostListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -24,7 +24,7 @@ function getPostListHandler(req, res) {
                 sortBy: baseQueryInput.sortBy,
                 sortDirection: baseQueryInput.sortDirection
             };
-            const { items, totalCount } = yield postsService_1.postsService.findMany(queryInput);
+            const { items, totalCount } = yield postsQueryRepository_1.postsQueryRepository.findMany(queryInput);
             const postsListOutput = (0, mapToPostListPaginatedOutput_1.mapToPostListPaginatedOutput)(items, {
                 pageNumber: queryInput.pageNumber,
                 pageSize: queryInput.pageSize,

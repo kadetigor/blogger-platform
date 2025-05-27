@@ -6,6 +6,7 @@ import { postQueryInput } from '../../../posts/routers/input/postQueryInput';
 import { postSortField } from '../../../posts/routers/input/postSortField';
 import { sortDirection } from '../../../core/types/sortDirection';
 import { paginationAndSortingDefault } from '../../../core/middlewares/validation/queryPaginationSortingValidationMiddleware';
+import { postsQueryRepository } from '../../../posts/repositories/postsQueryRepository';
 
 export async function getBlogPostsListHandler(
   req: Request,
@@ -21,7 +22,7 @@ export async function getBlogPostsListHandler(
       sortDirection: (req.query.sortDirection as sortDirection) || paginationAndSortingDefault.sortDirection
     };
 
-    const { items, totalCount } = await postsService.findPostsbyBlog(
+    const { items, totalCount } = await postsQueryRepository.findPostsbyBlog(
       queryInput,
       blogId,
     );

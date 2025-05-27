@@ -11,9 +11,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBlogPostsListHandler = getBlogPostsListHandler;
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
-const postsService_1 = require("../../../posts/application/postsService");
 const mapToPostListPaginatedOutput_1 = require("../mappers/mapToPostListPaginatedOutput");
 const queryPaginationSortingValidationMiddleware_1 = require("../../../core/middlewares/validation/queryPaginationSortingValidationMiddleware");
+const postsQueryRepository_1 = require("../../../posts/repositories/postsQueryRepository");
 function getBlogPostsListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -24,7 +24,7 @@ function getBlogPostsListHandler(req, res) {
                 sortBy: req.query.sortBy || queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.sortBy,
                 sortDirection: req.query.sortDirection || queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.sortDirection
             };
-            const { items, totalCount } = yield postsService_1.postsService.findPostsbyBlog(queryInput, blogId);
+            const { items, totalCount } = yield postsQueryRepository_1.postsQueryRepository.findPostsbyBlog(queryInput, blogId);
             const postListOutput = (0, mapToPostListPaginatedOutput_1.mapToPostListPaginatedOutput)(items, {
                 pageNumber: queryInput.pageNumber,
                 pageSize: queryInput.pageSize,

@@ -10,10 +10,48 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.blogsQueryRepository = void 0;
+const mongodb_1 = require("mongodb");
+const mongoDb_1 = require("../../db/mongoDb");
+const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 exports.blogsQueryRepository = {
     findMany(queryDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { pageNumber, pageSize, sortBy, sortDirection, };
+            const { pageNumber, pageSize, sortBy, sortDirection, searchNameTerm } = queryDto;
+            const skip = (pageNumber - 1) * pageSize;
+            const filter = {};
+            if (searchNameTerm && searchNameTerm.trim() !== "") {
+                filter.name = {
+                    // case-insensitive “contains”
+                    $regex: searchNameTerm,
+                    $options: "i",
+                };
+            }
+            const items = yield mongoDb_1.blogCollection
+                .find(filter)
+                .sort({ [sortBy]: sortDirection })
+                .skip(skip)
+                .limit(pageSize)
+                .toArray();
+            const totalCount = yield mongoDb_1.blogCollection.countDocuments(filter);
+            return { items, totalCount };
+        });
+    },
+    findByIdOrFail(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const res = yield mongoDb_1.blogCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
+            if (!res) {
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('Blog does not exist');
+            }
+            return res;
+        });
+    },
+    getBlogName(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const blogResult = yield mongoDb_1.blogCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
+            if (!blogResult) {
+                throw new Error('No blog with this id');
+            }
+            return blogResult.name;
         });
     }
 };

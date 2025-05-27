@@ -13,12 +13,12 @@ exports.getBlogHandler = getBlogHandler;
 const httpStatus_1 = require("../../../core/types/httpStatus");
 const mapToBlogOutput_1 = require("../mappers/mapToBlogOutput");
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
-const blogsService_1 = require("../../application/blogsService");
+const blogsQueryRepository_1 = require("../../repositories/blogsQueryRepository");
 function getBlogHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const id = req.params.id;
-            const blog = yield blogsService_1.blogsService.findByIdOrFail(id);
+            const blog = yield blogsQueryRepository_1.blogsQueryRepository.findByIdOrFail(id);
             const blogOutput = (0, mapToBlogOutput_1.mapToBlogOutput)(blog);
             res.status(httpStatus_1.HttpStatus.Ok).send(blogOutput);
         }

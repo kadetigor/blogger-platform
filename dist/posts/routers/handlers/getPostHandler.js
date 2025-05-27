@@ -11,14 +11,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPostHandler = getPostHandler;
 const httpStatus_1 = require("../../../core/types/httpStatus");
-const postsRepository_1 = require("../../repositories/postsRepository");
 const mapToPostViewModel_1 = require("../mappers/mapToPostViewModel");
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
+const postsQueryRepository_1 = require("../../repositories/postsQueryRepository");
 function getPostHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const id = req.params.id;
-            const post = yield postsRepository_1.postsRepository.findByIdOrFail(id);
+            const post = yield postsQueryRepository_1.postsQueryRepository.findByIdOrFail(id);
             const postViewModel = (0, mapToPostViewModel_1.mapToPostViewModel)(post);
             res.status(httpStatus_1.HttpStatus.Ok).send(postViewModel);
         }

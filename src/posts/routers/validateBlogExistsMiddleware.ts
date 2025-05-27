@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { blogsRepository } from '../../blogs/repositories/blogsRepository';
 import { HttpStatus } from '../../core/types/httpStatus';
 import { createErrorMessages } from '../../core/middlewares/validation/input-validtion-result.middleware';
+import { blogsQueryRepository } from '../../blogs/repositories/blogsQueryRepository';
 
 export async function validateBlogExistsMiddleware(
   req: Request,
@@ -24,7 +25,7 @@ export async function validateBlogExistsMiddleware(
     }
 
     // Check if blog exists
-    const blog = await blogsRepository.findByIdOrFail(blogId);
+    const blog = await blogsQueryRepository.findByIdOrFail(blogId);
 
     // If blogId came from URL params, add it to the body for the service
     if (req.params.id && !req.body.blogId) {

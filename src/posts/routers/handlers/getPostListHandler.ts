@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import { postQueryInput } from '../input/postQueryInput';
 import { setDefaultSortAndPaginationIfNotExist } from '../../../core/helpers/setDefaultSortAndPagination';
-import { postsService } from '../../application/postsService';
 import { mapToPostListPaginatedOutput } from '../../../blogs/routers/mappers/mapToPostListPaginatedOutput';
 import { errorsHandler } from '../../../core/errors/errorsHandler';
 import { postSortField } from '../input/postSortField';
 import { sortDirection } from '../../../core/types/sortDirection';
+import { postsQueryRepository } from '../../repositories/postsQueryRepository';
 
 export async function getPostListHandler(
   req: Request, 
@@ -21,7 +21,7 @@ export async function getPostListHandler(
       sortDirection: baseQueryInput.sortDirection as sortDirection
     };
 
-    const { items, totalCount } = await postsService.findMany(queryInput)
+    const { items, totalCount } = await postsQueryRepository.findMany(queryInput)
     
     const postsListOutput = mapToPostListPaginatedOutput(items, {
       pageNumber: queryInput.pageNumber,

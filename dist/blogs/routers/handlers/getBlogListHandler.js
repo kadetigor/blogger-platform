@@ -12,8 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBlogListHandler = getBlogListHandler;
 const mapToBlogListPaginatedOutput_1 = require("../mappers/mapToBlogListPaginatedOutput");
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
-const blogsService_1 = require("../../application/blogsService");
 const queryPaginationSortingValidationMiddleware_1 = require("../../../core/middlewares/validation/queryPaginationSortingValidationMiddleware");
+const blogsQueryRepository_1 = require("../../repositories/blogsQueryRepository");
 function getBlogListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -24,7 +24,7 @@ function getBlogListHandler(req, res) {
                 sortDirection: req.query.sortDirection || queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.sortDirection,
                 searchNameTerm: typeof req.query.searchNameTerm === "string" ? req.query.searchNameTerm.trim() : ""
             };
-            const { items, totalCount } = yield blogsService_1.blogsService.findMany(queryInput);
+            const { items, totalCount } = yield blogsQueryRepository_1.blogsQueryRepository.findMany(queryInput);
             const blogsListOutput = (0, mapToBlogListPaginatedOutput_1.mapToBlogListPaginatedOutput)(items, {
                 pageNumber: queryInput.pageNumber,
                 pageSize: queryInput.pageSize,

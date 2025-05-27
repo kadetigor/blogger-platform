@@ -11,28 +11,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.postsService = void 0;
 const postsRepository_1 = require("../repositories/postsRepository");
-const blogsRepository_1 = require("../../blogs/repositories/blogsRepository");
+const blogsQueryRepository_1 = require("../../blogs/repositories/blogsQueryRepository");
 exports.postsService = {
-    findMany(queryDto) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return postsRepository_1.postsRepository.findMany(queryDto);
-        });
-    },
-    findPostsbyBlog(queryDto, blogId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield blogsRepository_1.blogsRepository.findByIdOrFail(blogId);
-            return postsRepository_1.postsRepository.findPostsbyBlog(queryDto, blogId);
-        });
-    },
-    findByIdOrFail(id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return postsRepository_1.postsRepository.findByIdOrFail(id);
-        });
-    },
     create(dto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const blog = yield blogsRepository_1.blogsRepository.findByIdOrFail(dto.blogId);
-            console.log(`recived blog ${blog}`);
+            const blog = yield blogsQueryRepository_1.blogsQueryRepository.findByIdOrFail(dto.blogId);
             const newPost = {
                 title: dto.title,
                 shortDescription: dto.shortDescription,
@@ -41,7 +24,6 @@ exports.postsService = {
                 blogName: blog.name,
                 createdAt: new Date(),
             };
-            console.log(`recived newPost ${newPost}`);
             return postsRepository_1.postsRepository.create(newPost);
         });
     },

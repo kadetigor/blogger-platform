@@ -5,16 +5,7 @@ import { WithId } from "mongodb";
 import { blogQueryInput } from "../routers/input/blogQueryInput";
 
 export const blogsService = {
-  async findMany(
-    queryDto: blogQueryInput,
-  ): Promise<{ items: WithId<Blog>[]; totalCount: number }> {
-    return blogsRepository.findMany(queryDto);
-  },
-
-  async findByIdOrFail(id: string): Promise<WithId<Blog>> {
-    return blogsRepository.findByIdOrFail(id);
-  },
-
+  
   async create(dto: blogAttributes): Promise<string> {
     const newBlog: Blog = {
       name: dto.name,

@@ -3,8 +3,9 @@ import cors from "cors";
 import { blogsRouter } from "./blogs/routers/blogsRouter";
 import { postsRouter } from "./posts/routers/postsRouter";
 import { testingRouter } from "./testing/routers/testingRouter";
-import { POSTS_PATH, BLOGS_PATH, TESTING_PATH } from './core/paths/paths'
+import { POSTS_PATH, BLOGS_PATH, TESTING_PATH, USERS_PATH } from './core/paths/paths'
 import { superAdminGuardMiddleware } from './auth/middlewares/super-admin.guard-middleware'
+import { usersRouter } from "./users/routers/usersRouter";
 
 
 export const setupApp = async (app: Express) => {
@@ -25,6 +26,7 @@ export const setupApp = async (app: Express) => {
   
   app.use(POSTS_PATH, postsRouter);
   app.use(BLOGS_PATH, blogsRouter);
+  app.use(USERS_PATH, usersRouter);
   app.use(TESTING_PATH, testingRouter);
 
   return app;
