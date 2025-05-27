@@ -16,7 +16,6 @@ export async function createPostHandler(
   try {
     const createdPostId = await postsService.create({...req.body, blogId});
     console.log(`created post ID ${createdPostId}`)
-
     const createdPost = await postsService.findByIdOrFail(createdPostId);
 
     console.log(`created post ${createdPost}`)

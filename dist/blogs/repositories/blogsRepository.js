@@ -34,7 +34,9 @@ exports.blogsRepository = {
     // },
     findByIdOrFail(id) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log(`got to findByIdOrFail`);
             const res = yield mongoDb_1.blogCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
+            console.log(`blogCollection ${res}`);
             if (!res) {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('Blog does not exist');
             }

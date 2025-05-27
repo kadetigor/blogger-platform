@@ -33,7 +33,7 @@ export const postsService = {
 
 
     const blog = await blogsRepository.findByIdOrFail(dto.blogId);
-
+    console.log(`recived blog ${blog}`)
     const newPost: Post = {
       title: dto.title,
       shortDescription: dto.shortDescription,
@@ -42,6 +42,7 @@ export const postsService = {
       blogName: blog.name,
       createdAt: new Date(),
     };
+    console.log(`recived newPost ${newPost}`)
     return postsRepository.create(newPost);
   },
 

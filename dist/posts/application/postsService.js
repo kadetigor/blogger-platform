@@ -32,6 +32,7 @@ exports.postsService = {
     create(dto) {
         return __awaiter(this, void 0, void 0, function* () {
             const blog = yield blogsRepository_1.blogsRepository.findByIdOrFail(dto.blogId);
+            console.log(`recived blog ${blog}`);
             const newPost = {
                 title: dto.title,
                 shortDescription: dto.shortDescription,
@@ -40,6 +41,7 @@ exports.postsService = {
                 blogName: blog.name,
                 createdAt: new Date(),
             };
+            console.log(`recived newPost ${newPost}`);
             return postsRepository_1.postsRepository.create(newPost);
         });
     },
