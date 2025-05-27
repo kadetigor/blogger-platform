@@ -19,6 +19,7 @@ exports.testingRouter
     yield Promise.all([
         mongoDb_1.postCollection.deleteMany(),
         mongoDb_1.blogCollection.deleteMany(),
+        mongoDb_1.userCollection.deleteMany(),
     ]);
     res.sendStatus(httpStatus_1.HttpStatus.NoContent);
 }));
