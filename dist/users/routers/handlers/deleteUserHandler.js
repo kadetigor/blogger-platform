@@ -10,14 +10,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUserHandler = deleteUserHandler;
-const blogsService_1 = require("../../../blogs/application/blogsService");
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 const httpStatus_1 = require("../../../core/types/httpStatus");
+const usersService_1 = require("../../application/usersService");
 function deleteUserHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const id = req.params.id;
-            yield blogsService_1.blogsService.delete(id);
+            yield usersService_1.usersService.delete(id);
             res.sendStatus(httpStatus_1.HttpStatus.NoContent);
         }
         catch (e) {

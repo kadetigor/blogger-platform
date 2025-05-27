@@ -1,4 +1,5 @@
 import { body } from 'express-validator';
+import { userCollection } from '../../../db/mongoDb';
 
 const loginValidation = body('login')
     .exists().withMessage('Login is required')
@@ -7,7 +8,7 @@ const loginValidation = body('login')
     .matches(/^[a-zA-Z0-9_-]*$/).withMessage('Login must contain only characters and numbers')
     .custom(async (login) => {
     // replace `findOne` with whatever your ORM/method is
-        const existing = await UserModel.findOne({ login });
+        const existing = await userCollection.findOne({ login });
         if (existing) {
         // throw to signal a failed validation
         throw new Error('This login is already taken');
@@ -27,7 +28,7 @@ const emailValidation = body('email')
     .matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage('Login must contain only characters and numbers')
     .custom(async (email) => {
     // replace `findOne` with whatever your ORM/method is
-        const existing = await UserModel.findOne({ email });
+        const existing = await userCollection.findOne({ email });
         if (existing) {
         // throw to signal a failed validation
         throw new Error('This login is already taken');
