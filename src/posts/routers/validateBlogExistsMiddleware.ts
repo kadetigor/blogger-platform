@@ -36,7 +36,7 @@ export async function validateBlogExistsMiddleware(
     
     next();
   } catch (error) {
-    res.status(HttpStatus.BadRequest).json(
+    res.status(HttpStatus.NotFound).json(
       createErrorMessages([
         {
           message: 'Blog with provided blogId does not exist',

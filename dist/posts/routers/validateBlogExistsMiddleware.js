@@ -37,7 +37,7 @@ function validateBlogExistsMiddleware(req, res, next) {
             next();
         }
         catch (error) {
-            res.status(httpStatus_1.HttpStatus.BadRequest).json((0, input_validtion_result_middleware_1.createErrorMessages)([
+            res.status(httpStatus_1.HttpStatus.NotFound).json((0, input_validtion_result_middleware_1.createErrorMessages)([
                 {
                     message: 'Blog with provided blogId does not exist',
                     field: 'blogId',
