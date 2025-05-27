@@ -16,7 +16,8 @@ export async function getBlogListHandler(
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : paginationAndSortingDefault.pageNumber,
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : paginationAndSortingDefault.pageSize,
       sortBy: (req.query.sortBy as blogSortField) || paginationAndSortingDefault.sortBy,
-      sortDirection: (req.query.sortDirection as sortDirection) || paginationAndSortingDefault.sortDirection
+      sortDirection: (req.query.sortDirection as sortDirection) || paginationAndSortingDefault.sortDirection,
+      searchNameTerm: typeof req.query.searchNameTerm === "string" ? req.query.searchNameTerm.trim() : ""
     };
 
     const { items, totalCount } = await blogsService.findMany(queryInput);
