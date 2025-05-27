@@ -15,7 +15,7 @@ const contentValidation = (0, express_validator_1.body)('content')
     .isString().withMessage('content should be string')
     .trim().isLength({ min: 1, max: 1000 }).withMessage('Content is too long');
 const blogIdValidation = (0, express_validator_1.body)('blogId')
-    .exists().withMessage('blogId is required')
+    .optional()
     .isString().withMessage('blogId should be string')
     .isMongoId().withMessage('blogId must be a valid MongoDB ObjectId');
 exports.postInputDtoValidation = [

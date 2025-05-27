@@ -9,7 +9,7 @@ export async function validateBlogExistsMiddleware(
   next: NextFunction
 ) {
   try {
-    const blogId = req.body.blogId;
+    const blogId = req.params.id
     
     if (!blogId) {
       res.status(HttpStatus.BadRequest).json(

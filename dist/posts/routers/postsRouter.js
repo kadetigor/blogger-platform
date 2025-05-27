@@ -13,10 +13,11 @@ const super_admin_guard_middleware_1 = require("../../auth/middlewares/super-adm
 const deletePostHandler_1 = require("./handlers/deletePostHandler");
 const postSortField_1 = require("./input/postSortField");
 const queryPaginationSortingValidationMiddleware_1 = require("../../core/middlewares/validation/queryPaginationSortingValidationMiddleware");
+const validateBlogExistsMiddleware_1 = require("./validateBlogExistsMiddleware");
 exports.postsRouter = (0, express_1.Router)({});
 exports.postsRouter
     .get('/', (0, queryPaginationSortingValidationMiddleware_1.paginationAndSortingValidation)(postSortField_1.postSortField), input_validtion_result_middleware_1.inputValidationResultMiddleware, getPostListHandler_1.getPostListHandler)
     .get('/:id', params_id_validation_middleware_1.idValidationMiddleware, input_validtion_result_middleware_1.inputValidationResultMiddleware, getPostHandler_1.getPostHandler)
-    .post('/', super_admin_guard_middleware_1.superAdminGuardMiddleware, postInputDtoValidationMiddleware_1.postInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, createPostHandler_1.createPostHandler)
-    .put('/:id', super_admin_guard_middleware_1.superAdminGuardMiddleware, params_id_validation_middleware_1.idValidationMiddleware, postInputDtoValidationMiddleware_1.postInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, updatePostHandler_1.updatePostHandler)
+    .post('/', super_admin_guard_middleware_1.superAdminGuardMiddleware, postInputDtoValidationMiddleware_1.postInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, validateBlogExistsMiddleware_1.validateBlogExistsMiddleware, createPostHandler_1.createPostHandler)
+    .put('/:id', super_admin_guard_middleware_1.superAdminGuardMiddleware, params_id_validation_middleware_1.idValidationMiddleware, postInputDtoValidationMiddleware_1.postInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, validateBlogExistsMiddleware_1.validateBlogExistsMiddleware, updatePostHandler_1.updatePostHandler)
     .delete('/:id', super_admin_guard_middleware_1.superAdminGuardMiddleware, params_id_validation_middleware_1.idValidationMiddleware, input_validtion_result_middleware_1.inputValidationResultMiddleware, deletePostHandler_1.deletePostHandler);

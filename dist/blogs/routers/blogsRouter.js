@@ -17,6 +17,7 @@ const getBlogPostsListHandler_1 = require("./handlers/getBlogPostsListHandler");
 const postInputDtoValidationMiddleware_1 = require("../../posts/routers/postInputDtoValidationMiddleware");
 const createPostHandler_1 = require("../../posts/routers/handlers/createPostHandler");
 const blogSortField_1 = require("./input/blogSortField");
+const validateBlogExistsMiddleware_1 = require("../../posts/routers/validateBlogExistsMiddleware");
 exports.blogsRouter = (0, express_1.Router)();
 exports.blogsRouter
     .get('/', (0, queryPaginationSortingValidationMiddleware_1.paginationAndSortingValidation)(blogSortField_1.blogSortField), input_validtion_result_middleware_1.inputValidationResultMiddleware, getBlogListHandler_1.getBlogListHandler) // blogsController.getBlogs
@@ -24,5 +25,5 @@ exports.blogsRouter
     .post('/', super_admin_guard_middleware_1.superAdminGuardMiddleware, blogInputDtoValidationMiddleware_1.blogInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, createBlogHandler_1.createBlogHandler)
     .put('/:id', super_admin_guard_middleware_1.superAdminGuardMiddleware, params_id_validation_middleware_1.idValidationMiddleware, blogInputDtoValidationMiddleware_1.blogInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, updateBlogHandler_1.updateBlogHandler)
     .delete('/:id', super_admin_guard_middleware_1.superAdminGuardMiddleware, params_id_validation_middleware_1.idValidationMiddleware, input_validtion_result_middleware_1.inputValidationResultMiddleware, deleteBlogHandler_1.deleteBlogHandler)
-    .get('/:id/posts', params_id_validation_middleware_1.idValidationMiddleware, (0, queryPaginationSortingValidationMiddleware_1.paginationAndSortingValidation)(postSortField_1.postSortField), input_validtion_result_middleware_1.inputValidationResultMiddleware, getBlogPostsListHandler_1.getBlogPostsListHandler)
-    .post('/:id/posts', super_admin_guard_middleware_1.superAdminGuardMiddleware, params_id_validation_middleware_1.idValidationMiddleware, postInputDtoValidationMiddleware_1.postInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, createPostHandler_1.createPostHandler);
+    .get('/:id/posts', params_id_validation_middleware_1.idValidationMiddleware, input_validtion_result_middleware_1.inputValidationResultMiddleware, validateBlogExistsMiddleware_1.validateBlogExistsMiddleware, (0, queryPaginationSortingValidationMiddleware_1.paginationAndSortingValidation)(postSortField_1.postSortField), input_validtion_result_middleware_1.inputValidationResultMiddleware, getBlogPostsListHandler_1.getBlogPostsListHandler)
+    .post('/:id/posts', super_admin_guard_middleware_1.superAdminGuardMiddleware, params_id_validation_middleware_1.idValidationMiddleware, validateBlogExistsMiddleware_1.validateBlogExistsMiddleware, postInputDtoValidationMiddleware_1.postInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, createPostHandler_1.createPostHandler);

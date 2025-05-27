@@ -16,7 +16,7 @@ const input_validtion_result_middleware_1 = require("../../core/middlewares/vali
 function validateBlogExistsMiddleware(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const blogId = req.body.blogId;
+            const blogId = req.params.id;
             if (!blogId) {
                 res.status(httpStatus_1.HttpStatus.BadRequest).json((0, input_validtion_result_middleware_1.createErrorMessages)([
                     {
