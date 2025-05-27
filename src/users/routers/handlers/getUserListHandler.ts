@@ -17,7 +17,8 @@ export async function getUserListHandler(
       pageSize: req.query.pageSize ? Number(req.query.pageSize) : paginationAndSortingDefault.pageSize,
       sortBy: (req.query.sortBy as userSortField) || paginationAndSortingDefault.sortBy,
       sortDirection: (req.query.sortDirection as sortDirection) || paginationAndSortingDefault.sortDirection,
-      searchNameTerm: typeof req.query.searchNameTerm === "string" ? req.query.searchNameTerm.trim() : ""
+      searchLoginTerm: typeof req.query.searchLoginTerm === "string" ? req.query.searchLoginTerm.trim() : "",
+      searchEmailTerm: typeof req.query.searchEmailTerm === "string" ? req.query.searchEmailTerm.trim() : "",
       };
     
         const { items, totalCount } = await usersQueryRepository.findMany(queryInput)

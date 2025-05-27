@@ -22,7 +22,8 @@ function getUserListHandler(req, res) {
                 pageSize: req.query.pageSize ? Number(req.query.pageSize) : queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.pageSize,
                 sortBy: req.query.sortBy || queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.sortBy,
                 sortDirection: req.query.sortDirection || queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.sortDirection,
-                searchNameTerm: typeof req.query.searchNameTerm === "string" ? req.query.searchNameTerm.trim() : ""
+                searchLoginTerm: typeof req.query.searchLoginTerm === "string" ? req.query.searchLoginTerm.trim() : "",
+                searchEmailTerm: typeof req.query.searchEmailTerm === "string" ? req.query.searchEmailTerm.trim() : "",
             };
             const { items, totalCount } = yield usersQueryRepository_1.usersQueryRepository.findMany(queryInput);
             const usersListOutput = (0, mapToUserListPaginatedOutput_1.mapToUsersListPaginatedOutput)(items, {

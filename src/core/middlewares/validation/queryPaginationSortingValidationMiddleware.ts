@@ -8,6 +8,8 @@ const DEFAULT_PAGE_SIZE = 10;
 const DEFAULT_SORT_DIRECTION = sortDirection.Desc;
 const DEFAULT_SORT_BY = 'createdAt';
 const DEFAULT_SEARCH_NAME_TERM = '';
+const DEFAULT_SEARCH_LOGIN_TERM = '';
+const DEFAULT_SEARCH_EMAIL_TERM = '';
 
 export const paginationAndSortingDefault: paginationAndSorting<string> = {
   pageNumber: DEFAULT_PAGE_NUMBER,
@@ -15,6 +17,8 @@ export const paginationAndSortingDefault: paginationAndSorting<string> = {
   sortBy: DEFAULT_SORT_BY,
   sortDirection: DEFAULT_SORT_DIRECTION,
   searchNameTerm: DEFAULT_SEARCH_NAME_TERM,
+  searchLoginTerm: DEFAULT_SEARCH_LOGIN_TERM,
+  searchEmailTerm: DEFAULT_SEARCH_EMAIL_TERM,
 };
 
 export function paginationAndSortingValidation<T extends string>(
@@ -51,6 +55,14 @@ export function paginationAndSortingValidation<T extends string>(
 
     query('searchNameTerm')
       .optional()
-      .default(DEFAULT_SEARCH_NAME_TERM)
+      .default(DEFAULT_SEARCH_NAME_TERM),
+    
+    query('searchLoginTerm')
+      .optional()
+      .default(DEFAULT_SEARCH_LOGIN_TERM),
+    
+    query('searchEmailTerm')
+      .optional()
+      .default(DEFAULT_SEARCH_EMAIL_TERM)
   ];
 }

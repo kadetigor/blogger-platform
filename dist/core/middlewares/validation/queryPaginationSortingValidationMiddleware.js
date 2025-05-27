@@ -9,12 +9,16 @@ const DEFAULT_PAGE_SIZE = 10;
 const DEFAULT_SORT_DIRECTION = sortDirection_1.sortDirection.Desc;
 const DEFAULT_SORT_BY = 'createdAt';
 const DEFAULT_SEARCH_NAME_TERM = '';
+const DEFAULT_SEARCH_LOGIN_TERM = '';
+const DEFAULT_SEARCH_EMAIL_TERM = '';
 exports.paginationAndSortingDefault = {
     pageNumber: DEFAULT_PAGE_NUMBER,
     pageSize: DEFAULT_PAGE_SIZE,
     sortBy: DEFAULT_SORT_BY,
     sortDirection: DEFAULT_SORT_DIRECTION,
     searchNameTerm: DEFAULT_SEARCH_NAME_TERM,
+    searchLoginTerm: DEFAULT_SEARCH_LOGIN_TERM,
+    searchEmailTerm: DEFAULT_SEARCH_EMAIL_TERM,
 };
 function paginationAndSortingValidation(sortFieldsEnum) {
     const allowedSortFields = Object.values(sortFieldsEnum);
@@ -39,6 +43,12 @@ function paginationAndSortingValidation(sortFieldsEnum) {
             .isIn(Object.values(sortDirection_1.sortDirection)).withMessage(`Sort direction must be one of: ${Object.values(sortDirection_1.sortDirection).join(', ')}`),
         (0, express_validator_1.query)('searchNameTerm')
             .optional()
-            .default(DEFAULT_SEARCH_NAME_TERM)
+            .default(DEFAULT_SEARCH_NAME_TERM),
+        (0, express_validator_1.query)('searchLoginTerm')
+            .optional()
+            .default(DEFAULT_SEARCH_LOGIN_TERM),
+        (0, express_validator_1.query)('searchEmailTerm')
+            .optional()
+            .default(DEFAULT_SEARCH_EMAIL_TERM)
     ];
 }

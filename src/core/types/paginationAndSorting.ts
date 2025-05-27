@@ -5,5 +5,7 @@ export type paginationAndSorting<S> = {
   pageSize: number;
   sortBy: S;
   sortDirection: sortDirection;
-  searchNameTerm?: string
+  searchNameTerm?: string;
+  searchEmailTerm?: string;
+  searchLoginTerm?: string;
 };
