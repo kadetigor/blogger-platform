@@ -15,10 +15,17 @@ export const blogsRepository = {
       pageSize,
       sortBy,
       sortDirection,
+      searchNameTerm
     } = queryDto
 
     const skip = (pageNumber - 1) * pageSize;
     const filter: any = {};
+    if (searchNameTerm) {
+      filter.name = {
+        $regex: searchNameTerm,
+        $options: 'i'
+      };
+    }
 
     const items = await blogCollection
       .find(filter)

@@ -16,9 +16,15 @@ const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundE
 exports.blogsRepository = {
     findMany(queryDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { pageNumber, pageSize, sortBy, sortDirection, } = queryDto;
+            const { pageNumber, pageSize, sortBy, sortDirection, searchNameTerm } = queryDto;
             const skip = (pageNumber - 1) * pageSize;
             const filter = {};
+            if (searchNameTerm) {
+                filter.name = {
+                    $regex: searchNameTerm,
+                    $options: 'i'
+                };
+            }
             const items = yield mongoDb_1.blogCollection
                 .find(filter)
                 .sort({ [sortBy]: sortDirection })

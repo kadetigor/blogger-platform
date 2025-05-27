@@ -4,4 +4,7 @@ exports.blogSortField = void 0;
 var blogSortField;
 (function (blogSortField) {
     blogSortField["createdAt"] = "createdAt";
+    blogSortField["name"] = "name";
+    blogSortField["description"] = "description";
+    blogSortField["websiteUrl"] = "websiteUrl";
 })(blogSortField || (exports.blogSortField = blogSortField = {}));

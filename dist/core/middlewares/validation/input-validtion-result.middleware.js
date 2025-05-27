@@ -19,6 +19,7 @@ const inputValidationResultMiddleware = (req, res, next) => {
         .formatWith(formatValidationErrors)
         .array({ onlyFirstError: true });
     if (errors.length > 0) {
+        console.log(JSON.stringify(errors));
         res.status(httpStatus_1.HttpStatus.BadRequest).json({ errorsMessages: errors });
         return;
     }

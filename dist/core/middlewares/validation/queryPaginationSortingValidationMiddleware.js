@@ -8,11 +8,13 @@ const DEFAULT_PAGE_NUMBER = 1;
 const DEFAULT_PAGE_SIZE = 10;
 const DEFAULT_SORT_DIRECTION = sortDirection_1.sortDirection.Desc;
 const DEFAULT_SORT_BY = 'createdAt';
+const DEFAULT_SEARCH_NAME_TERM = '';
 exports.paginationAndSortingDefault = {
     pageNumber: DEFAULT_PAGE_NUMBER,
     pageSize: DEFAULT_PAGE_SIZE,
     sortBy: DEFAULT_SORT_BY,
     sortDirection: DEFAULT_SORT_DIRECTION,
+    searchNameTerm: DEFAULT_SEARCH_NAME_TERM,
 };
 function paginationAndSortingValidation(sortFieldsEnum) {
     const allowedSortFields = Object.values(sortFieldsEnum);
@@ -35,5 +37,8 @@ function paginationAndSortingValidation(sortFieldsEnum) {
             .optional()
             .default(DEFAULT_SORT_DIRECTION)
             .isIn(Object.values(sortDirection_1.sortDirection)).withMessage(`Sort direction must be one of: ${Object.values(sortDirection_1.sortDirection).join(', ')}`),
+        (0, express_validator_1.query)('searchNameTerm')
+            .optional()
+            .default(DEFAULT_SEARCH_NAME_TERM)
     ];
 }
