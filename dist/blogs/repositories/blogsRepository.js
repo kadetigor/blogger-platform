@@ -19,10 +19,11 @@ exports.blogsRepository = {
             const { pageNumber, pageSize, sortBy, sortDirection, searchNameTerm } = queryDto;
             const skip = (pageNumber - 1) * pageSize;
             const filter = {};
-            if (searchNameTerm) {
+            if (searchNameTerm && searchNameTerm.trim() !== "") {
                 filter.name = {
+                    // case-insensitive “contains”
                     $regex: searchNameTerm,
-                    $options: 'i'
+                    $options: "i",
                 };
             }
             const items = yield mongoDb_1.blogCollection

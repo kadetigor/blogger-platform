@@ -1,6 +1,6 @@
 import { Blog } from "../domain/blog";
 import { blogCollection } from "../../db/mongoDb";
-import { ObjectId, WithId } from "mongodb";
+import { ObjectId, WithId, Filter } from "mongodb";
 import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
 import { blogAttributes } from "../application/dtos/blogAttributes";
 import { blogQueryInput } from "../routers/input/blogQueryInput";
@@ -19,11 +19,12 @@ export const blogsRepository = {
     } = queryDto
 
     const skip = (pageNumber - 1) * pageSize;
-    const filter: any = {};
-    if (searchNameTerm) {
+    const filter: Filter<Blog> = {};
+    if (searchNameTerm && searchNameTerm.trim() !== "") {
       filter.name = {
+        // case-insensitive “contains”
         $regex: searchNameTerm,
-        $options: 'i'
+        $options: "i",
       };
     }
 
