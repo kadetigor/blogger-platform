@@ -37,7 +37,7 @@ blogsRouter
     superAdminGuardMiddleware,
     idValidationMiddleware,
     blogPostInputDtoValidation,
-    inputValidationResultMiddleware,
     validateBlogExistsMiddleware,
+    inputValidationResultMiddleware,
     createPostHandler
   );
