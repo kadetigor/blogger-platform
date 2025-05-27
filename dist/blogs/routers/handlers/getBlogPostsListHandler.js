@@ -14,10 +14,16 @@ const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 const mapToPostListPaginatedOutput_1 = require("../mappers/mapToPostListPaginatedOutput");
 const queryPaginationSortingValidationMiddleware_1 = require("../../../core/middlewares/validation/queryPaginationSortingValidationMiddleware");
 const postsQueryRepository_1 = require("../../../posts/repositories/postsQueryRepository");
+const repositoryNotFoundError_1 = require("../../../core/errors/repositoryNotFoundError");
+const blogsQueryRepository_1 = require("../../repositories/blogsQueryRepository");
 function getBlogPostsListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const blogId = req.params.id;
+            const blog = yield blogsQueryRepository_1.blogsQueryRepository.findByIdOrFail(blogId);
+            if (!blog) {
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('Blog does not exist');
+            }
             const queryInput = {
                 pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.pageNumber,
                 pageSize: req.query.pageSize ? Number(req.query.pageSize) : queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.pageSize,

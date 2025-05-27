@@ -7,6 +7,9 @@ import { postSortField } from '../../../posts/routers/input/postSortField';
 import { sortDirection } from '../../../core/types/sortDirection';
 import { paginationAndSortingDefault } from '../../../core/middlewares/validation/queryPaginationSortingValidationMiddleware';
 import { postsQueryRepository } from '../../../posts/repositories/postsQueryRepository';
+import { repositoryNotFoundError } from '../../../core/errors/repositoryNotFoundError';
+import { blogsQueryRepository } from '../../repositories/blogsQueryRepository';
+import { HttpStatus } from '../../../core/types/httpStatus';
 
 export async function getBlogPostsListHandler(
   req: Request,
@@ -14,6 +17,12 @@ export async function getBlogPostsListHandler(
 ) {
   try {
     const blogId = req.params.id;
+
+    const blog = await blogsQueryRepository.findByIdOrFail(blogId);
+
+    if (!blog) {
+      throw new repositoryNotFoundError('Blog does not exist');
+    }
     
     const queryInput: postQueryInput = {
       pageNumber: req.query.pageNumber ? Number(req.query.pageNumber) : paginationAndSortingDefault.pageNumber,
