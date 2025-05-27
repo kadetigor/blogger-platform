@@ -8,13 +8,18 @@ import { errorsHandler } from '../../../core/errors/errorsHandler';
 
 
 export async function createPostHandler(
-  req: Request<{ id: string }, {}, postInputDto>,
+  req: Request,
   res: Response,
 ): Promise<void> {
-  const blogId = req.params.id
+  const blogId = req.body.blogId
+  console.log(`recived blogId ${blogId}`)
   try {
     const createdPostId = await postsService.create({...req.body, blogId});
+    console.log(`created post ID ${createdPostId}`)
+
     const createdPost = await postsService.findByIdOrFail(createdPostId);
+
+    console.log(`created post ${createdPost}`)
 
     const postViewModel = mapToPostViewModel(createdPost);
     res.status(HttpStatus.Created).send(postViewModel);
