@@ -14,16 +14,15 @@ export async function getBlogPostsListHandler(
 
   try {
     const blogId = req.params.id;
-    const queryInput = req.query as any
     // Properly handle the query parameters with defaults
-    // const baseQueryInput = setDefaultSortAndPaginationIfNotExist(req.query as any);
+    const baseQueryInput = setDefaultSortAndPaginationIfNotExist(req.query as any);
     
-    // const queryInput: postQueryInput = {
-    //   pageNumber: baseQueryInput.pageNumber,
-    //   pageSize: baseQueryInput.pageSize,
-    //   sortBy: baseQueryInput.sortBy as postSortField,
-    //   sortDirection: baseQueryInput.sortDirection as sortDirection
-    // };
+    const queryInput: postQueryInput = {
+      pageNumber: baseQueryInput.pageNumber,
+      pageSize: baseQueryInput.pageSize,
+      sortBy: baseQueryInput.sortBy as postSortField,
+      sortDirection: baseQueryInput.sortDirection as sortDirection
+    };
 
     const { items, totalCount } = await postsService.findPostsbyBlog(
       queryInput,

@@ -37,15 +37,12 @@ export const postsRepository = {
     queryDto: postQueryInput,
     blogId: string,
   ): Promise<{ items: WithId<Post>[]; totalCount: number }> {
-
-
     const {
-      pageNumber = 1,
-      pageSize = 10,
-      sortBy = 'createdAt',
-      sortDirection = 'desc',
+      pageNumber,
+      pageSize,
+      sortBy,
+      sortDirection,
     } = queryDto;
-    
 
     const filter = { blogId: blogId };
     const skip = (pageNumber - 1) * pageSize;

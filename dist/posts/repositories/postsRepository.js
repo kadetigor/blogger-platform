@@ -31,7 +31,7 @@ exports.postsRepository = {
     },
     findPostsbyBlog(queryDto, blogId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { pageNumber = 1, pageSize = 10, sortBy = 'createdAt', sortDirection = 'desc', } = queryDto;
+            const { pageNumber, pageSize, sortBy, sortDirection, } = queryDto;
             const filter = { blogId: blogId };
             const skip = (pageNumber - 1) * pageSize;
             const [items, totalCount] = yield Promise.all([

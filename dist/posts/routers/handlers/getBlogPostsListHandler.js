@@ -11,17 +11,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getBlogPostsListHandler = getBlogPostsListHandler;
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
-const postsService_1 = require("../../application/postsService");
-const mapToPostListPaginatedOutput_1 = require("../mappers/mapToPostListPaginatedOutput");
+const postsService_1 = require("../../../posts/application/postsService");
+const mapToPostListPaginatedOutput_1 = require("../../../blogs/routers/mappers/mapToPostListPaginatedOutput");
+const setDefaultSortAndPagination_1 = require("../../../core/helpers/setDefaultSortAndPagination");
 function getBlogPostsListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const blogId = req.params.id;
-            const queryInput = req.query;
+            const baseQueryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(req.query);
+            const queryInput = {
+                pageNumber: baseQueryInput.pageNumber,
+                pageSize: baseQueryInput.pageSize,
+                sortBy: baseQueryInput.sortBy,
+                sortDirection: baseQueryInput.sortDirection
+            };
             const { items, totalCount } = yield postsService_1.postsService.findPostsbyBlog(queryInput, blogId);
             const postListOutput = (0, mapToPostListPaginatedOutput_1.mapToPostListPaginatedOutput)(items, {
-                //pagesCount: queryInput.pageCount,
-                // page: queryInput.page,
                 pageNumber: queryInput.pageNumber,
                 pageSize: queryInput.pageSize,
                 totalCount,
