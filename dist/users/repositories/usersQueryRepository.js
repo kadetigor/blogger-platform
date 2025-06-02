@@ -19,25 +19,17 @@ exports.usersQueryRepository = {
             const { pageNumber, pageSize, sortBy, sortDirection, searchLoginTerm, searchEmailTerm, } = queryDto;
             const skip = (pageNumber - 1) * pageSize;
             const filter = {};
-            if ((searchLoginTerm && searchLoginTerm.trim() !== "") ||
-                (searchEmailTerm && searchEmailTerm.trim() !== "")) {
-                filter.$or = [];
-                if (searchLoginTerm && searchLoginTerm.trim() !== "") {
-                    filter.$or.push({
-                        name: {
-                            $regex: searchLoginTerm,
-                            $options: "i",
-                        },
-                    });
-                }
-                if (searchEmailTerm && searchEmailTerm.trim() !== "") {
-                    filter.$or.push({
-                        email: {
-                            $regex: searchEmailTerm,
-                            $options: "i",
-                        },
-                    });
-                }
+            if (searchLoginTerm && searchLoginTerm.trim() !== "") {
+                filter.name = {
+                    $regex: searchLoginTerm,
+                    $options: "i",
+                };
+            }
+            if (searchEmailTerm && searchEmailTerm.trim() !== "") {
+                filter.email = {
+                    $regex: searchEmailTerm,
+                    $options: "i",
+                };
             }
             const items = yield mongoDb_1.userCollection
                 .find(filter)
