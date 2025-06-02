@@ -17,6 +17,7 @@ exports.usersRepository = {
     findByIdOrFail(id) {
         return __awaiter(this, void 0, void 0, function* () {
             const res = yield mongoDb_1.userCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
+            console.log(`${res}`);
             if (!res) {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('User does not exist');
             }

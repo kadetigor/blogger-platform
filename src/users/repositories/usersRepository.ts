@@ -8,6 +8,7 @@ export const usersRepository = {
 
     async findByIdOrFail(id: string): Promise<WithId<User>> {
             const res = await userCollection.findOne({ _id: new ObjectId(id) });
+            console.log(`${res}`)
     
             if (!res) {
                 throw new repositoryNotFoundError('User does not exist')
