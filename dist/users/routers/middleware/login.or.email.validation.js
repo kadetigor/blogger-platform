@@ -9,20 +9,37 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loginOrEmailValidation = void 0;
-const express_validator_1 = require("express-validator");
+exports.loginOrEmailValidator = void 0;
 const mongoDb_1 = require("../../../db/mongoDb");
-exports.loginOrEmailValidation = (0, express_validator_1.body)("loginOrEmail")
-    .exists().withMessage('Login is required')
-    .isString().withMessage('Login should be a string')
-    .trim().isLength({ min: 3, max: 10 }).withMessage('Length of the Login should be no less then 3 characters and no more then 10 characters')
-    .matches(/^[a-zA-Z0-9_-]*$/).withMessage('Login must contain only characters and numbers')
-    .custom((login) => __awaiter(void 0, void 0, void 0, function* () {
-    // replace `findOne` with whatever your ORM/method is
-    const existing = yield mongoDb_1.userCollection.findOne({ login });
-    if (existing) {
-        // throw to signal a failed validation
-        throw new Error('This login is already taken');
+const loginRegex = /^[a-zA-Z0-9_-]*$/;
+const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+const loginOrEmailValidator = (value_1, _a) => __awaiter(void 0, [value_1, _a], void 0, function* (value, { req }) {
+    const login = req.body.login;
+    const email = req.body.email;
+    if ((!login || login.trim() === '') && (!email || email.trim() === '')) {
+        throw new Error('Either login or email is required');
+    }
+    if (login && login.trim() !== '') {
+        if (login.length < 3 || login.length > 10) {
+            throw new Error('Login length must be 3-10 characters');
+        }
+        if (!loginRegex.test(login)) {
+            throw new Error('Login must contain only characters, numbers, underscores or dashes');
+        }
+        const existingLogin = yield mongoDb_1.userCollection.findOne({ login });
+        if (existingLogin) {
+            throw new Error('This login is already taken');
+        }
+    }
+    if (email && email.trim() !== '') {
+        if (!emailRegex.test(email)) {
+            throw new Error('Email must be valid');
+        }
+        const existingEmail = yield mongoDb_1.userCollection.findOne({ email });
+        if (existingEmail) {
+            throw new Error('This email is already taken');
+        }
     }
     return true;
-}));
+});
+exports.loginOrEmailValidator = loginOrEmailValidator;
