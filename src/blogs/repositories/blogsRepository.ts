@@ -7,6 +7,14 @@ import { blogQueryInput } from "../routers/input/blogQueryInput";
 
 export const blogsRepository = {
 
+  async findByIdOrFail(id: string): Promise<WithId<Blog>> {
+    const res = await blogCollection.findOne({ _id: new ObjectId(id) });
+    if (!res) {
+      throw new repositoryNotFoundError('Blog does not exist')
+    }
+    return res;
+  },
+
   async create(newBlog: Blog): Promise<string> {
     const insertResult = await blogCollection.insertOne(newBlog);
 

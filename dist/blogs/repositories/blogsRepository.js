@@ -14,6 +14,15 @@ const mongoDb_1 = require("../../db/mongoDb");
 const mongodb_1 = require("mongodb");
 const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 exports.blogsRepository = {
+    findByIdOrFail(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const res = yield mongoDb_1.blogCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
+            if (!res) {
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('Blog does not exist');
+            }
+            return res;
+        });
+    },
     create(newBlog) {
         return __awaiter(this, void 0, void 0, function* () {
             const insertResult = yield mongoDb_1.blogCollection.insertOne(newBlog);

@@ -14,7 +14,7 @@ const httpStatus_1 = require("../../../core/types/httpStatus");
 const mapToPostViewModel_1 = require("../mappers/mapToPostViewModel");
 const postsService_1 = require("../../application/postsService");
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
-const postsQueryRepository_1 = require("../../repositories/postsQueryRepository");
+const postsRepository_1 = require("../../repositories/postsRepository");
 function createPostHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const blogId = req.body.blogId;
@@ -22,7 +22,7 @@ function createPostHandler(req, res) {
         try {
             const createdPostId = yield postsService_1.postsService.create(Object.assign(Object.assign({}, req.body), { blogId }));
             console.log(`created post ID ${createdPostId}`);
-            const createdPost = yield postsQueryRepository_1.postsQueryRepository.findByIdOrFail(createdPostId);
+            const createdPost = yield postsRepository_1.postsRepository.findByIdOrFail(createdPostId);
             console.log(`created post ${createdPost}`);
             const postViewModel = (0, mapToPostViewModel_1.mapToPostViewModel)(createdPost);
             res.status(httpStatus_1.HttpStatus.Created).send(postViewModel);

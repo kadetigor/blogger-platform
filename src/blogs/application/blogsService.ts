@@ -1,8 +1,6 @@
 import { blogsRepository } from "../repositories/blogsRepository";
 import { Blog } from "../domain/blog";
 import { blogAttributes } from "./dtos/blogAttributes";
-import { WithId } from "mongodb";
-import { blogQueryInput } from "../routers/input/blogQueryInput";
 
 export const blogsService = {
   
