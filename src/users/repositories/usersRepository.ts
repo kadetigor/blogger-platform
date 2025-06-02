@@ -1,10 +1,20 @@
-import { ObjectId } from "mongodb";
+import { ObjectId, WithId } from "mongodb";
 import { userCollection } from "../../db/mongoDb";
 import { userAttributes } from "../application/dtos/userAttributes";
 import { User } from "../domain/user";
 import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
 
 export const usersRepository = {
+
+    async findByIdOrFail(id: string): Promise<WithId<User>> {
+            const res = await userCollection.findOne({ _id: new ObjectId(id) });
+    
+            if (!res) {
+                throw new repositoryNotFoundError('User does not exist')
+            }
+            return res;
+    },
+        
     async create(newUser: User): Promise<string> {
         const insertResult = await userCollection.insertOne(newUser);
         return insertResult.insertedId.toString();

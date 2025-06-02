@@ -11,15 +11,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createUserHandler = createUserHandler;
 const usersService_1 = require("../../application/usersService");
-const usersQueryRepository_1 = require("../../repositories/usersQueryRepository");
 const httpStatus_1 = require("../../../core/types/httpStatus");
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 const mapToUserOutput_1 = require("../mappers/mapToUserOutput");
+const usersRepository_1 = require("../../repositories/usersRepository");
 function createUserHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const createUserId = yield usersService_1.usersService.create(req.body);
-            const createUser = yield usersQueryRepository_1.usersQueryRepository.findByIdOrFail(createUserId);
+            const createUser = yield usersRepository_1.usersRepository.findByIdOrFail(createUserId);
             const userOutput = (0, mapToUserOutput_1.mapToUserOutput)(createUser);
             res.status(httpStatus_1.HttpStatus.Created).send(userOutput);
         }

@@ -14,6 +14,15 @@ const mongodb_1 = require("mongodb");
 const mongoDb_1 = require("../../db/mongoDb");
 const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 exports.usersRepository = {
+    findByIdOrFail(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const res = yield mongoDb_1.userCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
+            if (!res) {
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('User does not exist');
+            }
+            return res;
+        });
+    },
     create(newUser) {
         return __awaiter(this, void 0, void 0, function* () {
             const insertResult = yield mongoDb_1.userCollection.insertOne(newUser);
