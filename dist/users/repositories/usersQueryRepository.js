@@ -16,9 +16,29 @@ const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundE
 exports.usersQueryRepository = {
     findMany(queryDto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { pageNumber, pageSize, sortBy, sortDirection, } = queryDto;
+            const { pageNumber, pageSize, sortBy, sortDirection, searchLoginTerm, searchEmailTerm, } = queryDto;
             const skip = (pageNumber - 1) * pageSize;
             const filter = {};
+            if ((searchLoginTerm && searchLoginTerm.trim() !== "") ||
+                (searchEmailTerm && searchEmailTerm.trim() !== "")) {
+                filter.$or = [];
+                if (searchLoginTerm && searchLoginTerm.trim() !== "") {
+                    filter.$or.push({
+                        name: {
+                            $regex: searchLoginTerm,
+                            $options: "i",
+                        },
+                    });
+                }
+                if (searchEmailTerm && searchEmailTerm.trim() !== "") {
+                    filter.$or.push({
+                        email: {
+                            $regex: searchEmailTerm,
+                            $options: "i",
+                        },
+                    });
+                }
+            }
             const items = yield mongoDb_1.userCollection
                 .find(filter)
                 .sort({ [sortBy]: sortDirection })

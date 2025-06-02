@@ -1,4 +1,4 @@
-import { ObjectId, WithId } from "mongodb";
+import { Filter, ObjectId, WithId } from "mongodb";
 import { User } from "../domain/user";
 import { userCollection } from "../../db/mongoDb";
 import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
@@ -13,10 +13,36 @@ export const usersQueryRepository = {
               pageSize,
               sortBy,
               sortDirection,
+              searchLoginTerm,
+              searchEmailTerm,
             } = queryDto
 
             const skip = (pageNumber - 1) * pageSize;
-            const filter: any = {};
+            const filter: Filter<User> = {};
+                if (
+                    (searchLoginTerm && searchLoginTerm.trim() !== "") ||
+                    (searchEmailTerm && searchEmailTerm.trim() !== "")
+                ) {
+                    filter.$or = [];
+
+                    if (searchLoginTerm && searchLoginTerm.trim() !== "") {
+                    filter.$or.push({
+                        name: {
+                        $regex: searchLoginTerm,
+                        $options: "i",
+                        },
+                    });
+                    }
+
+                    if (searchEmailTerm && searchEmailTerm.trim() !== "") {
+                    filter.$or.push({
+                        email: {
+                        $regex: searchEmailTerm,
+                        $options: "i",
+                        },
+                    });
+                }
+            }
         
             const items = await userCollection
               .find(filter)
