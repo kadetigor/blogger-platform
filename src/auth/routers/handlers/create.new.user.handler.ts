@@ -1,21 +1,33 @@
 import { Request, Response } from "express";
 import { HttpStatus } from "../../../core/types/httpStatus";
-import { errorsHandler } from "../../../core/errors/errorsHandler";
-import { usersService } from "../../../users/application/usersService";
 import { usersRepository } from "../../../users/repositories/usersRepository";
-import { mapToUserOutput } from "../../../users/routers/mappers/mapToUserOutput";
+import { bcryptService } from "../../adapters/bcrypt.service";
+import { userCollection } from "../../../db/mongoDb";
 
-export async function createNewUserHandler(
-    req: Request,
+export async function loginHandler(
+    req: Request<{}, {}, { loginOrEmail: string; password: string }>,
     res: Response,
 ): Promise<void> {
     try {
-        const createUserId = await usersService.create(req.body);
-        const createUser = await usersRepository.findByIdOrFail(createUserId);
-        const userOutput = mapToUserOutput(createUser);
+        const { loginOrEmail, password } = req.body;
 
-        res.status(HttpStatus.NoContent).send(userOutput);
-    } catch (e: unknown) {
-        errorsHandler(e, res);
+        // Find user by login or email
+        const user = await userCollection.findOne({
+            $or: [
+                { login: loginOrEmail },
+                { email: loginOrEmail }
+            ]
+        });
+
+        // If user not found or password doesn't match
+        if (!user || !(await bcryptService.checkPassword(password, user.passwordHash))) {
+            res.sendStatus(HttpStatus.Unauthorized);
+            return;
+        }
+
+        // Login successful
+        res.sendStatus(HttpStatus.NoContent);
+    } catch (e) {
+        res.sendStatus(HttpStatus.InternalServerError);
     }
 }

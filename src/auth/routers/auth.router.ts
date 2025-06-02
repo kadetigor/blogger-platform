@@ -1,18 +1,26 @@
 import { Router } from "express";
 import { body } from "express-validator";
-import { passwordValidation } from "../../users/routers/middleware/userInputDtoValidation";
 import { inputValidationResultMiddleware } from "../../core/middlewares/validation/input-validtion-result.middleware";
-import { loginOrEmailValidator } from "../../users/routers/middleware/login.or.email.validation";
-import { createNewUserHandler } from "./handlers/create.new.user.handler";
+import { loginHandler } from "./handlers/create.new.user.handler";
 
 export const authRouter = Router();
 
+const loginOrEmailValidation = body('loginOrEmail')
+    .exists().withMessage('loginOrEmail is required')
+    .isString().withMessage('loginOrEmail should be a string')
+    .trim().notEmpty().withMessage('loginOrEmail should not be empty');
+
+const passwordValidation = body('password')
+    .exists().withMessage('Password is required')
+    .isString().withMessage('Password should be a string')
+    .trim().notEmpty().withMessage('Password should not be empty');
+
 authRouter.post(
-    '/',
+    '/login',
     [
-        body('loginOrEmail').custom(loginOrEmailValidator),
+        loginOrEmailValidation,
         passwordValidation,
     ],
     inputValidationResultMiddleware,
-    createNewUserHandler
-)
+    loginHandler
+);

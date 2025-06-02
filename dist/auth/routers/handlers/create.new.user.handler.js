@@ -9,22 +9,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createNewUserHandler = createNewUserHandler;
+exports.loginHandler = loginHandler;
 const httpStatus_1 = require("../../../core/types/httpStatus");
-const errorsHandler_1 = require("../../../core/errors/errorsHandler");
-const usersService_1 = require("../../../users/application/usersService");
-const usersRepository_1 = require("../../../users/repositories/usersRepository");
-const mapToUserOutput_1 = require("../../../users/routers/mappers/mapToUserOutput");
-function createNewUserHandler(req, res) {
+const bcrypt_service_1 = require("../../adapters/bcrypt.service");
+const mongoDb_1 = require("../../../db/mongoDb");
+function loginHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const createUserId = yield usersService_1.usersService.create(req.body);
-            const createUser = yield usersRepository_1.usersRepository.findByIdOrFail(createUserId);
-            const userOutput = (0, mapToUserOutput_1.mapToUserOutput)(createUser);
-            res.status(httpStatus_1.HttpStatus.NoContent).send(userOutput);
+            const { loginOrEmail, password } = req.body;
+            // Find user by login or email
+            const user = yield mongoDb_1.userCollection.findOne({
+                $or: [
+                    { login: loginOrEmail },
+                    { email: loginOrEmail }
+                ]
+            });
+            // If user not found or password doesn't match
+            if (!user || !(yield bcrypt_service_1.bcryptService.checkPassword(password, user.passwordHash))) {
+                res.sendStatus(httpStatus_1.HttpStatus.Unauthorized);
+                return;
+            }
+            // Login successful
+            res.sendStatus(httpStatus_1.HttpStatus.NoContent);
         }
         catch (e) {
-            (0, errorsHandler_1.errorsHandler)(e, res);
+            res.sendStatus(httpStatus_1.HttpStatus.InternalServerError);
         }
     });
 }
