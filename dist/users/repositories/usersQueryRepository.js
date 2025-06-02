@@ -19,17 +19,25 @@ exports.usersQueryRepository = {
             const { pageNumber, pageSize, sortBy, sortDirection, searchLoginTerm, searchEmailTerm, } = queryDto;
             const skip = (pageNumber - 1) * pageSize;
             const filter = {};
+            const orConditions = [];
             if (searchLoginTerm && searchLoginTerm.trim() !== "") {
-                filter.login = {
-                    $regex: searchLoginTerm,
-                    $options: "i",
-                };
+                orConditions.push({
+                    login: {
+                        $regex: searchLoginTerm,
+                        $options: "i",
+                    },
+                });
             }
             if (searchEmailTerm && searchEmailTerm.trim() !== "") {
-                filter.email = {
-                    $regex: searchEmailTerm,
-                    $options: "i",
-                };
+                orConditions.push({
+                    email: {
+                        $regex: searchEmailTerm,
+                        $options: "i",
+                    },
+                });
+            }
+            if (orConditions.length > 0) {
+                filter.$or = orConditions;
             }
             const items = yield mongoDb_1.userCollection
                 .find(filter)

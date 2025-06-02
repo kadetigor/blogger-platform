@@ -20,18 +20,28 @@ export const usersQueryRepository = {
             const skip = (pageNumber - 1) * pageSize;
             const filter: Filter<User> = {};
 
+            const orConditions: Filter<User>[] = [];
+
             if (searchLoginTerm && searchLoginTerm.trim() !== "") {
-            filter.login = {
+            orConditions.push({
+                login: {
                 $regex: searchLoginTerm,
                 $options: "i",
-            };
+                },
+            });
             }
 
             if (searchEmailTerm && searchEmailTerm.trim() !== "") {
-            filter.email = {
+            orConditions.push({
+                email: {
                 $regex: searchEmailTerm,
                 $options: "i",
-            };
+                },
+            });
+            }
+
+            if (orConditions.length > 0) {
+            filter.$or = orConditions;
             }
         
             const items = await userCollection
