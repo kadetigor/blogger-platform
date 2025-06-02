@@ -21,7 +21,7 @@ export const usersQueryRepository = {
             const filter: Filter<User> = {};
 
             if (searchLoginTerm && searchLoginTerm.trim() !== "") {
-            filter.name = {
+            filter.login = {
                 $regex: searchLoginTerm,
                 $options: "i",
             };

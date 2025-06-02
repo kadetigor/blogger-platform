@@ -20,7 +20,7 @@ exports.usersQueryRepository = {
             const skip = (pageNumber - 1) * pageSize;
             const filter = {};
             if (searchLoginTerm && searchLoginTerm.trim() !== "") {
-                filter.name = {
+                filter.login = {
                     $regex: searchLoginTerm,
                     $options: "i",
                 };
