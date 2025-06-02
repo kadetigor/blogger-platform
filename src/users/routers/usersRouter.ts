@@ -2,7 +2,7 @@ import { Router } from "express";
 import { paginationAndSortingValidation } from "../../core/middlewares/validation/queryPaginationSortingValidationMiddleware";
 import { userSortField } from "./input/userSortField";
 import { inputValidationResultMiddleware } from "../../core/middlewares/validation/input-validtion-result.middleware";
-import { superAdminGuardMiddleware } from "../../auth/middlewares/super-admin.guard-middleware";
+import { superAdminGuardMiddleware } from "../../auth/routers/guards/basic.guard.middleware";
 import { userInputDtoValidation } from "./middleware/userInputDtoValidation";
 import { idValidationMiddleware } from "../../core/middlewares/validation/params-id.validation-middleware";
 import { getUserListHandler } from "./handlers/getUserListHandler";

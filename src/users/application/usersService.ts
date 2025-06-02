@@ -1,12 +1,19 @@
+import { bcryptService } from "../../auth/adapters/bcrypt.service";
 import { User } from "../domain/user";
 import { usersRepository } from "../repositories/usersRepository";
 import { userAttributes } from "./dtos/userAttributes";
 
 export const usersService = {
     async create(dto: userAttributes): Promise<string> {
+
+        const { login, password, email } = dto;
+
+        const passwordHash = await bcryptService.generateHash(password);
+
         const newUser: User = {
-            login: dto.login,
-            email: dto.email,
+            login,
+            email,
+            passwordHash,
             createdAt: new Date(),
         };
         

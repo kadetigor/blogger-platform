@@ -20,6 +20,7 @@ const postsRouter_1 = require("./posts/routers/postsRouter");
 const testingRouter_1 = require("./testing/routers/testingRouter");
 const paths_1 = require("./core/paths/paths");
 const usersRouter_1 = require("./users/routers/usersRouter");
+const auth_router_1 = require("./auth/routers/auth.router");
 const setupApp = (app) => __awaiter(void 0, void 0, void 0, function* () {
     // export const app = express();
     app.use(express_1.default.json());
@@ -36,6 +37,7 @@ const setupApp = (app) => __awaiter(void 0, void 0, void 0, function* () {
     app.use(paths_1.BLOGS_PATH, blogsRouter_1.blogsRouter);
     app.use(paths_1.USERS_PATH, usersRouter_1.usersRouter);
     app.use(paths_1.TESTING_PATH, testingRouter_1.testingRouter);
+    app.use(paths_1.AUTH_PATH, auth_router_1.authRouter);
     return app;
 });
 exports.setupApp = setupApp;

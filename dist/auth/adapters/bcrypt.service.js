@@ -8,34 +8,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.usersService = void 0;
-const bcrypt_service_1 = require("../../auth/adapters/bcrypt.service");
-const usersRepository_1 = require("../repositories/usersRepository");
-exports.usersService = {
-    create(dto) {
+exports.bcryptService = void 0;
+const bcrypt_1 = __importDefault(require("bcrypt"));
+exports.bcryptService = {
+    generateHash(password) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { login, password, email } = dto;
-            const passwordHash = yield bcrypt_service_1.bcryptService.generateHash(password);
-            const newUser = {
-                login,
-                email,
-                passwordHash,
-                createdAt: new Date(),
-            };
-            return usersRepository_1.usersRepository.create(newUser);
+            const salt = yield bcrypt_1.default.genSalt(10);
+            return bcrypt_1.default.hash(password, salt);
         });
     },
-    udate(id, dto) {
+    checkPassword(password, hash) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield usersRepository_1.usersRepository.update(id, dto);
-            return;
+            return bcrypt_1.default.compare(password, hash);
         });
-    },
-    delete(id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            yield usersRepository_1.usersRepository.delete(id);
-            return;
-        });
-    },
+    }
 };

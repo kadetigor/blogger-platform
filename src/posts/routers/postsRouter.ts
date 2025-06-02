@@ -6,7 +6,7 @@ import { getPostHandler } from "./handlers/getPostHandler"
 import { getPostListHandler } from "./handlers/getPostListHandler";
 import { idValidationMiddleware } from "../../core/middlewares/validation/params-id.validation-middleware";
 import { inputValidationResultMiddleware } from "../../core/middlewares/validation/input-validtion-result.middleware";
-import { superAdminGuardMiddleware } from "../../auth/middlewares/super-admin.guard-middleware";
+import { superAdminGuardMiddleware } from "../../auth/routers/guards/basic.guard.middleware";
 import { deletePostHandler } from "./handlers/deletePostHandler";
 import { postSortField } from './input/postSortField';
 import { paginationAndSortingValidation } from '../../core/middlewares/validation/queryPaginationSortingValidationMiddleware';

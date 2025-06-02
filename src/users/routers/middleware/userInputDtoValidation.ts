@@ -16,7 +16,7 @@ const loginValidation = body('login')
         return true;
     });
 
-const passwordValidation = body('password')
+export const passwordValidation = body('password')
     .exists().withMessage('Passwoerd is required')
     .isString().withMessage('Login should be a string')
     .trim().isLength({ min: 6, max: 20}).withMessage('Length of the Password should be no less then 6 characters and no more then 20 characters')

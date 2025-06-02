@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userInputDtoValidation = void 0;
+exports.userInputDtoValidation = exports.passwordValidation = void 0;
 const express_validator_1 = require("express-validator");
 const mongoDb_1 = require("../../../db/mongoDb");
 const loginValidation = (0, express_validator_1.body)('login')
@@ -26,7 +26,7 @@ const loginValidation = (0, express_validator_1.body)('login')
     }
     return true;
 }));
-const passwordValidation = (0, express_validator_1.body)('password')
+exports.passwordValidation = (0, express_validator_1.body)('password')
     .exists().withMessage('Passwoerd is required')
     .isString().withMessage('Login should be a string')
     .trim().isLength({ min: 6, max: 20 }).withMessage('Length of the Password should be no less then 6 characters and no more then 20 characters');
@@ -45,6 +45,6 @@ const emailValidation = (0, express_validator_1.body)('email')
 }));
 exports.userInputDtoValidation = [
     loginValidation,
-    passwordValidation,
+    exports.passwordValidation,
     emailValidation,
 ];

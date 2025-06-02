@@ -6,7 +6,7 @@ import { getBlogListHandler } from "./handlers/getBlogListHandler";
 import { updateBlogHandler } from "./handlers/updateBlogHandler";
 import { idValidationMiddleware } from "../../core/middlewares/validation/params-id.validation-middleware";
 import { blogInputDtoValidation } from "./blogInputDtoValidationMiddleware";
-import { superAdminGuardMiddleware } from "../../auth/middlewares/super-admin.guard-middleware";
+import { superAdminGuardMiddleware } from "../../auth/routers/guards/basic.guard.middleware";
 import { inputValidationResultMiddleware } from "../../core/middlewares/validation/input-validtion-result.middleware";
 import { paginationAndSortingValidation } from '../../core/middlewares/validation/queryPaginationSortingValidationMiddleware';
 import { postSortField } from '../../posts/routers/input/postSortField';
