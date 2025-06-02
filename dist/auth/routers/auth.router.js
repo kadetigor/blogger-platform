@@ -9,6 +9,6 @@ const login_or_email_validation_1 = require("../../users/routers/middleware/logi
 const create_new_user_handler_1 = require("./handlers/create.new.user.handler");
 exports.authRouter = (0, express_1.Router)();
 exports.authRouter.post('/', [
-    (0, express_validator_1.body)().custom(login_or_email_validation_1.loginOrEmailValidator),
+    (0, express_validator_1.body)('loginOrEmail').custom(login_or_email_validation_1.loginOrEmailValidator),
     userInputDtoValidation_1.passwordValidation,
 ], input_validtion_result_middleware_1.inputValidationResultMiddleware, create_new_user_handler_1.createNewUserHandler);

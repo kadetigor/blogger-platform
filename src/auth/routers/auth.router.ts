@@ -10,7 +10,7 @@ export const authRouter = Router();
 authRouter.post(
     '/',
     [
-        body().custom(loginOrEmailValidator),
+        body('loginOrEmail').custom(loginOrEmailValidator),
         passwordValidation,
     ],
     inputValidationResultMiddleware,

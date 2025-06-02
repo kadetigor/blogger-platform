@@ -4,35 +4,30 @@ import { userCollection } from "../../../db/mongoDb";
 const loginRegex = /^[a-zA-Z0-9_-]*$/;
 const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
-export const loginOrEmailValidator: CustomValidator = async (value, { req }) => {
-  const login = req.body.login;
-  const email = req.body.email;
+export const loginOrEmailValidator: CustomValidator = async (value) => {
+  const input = value?.trim();
 
-  if ((!login || login.trim() === '') && (!email || email.trim() === '')) {
-    throw new Error('Either login or email is required');
+  if (!input) {
+    throw new Error('loginOrEmail is required');
   }
 
-  if (login && login.trim() !== '') {
-    if (login.length < 3 || login.length > 10) {
-      throw new Error('Login length must be 3-10 characters');
-    }
-    if (!loginRegex.test(login)) {
-      throw new Error('Login must contain only characters, numbers, underscores or dashes');
-    }
-    const existingLogin = await userCollection.findOne({ login });
-    if (existingLogin) {
-      throw new Error('This login is already taken');
-    }
-  }
-
-  if (email && email.trim() !== '') {
-    if (!emailRegex.test(email)) {
-      throw new Error('Email must be valid');
-    }
-    const existingEmail = await userCollection.findOne({ email });
+  if (emailRegex.test(input)) {
+    // It's an email
+    const existingEmail = await userCollection.findOne({ email: input });
     if (existingEmail) {
       throw new Error('This email is already taken');
     }
+  } else if (loginRegex.test(input)) {
+    // It's a login
+    if (input.length < 3 || input.length > 10) {
+      throw new Error('Login length must be 3-10 characters');
+    }
+    const existingLogin = await userCollection.findOne({ login: input });
+    if (existingLogin) {
+      throw new Error('This login is already taken');
+    }
+  } else {
+    throw new Error('loginOrEmail must be a valid login or email');
   }
 
   return true;

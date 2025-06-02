@@ -13,32 +13,30 @@ exports.loginOrEmailValidator = void 0;
 const mongoDb_1 = require("../../../db/mongoDb");
 const loginRegex = /^[a-zA-Z0-9_-]*$/;
 const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-const loginOrEmailValidator = (value_1, _a) => __awaiter(void 0, [value_1, _a], void 0, function* (value, { req }) {
-    const login = req.body.login;
-    const email = req.body.email;
-    if ((!login || login.trim() === '') && (!email || email.trim() === '')) {
-        throw new Error('Either login or email is required');
+const loginOrEmailValidator = (value) => __awaiter(void 0, void 0, void 0, function* () {
+    const input = value === null || value === void 0 ? void 0 : value.trim();
+    if (!input) {
+        throw new Error('loginOrEmail is required');
     }
-    if (login && login.trim() !== '') {
-        if (login.length < 3 || login.length > 10) {
+    if (emailRegex.test(input)) {
+        // It's an email
+        const existingEmail = yield mongoDb_1.userCollection.findOne({ email: input });
+        if (existingEmail) {
+            throw new Error('This email is already taken');
+        }
+    }
+    else if (loginRegex.test(input)) {
+        // It's a login
+        if (input.length < 3 || input.length > 10) {
             throw new Error('Login length must be 3-10 characters');
         }
-        if (!loginRegex.test(login)) {
-            throw new Error('Login must contain only characters, numbers, underscores or dashes');
-        }
-        const existingLogin = yield mongoDb_1.userCollection.findOne({ login });
+        const existingLogin = yield mongoDb_1.userCollection.findOne({ login: input });
         if (existingLogin) {
             throw new Error('This login is already taken');
         }
     }
-    if (email && email.trim() !== '') {
-        if (!emailRegex.test(email)) {
-            throw new Error('Email must be valid');
-        }
-        const existingEmail = yield mongoDb_1.userCollection.findOne({ email });
-        if (existingEmail) {
-            throw new Error('This email is already taken');
-        }
+    else {
+        throw new Error('loginOrEmail must be a valid login or email');
     }
     return true;
 });
