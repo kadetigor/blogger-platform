@@ -18,14 +18,14 @@ function loginHandler(req, res) {
             const { loginOrEmail, password } = req.body;
             const result = yield auth_service_1.authService.loginUser(loginOrEmail, password);
             if (result.status !== httpStatus_1.HttpStatus.Ok) {
-                res.sendStatus(httpStatus_1.HttpStatus.Unauthorized).send(result.extensions);
+                res.status(httpStatus_1.HttpStatus.Unauthorized).send(result.extensions);
                 return;
             }
             // Login successful
-            res.sendStatus(httpStatus_1.HttpStatus.Ok).send({ accessToken: result.data.accessToken });
+            res.status(httpStatus_1.HttpStatus.Ok).send({ accessToken: result.data.accessToken });
         }
         catch (e) {
-            res.sendStatus(httpStatus_1.HttpStatus.InternalServerError);
+            res.status(httpStatus_1.HttpStatus.InternalServerError);
         }
     });
 }
