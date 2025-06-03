@@ -22,7 +22,7 @@ function loginHandler(req, res) {
                 return;
             }
             // Login successful
-            res.sendStatus(httpStatus_1.HttpStatus.NoContent).send({ accessToken: result.data.accessToken });
+            res.sendStatus(httpStatus_1.HttpStatus.Ok).send({ accessToken: result.data.accessToken });
         }
         catch (e) {
             res.sendStatus(httpStatus_1.HttpStatus.InternalServerError);

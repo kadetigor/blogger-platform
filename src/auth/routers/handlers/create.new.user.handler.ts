@@ -20,7 +20,7 @@ export async function loginHandler(
         }
 
         // Login successful
-        res.sendStatus(HttpStatus.NoContent).send({ accessToken: result.data!.accessToken });
+        res.sendStatus(HttpStatus.Ok).send({ accessToken: result.data!.accessToken });
     } catch (e) {
         res.sendStatus(HttpStatus.InternalServerError);
     }
