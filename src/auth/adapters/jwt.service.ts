@@ -1,18 +1,21 @@
-import jwt from "jsonwebtoken";
+import jwt, { Secret } from "jsonwebtoken";
 import { SETTINGS } from "../../core/settings/settings";
 
 export const jwtService = {
-  createToken(userId: string): string {
-    const secret = SETTINGS.AC_SECRET;
-    const expiresIn = SETTINGS.AC_TIME;
-    
+  async createToken(userId: string): Promise<string> {
+
+    const secret = SETTINGS.AC_SECRET as jwt.Secret
+    const options = { 
+      expiresIn: SETTINGS.AC_TIME as jwt.SignOptions['expiresIn'] 
+    }
+
     return jwt.sign(
       { userId }, 
       secret, 
-      { expiresIn }
+      options
     );
   },
-  
+
   async decodeToken(token: string): Promise<any> {
     try {
       return jwt.decode(token);
