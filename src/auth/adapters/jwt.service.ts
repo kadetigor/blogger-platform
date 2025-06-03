@@ -3,12 +3,16 @@ import { SETTINGS } from "../../core/settings/settings";
 
 export const jwtService = {
   createToken(userId: string): string {
+    const secret = SETTINGS.AC_SECRET;
+    const expiresIn = SETTINGS.AC_TIME;
+    
     return jwt.sign(
       { userId }, 
-      SETTINGS.AC_SECRET as string, 
-      { expiresIn: SETTINGS.AC_TIME as string }
+      secret, 
+      { expiresIn }
     );
   },
+  
   async decodeToken(token: string): Promise<any> {
     try {
       return jwt.decode(token);

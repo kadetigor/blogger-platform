@@ -17,7 +17,9 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const settings_1 = require("../../core/settings/settings");
 exports.jwtService = {
     createToken(userId) {
-        return jsonwebtoken_1.default.sign({ userId }, settings_1.SETTINGS.AC_SECRET, { expiresIn: settings_1.SETTINGS.AC_TIME });
+        const secret = settings_1.SETTINGS.AC_SECRET;
+        const expiresIn = settings_1.SETTINGS.AC_TIME;
+        return jsonwebtoken_1.default.sign({ userId }, secret, { expiresIn });
     },
     decodeToken(token) {
         return __awaiter(this, void 0, void 0, function* () {
