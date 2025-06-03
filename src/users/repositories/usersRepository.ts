@@ -50,5 +50,13 @@ export const usersRepository = {
         if (deleteResult.deletedCount < 1) {
             throw new repositoryNotFoundError('User does not exist')
         }
-    }
+    },
+
+    async findByLoginOrEmail(
+        loginOrEmail: string,
+    ): Promise<WithId<User> | null> {
+        return userCollection.findOne({
+        $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
+        });
+    },
 }

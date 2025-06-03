@@ -56,5 +56,12 @@ exports.usersRepository = {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('User does not exist');
             }
         });
-    }
+    },
+    findByLoginOrEmail(loginOrEmail) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return mongoDb_1.userCollection.findOne({
+                $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
+            });
+        });
+    },
 };

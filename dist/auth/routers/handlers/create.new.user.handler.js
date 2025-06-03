@@ -11,26 +11,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loginHandler = loginHandler;
 const httpStatus_1 = require("../../../core/types/httpStatus");
-const bcrypt_service_1 = require("../../adapters/bcrypt.service");
-const mongoDb_1 = require("../../../db/mongoDb");
+const auth_service_1 = require("../../application/auth.service");
 function loginHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const { loginOrEmail, password } = req.body;
-            // Find user by login or email
-            const user = yield mongoDb_1.userCollection.findOne({
-                $or: [
-                    { login: loginOrEmail },
-                    { email: loginOrEmail }
-                ]
-            });
-            // If user not found or password doesn't match
-            if (!user || !(yield bcrypt_service_1.bcryptService.checkPassword(password, user.passwordHash))) {
-                res.sendStatus(httpStatus_1.HttpStatus.Unauthorized);
+            const result = yield auth_service_1.authService.loginUser(loginOrEmail, password);
+            if (result.status !== httpStatus_1.HttpStatus.Ok) {
+                res.sendStatus(httpStatus_1.HttpStatus.Unauthorized).send(result.extensions);
                 return;
             }
             // Login successful
-            res.sendStatus(httpStatus_1.HttpStatus.NoContent);
+            res.sendStatus(httpStatus_1.HttpStatus.NoContent).send({ accessToken: result.data.accessToken });
         }
         catch (e) {
             res.sendStatus(httpStatus_1.HttpStatus.InternalServerError);
