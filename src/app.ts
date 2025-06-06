@@ -3,9 +3,10 @@ import cors from "cors";
 import { blogsRouter } from "./blogs/routers/blogsRouter";
 import { postsRouter } from "./posts/routers/postsRouter";
 import { testingRouter } from "./testing/routers/testingRouter";
-import { POSTS_PATH, BLOGS_PATH, TESTING_PATH, USERS_PATH, AUTH_PATH } from './core/paths/paths'
+import { POSTS_PATH, BLOGS_PATH, TESTING_PATH, USERS_PATH, AUTH_PATH, COMMENTS_PATH } from './core/paths/paths'
 import { usersRouter } from "./users/routers/usersRouter";
 import { authRouter } from "./auth/routers/auth.router";
+import { commentsRouter } from "./comments/routers/comments.router";
 
 
 export const setupApp = async (app: Express) => {
@@ -29,6 +30,7 @@ export const setupApp = async (app: Express) => {
   app.use(USERS_PATH, usersRouter);
   app.use(TESTING_PATH, testingRouter);
   app.use(AUTH_PATH, authRouter);
+  app.use(COMMENTS_PATH, commentsRouter);
 
   return app;
 }

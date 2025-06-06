@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { jwtService } from '../../adapters/jwt.service';
-import { IdType } from '../../../core/types/id';
 
 export const accessTokenGuard = async (
   req: Request,
@@ -28,8 +27,10 @@ export const accessTokenGuard = async (
     }
 
     // Attach user ID to req.user
-    const { userId } = payload;
-    req.user = { id: userId } as IdType;
+    req.user = { 
+      id: payload.userId,
+      login: payload.userLogin,
+    };
 
     next();
     return;

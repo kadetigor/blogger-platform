@@ -30,8 +30,10 @@ const accessTokenGuard = (req, res, next) => __awaiter(void 0, void 0, void 0, f
             return;
         }
         // Attach user ID to req.user
-        const { userId } = payload;
-        req.user = { id: userId };
+        req.user = {
+            id: payload.userId,
+            login: payload.userLogin,
+        };
         next();
         return;
     }

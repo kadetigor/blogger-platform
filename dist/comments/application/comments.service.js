@@ -11,17 +11,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.commentsService = void 0;
 const comments_repository_1 = require("../repositories/comments.repository");
-const postsRepository_1 = require("../../posts/repositories/postsRepository");
 exports.commentsService = {
     create(dto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const post = yield postsRepository_1.postsRepository.findByIdOrFail(dto.blogId);
             const newComment = {
-                title: dto.title,
-                shortDescription: dto.shortDescription,
                 content: dto.content,
-                blogId: dto.blogId,
-                blogName: blog.name,
+                commentatorInfo: {
+                    userId: dto.userId,
+                    userLogin: dto.userLogin,
+                },
                 createdAt: new Date(),
             };
             return comments_repository_1.commentsRepository.create(newComment);

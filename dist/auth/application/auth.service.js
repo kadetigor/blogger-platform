@@ -25,7 +25,7 @@ exports.authService = {
                     extensions: [{ field: 'loginOrEmail', message: 'Wrong credentials' }],
                     data: null,
                 };
-            const accessToken = yield jwt_service_1.jwtService.createToken(result.data._id.toString());
+            const accessToken = yield jwt_service_1.jwtService.createToken(result.data._id.toString(), result.data.login);
             return {
                 status: httpStatus_1.HttpStatus.Ok,
                 data: { accessToken },

@@ -16,11 +16,11 @@ exports.jwtService = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const settings_1 = require("../../core/settings/settings");
 exports.jwtService = {
-    createToken(userId) {
+    createToken(userId, userLogin) {
         return __awaiter(this, void 0, void 0, function* () {
             const secret = settings_1.SETTINGS.AC_SECRET;
             const acTime = settings_1.SETTINGS.AC_TIME;
-            return jsonwebtoken_1.default.sign({ userId }, secret, { expiresIn: `${acTime}s` });
+            return jsonwebtoken_1.default.sign({ userId, userLogin }, secret, { expiresIn: `${acTime}s` });
         });
     },
     decodeToken(token) {

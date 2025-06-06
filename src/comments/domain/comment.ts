@@ -1,8 +1,8 @@
 export type Comment = {
-    title: string;
-    shortDescription: string;
     content: string;
-    blogId: string;
-    blogName: string;
+    commentatorInfo: {
+        userId: string,
+        userLogin: string,
+    },
     createdAt: Date;
 }

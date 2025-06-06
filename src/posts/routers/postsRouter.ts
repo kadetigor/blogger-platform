@@ -10,7 +10,10 @@ import { superAdminGuardMiddleware } from "../../auth/routers/guards/basic.guard
 import { deletePostHandler } from "./handlers/deletePostHandler";
 import { postSortField } from './input/postSortField';
 import { paginationAndSortingValidation } from '../../core/middlewares/validation/queryPaginationSortingValidationMiddleware';
-import { validateBlogExistsMiddleware } from './validateBlogExistsMiddleware';
+import { accessTokenGuard } from '../../auth/routers/guards/access.token.guard';
+import { contentValidation } from '../../comments/routers/validation/comment.input.dto.validation';
+import { createCommentHandler } from '../../comments/routers/handlers/create.comment.handler';
+import { getCommentListHandler } from '../../comments/routers/handlers/get.comment.list.handler';
 
 export const postsRouter = Router({})
 
@@ -48,4 +51,18 @@ postsRouter
     idValidationMiddleware,
     inputValidationResultMiddleware,
     deletePostHandler
+  )
+  .post(
+    '/:id/comments',
+    accessTokenGuard,
+    idValidationMiddleware,
+    contentValidation,
+    inputValidationResultMiddleware,
+    createCommentHandler
+  )
+  .get(
+    '/:id/comments',
+    idValidationMiddleware,
+    inputValidationResultMiddleware,
+    getCommentListHandler
   )

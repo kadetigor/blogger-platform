@@ -5,4 +5,5 @@ var resourceType;
 (function (resourceType) {
     resourceType["Blogs"] = "blogs";
     resourceType["Posts"] = "posts";
+    resourceType["Comments"] = "comments";
 })(resourceType || (exports.resourceType = resourceType = {}));
