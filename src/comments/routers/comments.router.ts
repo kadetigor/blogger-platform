@@ -12,7 +12,7 @@ export const commentsRouter = Router({})
 
 commentsRouter
     .get(
-        '/id',
+        '/:id',
         idValidationMiddleware,
         inputValidationResultMiddleware,
         getCommentHandler,
