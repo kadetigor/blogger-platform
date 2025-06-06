@@ -20,6 +20,7 @@ exports.commentsService = {
                     userId: dto.userId,
                     userLogin: dto.userLogin,
                 },
+                postId: dto.postId,
                 createdAt: new Date(),
             };
             return comments_repository_1.commentsRepository.create(newComment);

@@ -1,7 +1,7 @@
 import { ObjectId, WithId } from "mongodb";
 import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
 import { commentCollection } from "../../db/mongoDb";
-import { commentAttributes } from "../application/dtos/comment.attributes";
+import { commentUpdateDto } from "../application/dtos/comment.update.dto";
 import { Comment } from '../domain/comment';
 
 export const commentsRepository = {
@@ -21,7 +21,7 @@ export const commentsRepository = {
     return insertResult.insertedId.toString();
   },
 
-  async update(id: string, dto: commentAttributes): Promise<void> {
+  async update(id: string, dto: commentUpdateDto): Promise<void> {
     const updateResult = await commentCollection.updateOne(
       {
         _id: new ObjectId(id),

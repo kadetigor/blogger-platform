@@ -1,6 +1,7 @@
 import { commentsRepository } from "../repositories/comments.repository";
 import { Comment } from "../domain/comment"
 import { commentAttributes } from "./dtos/comment.attributes";
+import { commentUpdateDto } from "./dtos/comment.update.dto";
 
 export const commentsService = {
 
@@ -12,12 +13,13 @@ export const commentsService = {
         userId: dto.userId,
         userLogin: dto.userLogin,
       },
+      postId: dto.postId,
       createdAt: new Date(),
     };
     return commentsRepository.create(newComment);
   },
 
-  async update(id: string, dto: commentAttributes): Promise<void> {
+  async update(id: string, dto: commentUpdateDto): Promise<void> {
     await commentsRepository.update(id, dto)
     return;
   },

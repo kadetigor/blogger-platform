@@ -31,9 +31,9 @@ export const commentsQueryRepository = {
     return { items, totalCount };
   },
 
-  async findPostsbyBlog(
+  async findCommentsByPost(
     queryDto: commentQueryInput,
-    blogId: string,
+    postId: string,
   ): Promise<{ items: WithId<Comment>[]; totalCount: number }> {
     const {
       pageNumber,
@@ -42,7 +42,7 @@ export const commentsQueryRepository = {
       sortDirection,
     } = queryDto;
 
-    const filter = { blogId: blogId };
+    const filter = { postId: postId };
     const skip = (pageNumber - 1) * pageSize;
     const [ items, totalCount ] = await Promise.all([
       commentCollection
@@ -60,7 +60,7 @@ export const commentsQueryRepository = {
     const res = await commentCollection.findOne({ _id: new ObjectId(id) });
 
     if (!res) {
-      throw new repositoryNotFoundError('Post does not exist')
+      throw new repositoryNotFoundError('Comment does not exist')
     }
     return res;
   }

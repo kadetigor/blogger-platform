@@ -6,10 +6,10 @@ export function mapToCommentViewModel(comment: WithId<Comment>): commentViewMode
   return {
     id: comment._id.toString(),
     content: comment.content,
-    commentatorInfo: [{
-            userId: comment.commentatorInfo.userId,
-            userLogin: comment.commentatorInfo.userLogin
-        }],
-    createdAt:comment.createdAt,
+    commentatorInfo: {
+      userId: comment.commentatorInfo.userId,
+      userLogin: comment.commentatorInfo.userLogin
+    },
+    createdAt: comment.createdAt,
   };
 }

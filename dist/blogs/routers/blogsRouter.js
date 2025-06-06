@@ -16,8 +16,8 @@ const postSortField_1 = require("../../posts/routers/input/postSortField");
 const getBlogPostsListHandler_1 = require("./handlers/getBlogPostsListHandler");
 const createPostHandler_1 = require("../../posts/routers/handlers/createPostHandler");
 const blogSortField_1 = require("./input/blogSortField");
-const validateBlogExistsMiddleware_1 = require("../../posts/routers/validateBlogExistsMiddleware");
-const blogPostInputDtoValidation_1 = require("../../posts/routers/blogPostInputDtoValidation");
+const validateBlogExistsMiddleware_1 = require("../../posts/routers/validation/validateBlogExistsMiddleware");
+const blogPostInputDtoValidation_1 = require("../../posts/routers/validation/blogPostInputDtoValidation");
 exports.blogsRouter = (0, express_1.Router)();
 exports.blogsRouter
     .get('/', (0, queryPaginationSortingValidationMiddleware_1.paginationAndSortingValidation)(blogSortField_1.blogSortField), input_validtion_result_middleware_1.inputValidationResultMiddleware, getBlogListHandler_1.getBlogListHandler) // blogsController.getBlogs

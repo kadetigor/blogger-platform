@@ -11,11 +11,10 @@ import { inputValidationResultMiddleware } from "../../core/middlewares/validati
 import { paginationAndSortingValidation } from '../../core/middlewares/validation/queryPaginationSortingValidationMiddleware';
 import { postSortField } from '../../posts/routers/input/postSortField';
 import { getBlogPostsListHandler } from './handlers/getBlogPostsListHandler';
-import { postInputDtoValidation } from '../../posts/routers/postInputDtoValidationMiddleware';
 import { createPostHandler } from '../../posts/routers/handlers/createPostHandler';
 import { blogSortField } from './input/blogSortField';
-import { validateBlogExistsMiddleware } from '../../posts/routers/validateBlogExistsMiddleware';
-import { blogPostInputDtoValidation } from '../../posts/routers/blogPostInputDtoValidation';
+import { validateBlogExistsMiddleware } from '../../posts/routers/validation/validateBlogExistsMiddleware';
+import { blogPostInputDtoValidation } from '../../posts/routers/validation/blogPostInputDtoValidation';
 
 export const blogsRouter = Router()
 

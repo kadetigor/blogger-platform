@@ -9,15 +9,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteCommentHandler = deleteCommentHandler;
+exports.updateCommentHandler = updateCommentHandler;
 const httpStatus_1 = require("../../../core/types/httpStatus");
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 const comments_service_1 = require("../../application/comments.service");
 const comments_query_repository_1 = require("../../repositories/comments.query.repository");
-function deleteCommentHandler(req, res) {
+function updateCommentHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const commentId = req.params.commentId;
+            const { content } = req.body;
             const user = req.user;
             if (!user) {
                 res.sendStatus(httpStatus_1.HttpStatus.Unauthorized);
@@ -29,7 +30,7 @@ function deleteCommentHandler(req, res) {
                 res.sendStatus(httpStatus_1.HttpStatus.Forbidden);
                 return;
             }
-            yield comments_service_1.commentsService.delete(commentId);
+            yield comments_service_1.commentsService.update(commentId, { content });
             res.sendStatus(httpStatus_1.HttpStatus.NoContent);
         }
         catch (e) {

@@ -29,10 +29,10 @@ exports.commentsQueryRepository = {
             return { items, totalCount };
         });
     },
-    findPostsbyBlog(queryDto, blogId) {
+    findCommentsByPost(queryDto, postId) {
         return __awaiter(this, void 0, void 0, function* () {
             const { pageNumber, pageSize, sortBy, sortDirection, } = queryDto;
-            const filter = { blogId: blogId };
+            const filter = { postId: postId };
             const skip = (pageNumber - 1) * pageSize;
             const [items, totalCount] = yield Promise.all([
                 mongoDb_1.commentCollection
@@ -50,7 +50,7 @@ exports.commentsQueryRepository = {
         return __awaiter(this, void 0, void 0, function* () {
             const res = yield mongoDb_1.commentCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
             if (!res) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('Post does not exist');
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('Comment does not exist');
             }
             return res;
         });

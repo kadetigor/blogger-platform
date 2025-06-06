@@ -17,9 +17,20 @@ const httpStatus_1 = require("../../../core/types/httpStatus");
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 function createCommentHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const postId = req.body.postId;
         try {
-            const createdCommentId = yield comments_service_1.commentsService.create(Object.assign(Object.assign({}, req.body), { postId }));
+            const postId = req.params.id; // Get postId from URL params
+            const { content } = req.body;
+            const user = req.user; // This should be populated by accessTokenGuard
+            if (!user) {
+                res.sendStatus(httpStatus_1.HttpStatus.Unauthorized);
+                return;
+            }
+            const createdCommentId = yield comments_service_1.commentsService.create({
+                content,
+                userId: user.id,
+                userLogin: user.login,
+                postId
+            });
             const createdComment = yield comments_repository_1.commentsRepository.findByIdOrFail(createdCommentId);
             const commentViewModel = (0, map_to_comment_view_model_1.mapToCommentViewModel)(createdComment);
             res.status(httpStatus_1.HttpStatus.Created).send(commentViewModel);

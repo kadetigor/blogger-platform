@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { postInputDtoValidation } from "./postInputDtoValidationMiddleware";
+import { postInputDtoValidation } from "./validation/postInputDtoValidationMiddleware";
 import { updatePostHandler } from "./handlers/updatePostHandler";
 import { createPostHandler } from "./handlers/createPostHandler";
 import { getPostHandler } from "./handlers/getPostHandler"
@@ -14,6 +14,8 @@ import { accessTokenGuard } from '../../auth/routers/guards/access.token.guard';
 import { contentValidation } from '../../comments/routers/validation/comment.input.dto.validation';
 import { createCommentHandler } from '../../comments/routers/handlers/create.comment.handler';
 import { getCommentListHandler } from '../../comments/routers/handlers/get.comment.list.handler';
+import { validatePostExistsMiddleware } from './validation/post.exists.validation';
+import { commentSortField } from '../../comments/routers/input/comment.sort.field';
 
 export const postsRouter = Router({})
 
@@ -56,6 +58,7 @@ postsRouter
     '/:id/comments',
     accessTokenGuard,
     idValidationMiddleware,
+    validatePostExistsMiddleware,
     contentValidation,
     inputValidationResultMiddleware,
     createCommentHandler
@@ -63,6 +66,8 @@ postsRouter
   .get(
     '/:id/comments',
     idValidationMiddleware,
+    validatePostExistsMiddleware,
+    paginationAndSortingValidation(commentSortField),
     inputValidationResultMiddleware,
     getCommentListHandler
   )

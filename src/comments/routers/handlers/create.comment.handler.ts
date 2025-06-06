@@ -5,14 +5,27 @@ import { mapToCommentViewModel } from '../mappers/map.to.comment.view.model';
 import { HttpStatus } from '../../../core/types/httpStatus';
 import { errorsHandler } from '../../../core/errors/errorsHandler';
 
-
 export async function createCommentHandler(
     req: Request,
     res: Response,
 ): Promise<void> {
-    const postId = req.body.postId
     try {
-        const createdCommentId = await commentsService.create({...req.body, postId});
+        const postId = req.params.id; // Get postId from URL params
+        const { content } = req.body;
+        const user = req.user; // This should be populated by accessTokenGuard
+
+        if (!user) {
+            res.sendStatus(HttpStatus.Unauthorized);
+            return;
+        }
+
+        const createdCommentId = await commentsService.create({
+            content,
+            userId: user.id,
+            userLogin: user.login,
+            postId
+        });
+
         const createdComment = await commentsRepository.findByIdOrFail(createdCommentId);
         const commentViewModel = mapToCommentViewModel(createdComment);
 

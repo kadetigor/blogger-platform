@@ -3,7 +3,7 @@ import { Comment } from "../../../comments/domain/comment";
 import { commentListPaginatedOutput } from "../output/comment.list.paginated.output";
 
 export function mapToCommentListPaginatedOutput(
-  comment: WithId<Comment>[],
+  comments: WithId<Comment>[],
   meta: { pageNumber: number; pageSize: number; totalCount: number; },
 ): commentListPaginatedOutput {
   return {
@@ -11,13 +11,13 @@ export function mapToCommentListPaginatedOutput(
     pageSize: meta.pageSize,
     pagesCount: Math.ceil(meta.totalCount / meta.pageSize),
     totalCount: meta.totalCount,
-    items: comment.map((comment) => ({
+    items: comments.map((comment) => ({
       id: comment._id.toString(),
       content: comment.content,
-      commentatorInfo: [{
+      commentatorInfo: {
         userId: comment.commentatorInfo.userId,
         userLogin: comment.commentatorInfo.userLogin,
-      }],
+      },
       createdAt: comment.createdAt,
     })),
   };

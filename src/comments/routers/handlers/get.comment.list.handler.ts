@@ -12,6 +12,7 @@ export async function getCommentListHandler(
   res: Response,
 ) {
   try {
+    const postId = req.params.id; // Get postId from URL params
     const baseQueryInput = setDefaultSortAndPaginationIfNotExist(req.query as any)
     
     const queryInput: commentQueryInput = {
@@ -21,14 +22,14 @@ export async function getCommentListHandler(
       sortDirection: baseQueryInput.sortDirection as sortDirection
     };
 
-    const { items, totalCount } = await commentsQueryRepository.findMany(queryInput)
+    const { items, totalCount } = await commentsQueryRepository.findCommentsByPost(queryInput, postId)
     
-    const postsListOutput = mapToCommentListPaginatedOutput(items, {
+    const commentsListOutput = mapToCommentListPaginatedOutput(items, {
       pageNumber: queryInput.pageNumber,
       pageSize: queryInput.pageSize,
       totalCount,
     });
-    res.send(postsListOutput);
+    res.send(commentsListOutput);
 
   } catch (e: unknown) {
     errorsHandler(e, res);

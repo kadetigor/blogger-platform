@@ -17,6 +17,7 @@ const map_to_comment_list_paginated_output_1 = require("../mappers/map.to.commen
 function getCommentListHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            const postId = req.params.id; // Get postId from URL params
             const baseQueryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(req.query);
             const queryInput = {
                 pageNumber: baseQueryInput.pageNumber,
@@ -24,13 +25,13 @@ function getCommentListHandler(req, res) {
                 sortBy: baseQueryInput.sortBy,
                 sortDirection: baseQueryInput.sortDirection
             };
-            const { items, totalCount } = yield comments_query_repository_1.commentsQueryRepository.findMany(queryInput);
-            const postsListOutput = (0, map_to_comment_list_paginated_output_1.mapToCommentListPaginatedOutput)(items, {
+            const { items, totalCount } = yield comments_query_repository_1.commentsQueryRepository.findCommentsByPost(queryInput, postId);
+            const commentsListOutput = (0, map_to_comment_list_paginated_output_1.mapToCommentListPaginatedOutput)(items, {
                 pageNumber: queryInput.pageNumber,
                 pageSize: queryInput.pageSize,
                 totalCount,
             });
-            res.send(postsListOutput);
+            res.send(commentsListOutput);
         }
         catch (e) {
             (0, errorsHandler_1.errorsHandler)(e, res);

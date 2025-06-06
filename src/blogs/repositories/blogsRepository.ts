@@ -1,9 +1,8 @@
 import { Blog } from "../domain/blog";
 import { blogCollection } from "../../db/mongoDb";
-import { ObjectId, WithId, Filter } from "mongodb";
+import { ObjectId, WithId } from "mongodb";
 import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
 import { blogAttributes } from "../application/dtos/blogAttributes";
-import { blogQueryInput } from "../routers/input/blogQueryInput";
 
 export const blogsRepository = {
 
