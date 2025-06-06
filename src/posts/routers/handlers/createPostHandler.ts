@@ -12,16 +12,12 @@ export async function createPostHandler(
   res: Response,
 ): Promise<void> {
   const blogId = req.body.blogId
-  console.log(`recived blogId ${blogId}`)
   try {
+    
     const createdPostId = await postsService.create({...req.body, blogId});
-    console.log(`created post ID ${createdPostId}`)
-
     const createdPost = await postsRepository.findByIdOrFail(createdPostId);
-
-    console.log(`created post ${createdPost}`)
-
     const postViewModel = mapToPostViewModel(createdPost);
+
     res.status(HttpStatus.Created).send(postViewModel);
   } catch (e: unknown) {
     return errorsHandler(e, res);
