@@ -19,10 +19,8 @@ exports.jwtService = {
     createToken(userId) {
         return __awaiter(this, void 0, void 0, function* () {
             const secret = settings_1.SETTINGS.AC_SECRET;
-            const options = {
-                expiresIn: settings_1.SETTINGS.AC_TIME
-            };
-            return jsonwebtoken_1.default.sign({ userId }, secret, options);
+            const acTime = settings_1.SETTINGS.AC_TIME;
+            return jsonwebtoken_1.default.sign({ userId }, secret, { expiresIn: `${acTime}s` });
         });
     },
     decodeToken(token) {

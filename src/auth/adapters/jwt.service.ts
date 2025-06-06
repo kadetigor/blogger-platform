@@ -4,15 +4,13 @@ import { SETTINGS } from "../../core/settings/settings";
 export const jwtService = {
   async createToken(userId: string): Promise<string> {
 
-    const secret = SETTINGS.AC_SECRET as jwt.Secret
-    const options = { 
-      expiresIn: SETTINGS.AC_TIME as jwt.SignOptions['expiresIn'] 
-    }
-
+    const secret = SETTINGS.AC_SECRET
+    const acTime = SETTINGS.AC_TIME as number
+  
     return jwt.sign(
       { userId }, 
       secret, 
-      options
+      {expiresIn: `${acTime}s`}
     );
   },
 
