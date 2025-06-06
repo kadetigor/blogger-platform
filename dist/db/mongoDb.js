@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userCollection = exports.blogCollection = exports.postCollection = exports.client = void 0;
+exports.commentCollection = exports.userCollection = exports.blogCollection = exports.postCollection = exports.client = void 0;
 exports.runDB = runDB;
 exports.stopDb = stopDb;
 const mongodb_1 = require("mongodb");
@@ -17,6 +17,7 @@ const settings_1 = require("../core/settings/settings");
 const POSTS_COLLECTION_NAME = 'posts';
 const BLOGS_COLLECTION_NAME = 'blogs';
 const USER_COLLECTION_NAME = 'users';
+const COMMENT_COLLECTION_NAME = 'comments';
 // Connectiong to the DataBase
 function runDB(url) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -25,6 +26,7 @@ function runDB(url) {
         exports.postCollection = db.collection(POSTS_COLLECTION_NAME);
         exports.blogCollection = db.collection(BLOGS_COLLECTION_NAME);
         exports.userCollection = db.collection(USER_COLLECTION_NAME);
+        exports.commentCollection = db.collection(COMMENT_COLLECTION_NAME);
         try {
             yield exports.client.connect();
             yield db.command({ ping: 1 });
