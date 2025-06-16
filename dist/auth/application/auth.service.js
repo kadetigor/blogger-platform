@@ -37,6 +37,7 @@ exports.authService = {
     },
     checkUserCredentials(loginOrEmail, password) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const user = yield usersRepository_1.usersRepository.findByLoginOrEmail(loginOrEmail);
             if (!user)
                 return {
@@ -53,6 +54,15 @@ exports.authService = {
                     errorMessage: 'Bad Request',
                     extensions: [{ field: 'password', message: 'Wrong password' }],
                 };
+            // Check if user is confirmed before allowing login
+            if (!((_a = user.emailConfirmation) === null || _a === void 0 ? void 0 : _a.isConfirmed)) {
+                return {
+                    status: httpStatus_1.HttpStatus.Unauthorized,
+                    data: null,
+                    errorMessage: 'Email not confirmed',
+                    extensions: [{ field: 'loginOrEmail', message: 'Please confirm your email before logging in' }],
+                };
+            }
             return {
                 status: httpStatus_1.HttpStatus.Ok,
                 data: user,
@@ -62,6 +72,25 @@ exports.authService = {
     },
     registerUser(login, email, password) {
         return __awaiter(this, void 0, void 0, function* () {
+            // Check if user with this login or email already exists
+            const existingUser = yield usersRepository_1.usersRepository.findByLoginOrEmail(login);
+            if (existingUser) {
+                return {
+                    status: httpStatus_1.HttpStatus.BadRequest,
+                    data: null,
+                    errorMessage: 'User already exists',
+                    extensions: [{ field: 'login', message: 'User with this login already exists' }],
+                };
+            }
+            const existingEmailUser = yield usersRepository_1.usersRepository.findByLoginOrEmail(email);
+            if (existingEmailUser) {
+                return {
+                    status: httpStatus_1.HttpStatus.BadRequest,
+                    data: null,
+                    errorMessage: 'User already exists',
+                    extensions: [{ field: 'email', message: 'User with this email already exists' }],
+                };
+            }
             const passwordHash = yield bcrypt_service_1.bcryptService.generateHash(password);
             const user = {
                 login,
@@ -78,7 +107,7 @@ exports.authService = {
             return {
                 status: httpStatus_1.HttpStatus.NoContent,
                 data: null,
-                errorMessage: 'Not Found',
+                errorMessage: '',
                 extensions: [],
             };
         });
@@ -111,8 +140,7 @@ exports.authService = {
                 };
             }
             // Check if user is already confirmed
-            const userWithConfirmation = user;
-            if ((_a = userWithConfirmation.emailConfirmation) === null || _a === void 0 ? void 0 : _a.isConfirmed) {
+            if ((_a = user.emailConfirmation) === null || _a === void 0 ? void 0 : _a.isConfirmed) {
                 return {
                     status: httpStatus_1.HttpStatus.BadRequest,
                     data: null,
@@ -125,7 +153,7 @@ exports.authService = {
             // Update user with new confirmation code
             yield usersRepository_1.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
             // Send email with new code
-            const updatedUser = Object.assign(Object.assign({}, userWithConfirmation), { emailConfirmation: Object.assign(Object.assign({}, userWithConfirmation.emailConfirmation), { confirmationCode: newConfirmationCode }) });
+            const updatedUser = Object.assign(Object.assign({}, user), { emailConfirmation: Object.assign(Object.assign({}, user.emailConfirmation), { confirmationCode: newConfirmationCode }) });
             yield email_manager_1.emailManager.sendEmailConfimationMessage(updatedUser);
             return {
                 status: httpStatus_1.HttpStatus.NoContent,

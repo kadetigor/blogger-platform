@@ -27,8 +27,8 @@ export const usersRepository = {
         return user;
     },
         
-    async create(newUser: User): Promise<string> {
-        const insertResult = await userCollection.insertOne(newUser);
+    async create(newUser: User | UserWithConfirmation): Promise<string> {
+        const insertResult = await userCollection.insertOne(newUser as any);
         return insertResult.insertedId.toString();
     },
 
@@ -65,9 +65,9 @@ export const usersRepository = {
 
     async findByLoginOrEmail(
         loginOrEmail: string,
-    ): Promise<WithId<User> | null> {
-        return userCollection.findOne({
-        $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
+    ): Promise<WithId<UserWithConfirmation> | null> {
+        return userCollection.findOne<WithId<UserWithConfirmation>>({
+            $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
         });
     },
 

@@ -35,7 +35,7 @@ export const authService = {
   async checkUserCredentials(
     loginOrEmail: string,
     password: string,
-  ): Promise<Result<WithId<User> | null>> {
+  ): Promise<Result<WithId<UserWithConfirmation> | null>> {
     const user = await usersRepository.findByLoginOrEmail(loginOrEmail);
     if (!user)
       return {
@@ -54,6 +54,16 @@ export const authService = {
         extensions: [{ field: 'password', message: 'Wrong password' }],
       };
 
+    // Check if user is confirmed before allowing login
+    if (!user.emailConfirmation?.isConfirmed) {
+      return {
+        status: HttpStatus.Unauthorized,
+        data: null,
+        errorMessage: 'Email not confirmed',
+        extensions: [{ field: 'loginOrEmail', message: 'Please confirm your email before logging in' }],
+      };
+    }
+
     return {
       status: HttpStatus.Ok,
       data: user,
@@ -66,6 +76,27 @@ export const authService = {
     email: string,
     password: string
   ): Promise<Result<WithId<User> | null>> {
+    // Check if user with this login or email already exists
+    const existingUser = await usersRepository.findByLoginOrEmail(login);
+    if (existingUser) {
+      return {
+        status: HttpStatus.BadRequest,
+        data: null,
+        errorMessage: 'User already exists',
+        extensions: [{ field: 'login', message: 'User with this login already exists' }],
+      };
+    }
+
+    const existingEmailUser = await usersRepository.findByLoginOrEmail(email);
+    if (existingEmailUser) {
+      return {
+        status: HttpStatus.BadRequest,
+        data: null,
+        errorMessage: 'User already exists',
+        extensions: [{ field: 'email', message: 'User with this email already exists' }],
+      };
+    }
+
     const passwordHash = await bcryptService.generateHash(password)
 
     const user: UserWithConfirmation = {
@@ -85,7 +116,7 @@ export const authService = {
     return {
       status: HttpStatus.NoContent,
       data: null,
-      errorMessage: 'Not Found',
+      errorMessage: '',
       extensions: [],
     }
   },
@@ -118,8 +149,7 @@ export const authService = {
     }
 
     // Check if user is already confirmed
-    const userWithConfirmation = user as WithId<UserWithConfirmation>;
-    if (userWithConfirmation.emailConfirmation?.isConfirmed) {
+    if (user.emailConfirmation?.isConfirmed) {
         return {
             status: HttpStatus.BadRequest,
             data: null,
@@ -135,7 +165,7 @@ export const authService = {
     await usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
     
     // Send email with new code
-    const updatedUser = { ...userWithConfirmation, emailConfirmation: { ...userWithConfirmation.emailConfirmation, confirmationCode: newConfirmationCode } };
+    const updatedUser = { ...user, emailConfirmation: { ...user.emailConfirmation, confirmationCode: newConfirmationCode } };
     await emailManager.sendEmailConfimationMessage(updatedUser);
 
     return {
