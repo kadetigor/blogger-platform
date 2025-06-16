@@ -14,14 +14,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.emailAdapter = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
+const settings_1 = require("../../core/settings/settings");
 exports.emailAdapter = {
     sendEmail(email, subject, message) {
         return __awaiter(this, void 0, void 0, function* () {
             let transport = nodemailer_1.default.createTransport({
-                service: "gmail",
+                host: "smtp.yandex.com",
+                port: 465,
+                secure: true, // use SSL
                 auth: {
-                    user: "",
-                    pass: "",
+                    user: settings_1.SETTINGS.YANDEX_EMAIL,
+                    pass: settings_1.SETTINGS.YANDEX_PASSWORD, // App password (or account password if no 2FA)
                 },
             });
             let info = yield transport.sendMail({
