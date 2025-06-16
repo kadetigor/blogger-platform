@@ -90,14 +90,59 @@ export const authService = {
     }
   },
 
-  async confirmEmail(
-    code: string,
-  ): Promise<boolean> {
-    let user = await usersRepository.findByConfirmationCode(code)
-    if (!user) return false
-    if (user.emailConfirmation.confirmationCode !== code) return false
+  async confirmEmail(code: string): Promise<boolean> {
+    try {
+        const user = await usersRepository.findByConfirmationCode(code);
+        
+        if (user.emailConfirmation.isConfirmed) {
+            return false; // Already confirmed
+        }
+        
+        const result = await usersRepository.updateConfirmation(user._id);
+        return result;
+    } catch (error) {
+        return false; // User not found or other error
+    }
+  },
+
+  async resendConfirmationEmail(email: string): Promise<Result<null>> {
+    const user = await usersRepository.findByLoginOrEmail(email);
     
-    let result = await usersRepository.updateConfirmation(user._id)
-    return result
-  }
+    if (!user) {
+        return {
+            status: HttpStatus.BadRequest,
+            data: null,
+            errorMessage: 'User not found',
+            extensions: [{ field: 'email', message: 'User with this email does not exist' }],
+        };
+    }
+
+    // Check if user is already confirmed
+    const userWithConfirmation = user as WithId<UserWithConfirmation>;
+    if (userWithConfirmation.emailConfirmation?.isConfirmed) {
+        return {
+            status: HttpStatus.BadRequest,
+            data: null,
+            errorMessage: 'Email already confirmed',
+            extensions: [{ field: 'email', message: 'Email is already confirmed' }],
+        };
+    }
+
+    // Generate new confirmation code
+    const newConfirmationCode = uuid();
+    
+    // Update user with new confirmation code
+    await usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
+    
+    // Send email with new code
+    const updatedUser = { ...userWithConfirmation, emailConfirmation: { ...userWithConfirmation.emailConfirmation, confirmationCode: newConfirmationCode } };
+    await emailManager.sendEmailConfimationMessage(updatedUser);
+
+    return {
+        status: HttpStatus.NoContent,
+        data: null,
+        errorMessage: '',
+        extensions: [],
+    };
+},
 };

@@ -46,5 +46,11 @@ exports.authRouter.get('/me', access_token_guard_1.accessTokenGuard, (req, res) 
     return;
 }));
 exports.authRouter.post('/registration', userInputDtoValidation_1.userInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, register_new_user_handler_1.registrationHandler);
-exports.authRouter.post('/registration-confirmation', confirm_email_handler_1.confirmEmailHandler);
-exports.authRouter.post('/registration-email-resending', loginOrEmailValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, resend_email_confirm_email_handler_1.resendConfirmEmailHandler);
+exports.authRouter.post('/registration-confirmation', (0, express_validator_1.body)('code')
+    .exists().withMessage('Code is required')
+    .isString().withMessage('Code must be a string')
+    .trim().notEmpty().withMessage('Code cannot be empty'), input_validtion_result_middleware_1.inputValidationResultMiddleware, confirm_email_handler_1.confirmEmailHandler);
+exports.authRouter.post('/registration-email-resending', (0, express_validator_1.body)('email')
+    .exists().withMessage('Email is required')
+    .isEmail().withMessage('Invalid email format')
+    .trim(), input_validtion_result_middleware_1.inputValidationResultMiddleware, resend_email_confirm_email_handler_1.resendConfirmEmailHandler);

@@ -17,13 +17,17 @@ function registrationHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const { login, email, password } = req.body;
-            const user = yield auth_service_1.authService.registerUser(login, email, password);
-            res.status(httpStatus_1.HttpStatus.Ok).send();
-            return;
+            const result = yield auth_service_1.authService.registerUser(login, email, password);
+            if (result.status !== httpStatus_1.HttpStatus.NoContent) {
+                res.status(result.status).json({
+                    errorsMessages: result.extensions
+                });
+                return;
+            }
+            res.sendStatus(httpStatus_1.HttpStatus.NoContent);
         }
         catch (e) {
             (0, errorsHandler_1.errorsHandler)(e, res);
         }
-        ;
     });
 }

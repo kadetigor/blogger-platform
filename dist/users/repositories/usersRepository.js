@@ -80,5 +80,11 @@ exports.usersRepository = {
                 .updateOne({ _id }, { $set: { 'emailConfirmation.isConfirmed': true } });
             return result.modifiedCount === 1;
         });
-    }
+    },
+    updateConfirmationCode(_id, newConfirmationCode) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield mongoDb_1.userCollection.updateOne({ _id }, { $set: { 'emailConfirmation.confirmationCode': newConfirmationCode } });
+            return result.modifiedCount === 1;
+        });
+    },
 };

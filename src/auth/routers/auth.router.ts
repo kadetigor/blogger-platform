@@ -59,12 +59,20 @@ authRouter.post(
 
 authRouter.post(
   '/registration-confirmation',
+  body('code')
+    .exists().withMessage('Code is required')
+    .isString().withMessage('Code must be a string')
+    .trim().notEmpty().withMessage('Code cannot be empty'),
+  inputValidationResultMiddleware,
   confirmEmailHandler
-)
+);
 
 authRouter.post(
   '/registration-email-resending',
-  loginOrEmailValidation,
+  body('email')
+    .exists().withMessage('Email is required')
+    .isEmail().withMessage('Invalid email format')
+    .trim(),
   inputValidationResultMiddleware,
   resendConfirmEmailHandler
-)
+);

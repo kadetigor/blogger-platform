@@ -8,11 +8,18 @@ export async function registrationHandler(
   res: Response,
 ): Promise<void> {
   try {
-    const { login, email, password } = req.body
-    const user = await authService.registerUser(login, email, password)
-    res.status(HttpStatus.Ok).send()
-    return
+    const { login, email, password } = req.body;
+    const result = await authService.registerUser(login, email, password);
+    
+    if (result.status !== HttpStatus.NoContent) {
+      res.status(result.status).json({
+        errorsMessages: result.extensions
+      });
+      return;
+    }
+    
+    res.sendStatus(HttpStatus.NoContent);
   } catch (e: unknown) {
-    errorsHandler(e, res)
-  };
+    errorsHandler(e, res);
+  }
 }

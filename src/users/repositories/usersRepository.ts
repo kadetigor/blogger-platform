@@ -77,5 +77,16 @@ export const usersRepository = {
         let result = await userCollection
             .updateOne({_id}, {$set: {'emailConfirmation.isConfirmed': true}})
         return result.modifiedCount === 1
-    }
+    },
+
+    async updateConfirmationCode(
+        _id: ObjectId,
+        newConfirmationCode: string
+    ): Promise<boolean> {
+        const result = await userCollection.updateOne(
+            { _id },
+            { $set: { 'emailConfirmation.confirmationCode': newConfirmationCode } }
+        );
+        return result.modifiedCount === 1;
+    },
 }

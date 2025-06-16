@@ -85,13 +85,54 @@ exports.authService = {
     },
     confirmEmail(code) {
         return __awaiter(this, void 0, void 0, function* () {
-            let user = yield usersRepository_1.usersRepository.findByConfirmationCode(code);
-            if (!user)
-                return false;
-            if (user.emailConfirmation.confirmationCode !== code)
-                return false;
-            let result = yield usersRepository_1.usersRepository.updateConfirmation(user._id);
-            return result;
+            try {
+                const user = yield usersRepository_1.usersRepository.findByConfirmationCode(code);
+                if (user.emailConfirmation.isConfirmed) {
+                    return false; // Already confirmed
+                }
+                const result = yield usersRepository_1.usersRepository.updateConfirmation(user._id);
+                return result;
+            }
+            catch (error) {
+                return false; // User not found or other error
+            }
         });
-    }
+    },
+    resendConfirmationEmail(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const user = yield usersRepository_1.usersRepository.findByLoginOrEmail(email);
+            if (!user) {
+                return {
+                    status: httpStatus_1.HttpStatus.BadRequest,
+                    data: null,
+                    errorMessage: 'User not found',
+                    extensions: [{ field: 'email', message: 'User with this email does not exist' }],
+                };
+            }
+            // Check if user is already confirmed
+            const userWithConfirmation = user;
+            if ((_a = userWithConfirmation.emailConfirmation) === null || _a === void 0 ? void 0 : _a.isConfirmed) {
+                return {
+                    status: httpStatus_1.HttpStatus.BadRequest,
+                    data: null,
+                    errorMessage: 'Email already confirmed',
+                    extensions: [{ field: 'email', message: 'Email is already confirmed' }],
+                };
+            }
+            // Generate new confirmation code
+            const newConfirmationCode = (0, uuidv4_1.uuid)();
+            // Update user with new confirmation code
+            yield usersRepository_1.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
+            // Send email with new code
+            const updatedUser = Object.assign(Object.assign({}, userWithConfirmation), { emailConfirmation: Object.assign(Object.assign({}, userWithConfirmation.emailConfirmation), { confirmationCode: newConfirmationCode }) });
+            yield email_manager_1.emailManager.sendEmailConfimationMessage(updatedUser);
+            return {
+                status: httpStatus_1.HttpStatus.NoContent,
+                data: null,
+                errorMessage: '',
+                extensions: [],
+            };
+        });
+    },
 };

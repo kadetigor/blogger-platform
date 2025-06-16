@@ -12,10 +12,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.confirmEmailHandler = confirmEmailHandler;
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 const auth_service_1 = require("../../application/auth.service");
+const httpStatus_1 = require("../../../core/types/httpStatus");
 function confirmEmailHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const result = yield auth_service_1.authService.confirmEmail(req.body.code);
+            if (!result) {
+                res.status(httpStatus_1.HttpStatus.BadRequest).json({
+                    errorsMessages: [{
+                            message: "Invalid or expired confirmation code",
+                            field: "code"
+                        }]
+                });
+                return;
+            }
+            res.sendStatus(httpStatus_1.HttpStatus.NoContent);
         }
         catch (e) {
             (0, errorsHandler_1.errorsHandler)(e, res);

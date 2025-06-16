@@ -6,34 +6,33 @@ import { domainError } from './domainError';
 
 export function errorsHandler(error: unknown, res: Response): void {
   if (error instanceof repositoryNotFoundError) {
-    const httpStatus = HttpStatus.NotFound;
+    const httpStatus = HttpStatus.BadRequest; // Change from NotFound to BadRequest for validation
 
-    res.status(httpStatus).send(
-      createErrorMessages([
-        {
-          message: 'Repository not found',
-          field: 'code',
-        },
-      ]),
-    );
-
+    res.status(httpStatus).json({
+      errorsMessages: [{
+        message: 'Invalid confirmation code',
+        field: 'code',
+      }]
+    });
     return;
   }
 
   if (error instanceof domainError) {
-    const httpStatus = HttpStatus.UnprocessableEntity;
+    const httpStatus = HttpStatus.BadRequest;
 
-    res.status(httpStatus).send(
-      createErrorMessages([
-        {
-          message: 'Wrong domain',
-          field: 'id',
-        },
-      ]),
-    );
-
+    res.status(httpStatus).json({
+      errorsMessages: [{
+        message: error.message,
+        field: error.source || 'unknown',
+      }]
+    });
     return;
   }
-  res.status(HttpStatus.InternalServerError);
-  return;
+  
+  res.status(HttpStatus.InternalServerError).json({
+    errorsMessages: [{
+      message: 'Internal server error',
+      field: 'server',
+    }]
+  });
 }

@@ -12,10 +12,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resendConfirmEmailHandler = resendConfirmEmailHandler;
 const auth_service_1 = require("../../application/auth.service");
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
+const httpStatus_1 = require("../../../core/types/httpStatus");
 function resendConfirmEmailHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const result = yield auth_service_1.authService.confirmEmail(req.body.code);
+            const { email } = req.body;
+            const result = yield auth_service_1.authService.resendConfirmationEmail(email);
+            if (result.status !== httpStatus_1.HttpStatus.NoContent) {
+                res.status(result.status).json({
+                    errorsMessages: result.extensions
+                });
+                return;
+            }
+            res.sendStatus(httpStatus_1.HttpStatus.NoContent);
         }
         catch (e) {
             (0, errorsHandler_1.errorsHandler)(e, res);
