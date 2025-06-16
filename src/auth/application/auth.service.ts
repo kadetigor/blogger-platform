@@ -5,6 +5,9 @@ import { HttpStatus } from '../../core/types/httpStatus';
 import { Result } from '../../core/result/result.type';
 import { usersRepository } from '../../users/repositories/usersRepository';
 import { User } from '../../users/domain/user';
+import { emailManager } from '../../email/managers/email.manager';
+import { uuid } from 'uuidv4';
+import { UserWithConfirmation } from '../../email/user.with.confirmation.type';
 
 export const authService = {
   async loginUser(
@@ -57,4 +60,44 @@ export const authService = {
       extensions: [],
     };
   },
+
+  async registerUser(
+    login: string,
+    email: string,
+    password: string
+  ): Promise<Result<WithId<User> | null>> {
+    const passwordHash = await bcryptService.generateHash(password)
+
+    const user: UserWithConfirmation = {
+      login,
+      email,
+      passwordHash,
+      createdAt: new Date(),
+      emailConfirmation: {
+        confirmationCode: uuid(),
+        isConfirmed: false
+      }
+    };
+
+    await usersRepository.create(user)
+    await emailManager.sendEmailConfimationMessage(user)
+
+    return {
+      status: HttpStatus.NoContent,
+      data: null,
+      errorMessage: 'Not Found',
+      extensions: [],
+    }
+  },
+
+  async confirmEmail(
+    code: string,
+  ): Promise<boolean> {
+    let user = await usersRepository.findByConfirmationCode(code)
+    if (!user) return false
+    if (user.emailConfirmation.confirmationCode !== code) return false
+    
+    let result = await usersRepository.updateConfirmation(user._id)
+    return result
+  }
 };

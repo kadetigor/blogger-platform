@@ -17,11 +17,21 @@ exports.usersRepository = {
     findByIdOrFail(id) {
         return __awaiter(this, void 0, void 0, function* () {
             const res = yield mongoDb_1.userCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
-            console.log(`${res}`);
             if (!res) {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('User does not exist');
             }
             return res;
+        });
+    },
+    findByConfirmationCode(emailConfirmationCode) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield mongoDb_1.userCollection.findOne({
+                "emailConfirmation.confirmationCode": emailConfirmationCode
+            });
+            if (!user) {
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('User does not exist');
+            }
+            return user;
         });
     },
     create(newUser) {
@@ -64,4 +74,11 @@ exports.usersRepository = {
             });
         });
     },
+    updateConfirmation(_id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let result = yield mongoDb_1.userCollection
+                .updateOne({ _id }, { $set: { 'emailConfirmation.isConfirmed': true } });
+            return result.modifiedCount === 1;
+        });
+    }
 };
