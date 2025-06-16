@@ -11,7 +11,7 @@ function errorsHandler(error, res) {
         res.status(httpStatus).send((0, input_validtion_result_middleware_1.createErrorMessages)([
             {
                 message: 'Repository not found',
-                field: 'id',
+                field: 'code',
             },
         ]));
         return;

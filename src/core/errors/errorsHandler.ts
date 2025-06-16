@@ -12,7 +12,7 @@ export function errorsHandler(error: unknown, res: Response): void {
       createErrorMessages([
         {
           message: 'Repository not found',
-          field: 'id',
+          field: 'code',
         },
       ]),
     );

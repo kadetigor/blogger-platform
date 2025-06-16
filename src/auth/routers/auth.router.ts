@@ -15,7 +15,7 @@ import { resendConfirmEmailHandler } from "./handlers/resend.email.confirm.email
 export const authRouter = Router();
 
 const loginOrEmailValidation = body('loginOrEmail')
-  .exists().withMessage('loginOrEmail is required')
+  .exists().withMessage('email')
   .isString().withMessage('loginOrEmail should be a string')
   .trim().notEmpty().withMessage('loginOrEmail should not be empty');
 

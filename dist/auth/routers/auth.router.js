@@ -23,7 +23,7 @@ const confirm_email_handler_1 = require("./handlers/confirm.email.handler");
 const resend_email_confirm_email_handler_1 = require("./handlers/resend.email.confirm.email.handler");
 exports.authRouter = (0, express_1.Router)();
 const loginOrEmailValidation = (0, express_validator_1.body)('loginOrEmail')
-    .exists().withMessage('loginOrEmail is required')
+    .exists().withMessage('email')
     .isString().withMessage('loginOrEmail should be a string')
     .trim().notEmpty().withMessage('loginOrEmail should not be empty');
 const passwordValidation = (0, express_validator_1.body)('password')
