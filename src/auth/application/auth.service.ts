@@ -6,7 +6,7 @@ import { Result } from '../../core/result/result.type';
 import { usersRepository } from '../../users/repositories/usersRepository';
 import { User } from '../../users/domain/user';
 import { emailManager } from '../../email/managers/email.manager';
-import { uuid } from 'uuidv4';
+import { v4 as uuid } from 'uuid';
 import { UserWithConfirmation } from '../../email/user.with.confirmation.type';
 
 export const authService = {

@@ -15,7 +15,7 @@ const bcrypt_service_1 = require("../adapters/bcrypt.service");
 const httpStatus_1 = require("../../core/types/httpStatus");
 const usersRepository_1 = require("../../users/repositories/usersRepository");
 const email_manager_1 = require("../../email/managers/email.manager");
-const uuidv4_1 = require("uuidv4");
+const uuid_1 = require("uuid");
 exports.authService = {
     loginUser(loginOrEmail, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -98,7 +98,7 @@ exports.authService = {
                 passwordHash,
                 createdAt: new Date(),
                 emailConfirmation: {
-                    confirmationCode: (0, uuidv4_1.uuid)(),
+                    confirmationCode: (0, uuid_1.v4)(),
                     isConfirmed: false
                 }
             };
@@ -149,7 +149,7 @@ exports.authService = {
                 };
             }
             // Generate new confirmation code
-            const newConfirmationCode = (0, uuidv4_1.uuid)();
+            const newConfirmationCode = (0, uuid_1.v4)();
             // Update user with new confirmation code
             yield usersRepository_1.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
             // Send email with new code

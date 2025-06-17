@@ -20,16 +20,16 @@ exports.emailAdapter = {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 let transport = nodemailer_1.default.createTransport({
-                    host: "smtp.yandex.com",
-                    port: 465,
-                    secure: true, // use SSL
+                    host: "smtp.sendgrid.net",
+                    port: 587,
+                    secure: false,
                     auth: {
-                        user: settings_1.SETTINGS.YANDEX_EMAIL,
-                        pass: settings_1.SETTINGS.YANDEX_PASSWORD, // App password (or account password if no 2FA)
+                        user: "apikey", // Yes, literally the word 'apikey'
+                        pass: settings_1.SETTINGS.SENDGRID_API_KEY, // Your SendGrid API Key
                     },
                 });
                 let info = yield transport.sendMail({
-                    from: `Igor <${settings_1.SETTINGS.YANDEX_EMAIL}>`,
+                    from: `Igor <kadet3216@gmail.com>`,
                     to: email,
                     subject: subject,
                     html: message
