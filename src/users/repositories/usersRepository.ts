@@ -8,12 +8,12 @@ import { UserWithConfirmation } from "../../email/user.with.confirmation.type";
 export const usersRepository = {
 
     async findByIdOrFail(id: string): Promise<WithId<User>> {
-            const res = await userCollection.findOne({ _id: new ObjectId(id) });
-    
-            if (!res) {
-                throw new repositoryNotFoundError('User does not exist')
-            }
-            return res;
+        const res = await userCollection.findOne({ _id: new ObjectId(id) });
+
+        if (!res) {
+            throw new repositoryNotFoundError('User does not exist')
+        }
+        return res;
     },
 
     async findByConfirmationCode(emailConfirmationCode: string): Promise<WithId<UserWithConfirmation>> {
@@ -73,10 +73,10 @@ export const usersRepository = {
 
     async updateConfirmation(
         _id: ObjectId,
-    ) {
-        let result = await userCollection
-            .updateOne({_id}, {$set: {'emailConfirmation.isConfirmed': true}})
-        return result.modifiedCount === 1
+    ): Promise<boolean> {
+        const result = await userCollection
+            .updateOne({_id}, {$set: {'emailConfirmation.isConfirmed': true}});
+        return result.modifiedCount === 1;
     },
 
     async updateConfirmationCode(
@@ -89,4 +89,4 @@ export const usersRepository = {
         );
         return result.modifiedCount === 1;
     },
-}
+};

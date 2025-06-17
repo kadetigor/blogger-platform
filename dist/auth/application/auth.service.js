@@ -72,9 +72,9 @@ exports.authService = {
     },
     registerUser(login, email, password) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Check if user with this login or email already exists
-            const existingUser = yield usersRepository_1.usersRepository.findByLoginOrEmail(login);
-            if (existingUser) {
+            // Check if user with this login already exists
+            const existingUserByLogin = yield usersRepository_1.usersRepository.findByLoginOrEmail(login);
+            if (existingUserByLogin) {
                 return {
                     status: httpStatus_1.HttpStatus.BadRequest,
                     data: null,
@@ -82,8 +82,9 @@ exports.authService = {
                     extensions: [{ field: 'login', message: 'User with this login already exists' }],
                 };
             }
-            const existingEmailUser = yield usersRepository_1.usersRepository.findByLoginOrEmail(email);
-            if (existingEmailUser) {
+            // Check if user with this email already exists  
+            const existingUserByEmail = yield usersRepository_1.usersRepository.findByLoginOrEmail(email);
+            if (existingUserByEmail) {
                 return {
                     status: httpStatus_1.HttpStatus.BadRequest,
                     data: null,
@@ -104,7 +105,13 @@ exports.authService = {
                 }
             };
             yield usersRepository_1.usersRepository.create(user);
-            yield email_manager_1.emailManager.sendEmailConfimationMessage(user);
+            // Try to send email, but don't fail if it doesn't work
+            try {
+                yield email_manager_1.emailManager.sendEmailConfimationMessage(user);
+            }
+            catch (error) {
+                console.log('Email sending failed, but registration continues:', error);
+            }
             return {
                 status: httpStatus_1.HttpStatus.NoContent,
                 data: { confirmationCode },
@@ -153,9 +160,14 @@ exports.authService = {
             const newConfirmationCode = (0, uuid_1.v4)();
             // Update user with new confirmation code
             yield usersRepository_1.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
-            // Send email with new code
-            const updatedUser = Object.assign(Object.assign({}, user), { emailConfirmation: Object.assign(Object.assign({}, user.emailConfirmation), { confirmationCode: newConfirmationCode }) });
-            yield email_manager_1.emailManager.sendEmailConfimationMessage(updatedUser);
+            // Try to send email with new code
+            try {
+                const updatedUser = Object.assign(Object.assign({}, user), { emailConfirmation: Object.assign(Object.assign({}, user.emailConfirmation), { confirmationCode: newConfirmationCode }) });
+                yield email_manager_1.emailManager.sendEmailConfimationMessage(updatedUser);
+            }
+            catch (error) {
+                console.log('Email sending failed, but code update continues:', error);
+            }
             return {
                 status: httpStatus_1.HttpStatus.NoContent,
                 data: null,

@@ -19,7 +19,7 @@ export async function registrationHandler(
     }
 
     res.sendStatus(HttpStatus.NoContent);
-    return { confirmationCode: result.data!.confirmationCode };
+    return result.data!.confirmationCode;
   } catch (e: unknown) {
     errorsHandler(e, res);
   }

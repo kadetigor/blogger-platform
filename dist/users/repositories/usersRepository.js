@@ -76,7 +76,7 @@ exports.usersRepository = {
     },
     updateConfirmation(_id) {
         return __awaiter(this, void 0, void 0, function* () {
-            let result = yield mongoDb_1.userCollection
+            const result = yield mongoDb_1.userCollection
                 .updateOne({ _id }, { $set: { 'emailConfirmation.isConfirmed': true } });
             return result.modifiedCount === 1;
         });

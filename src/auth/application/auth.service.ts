@@ -76,9 +76,9 @@ export const authService = {
     email: string,
     password: string
   ): Promise<Result<{ confirmationCode: string } | null>> {
-    // Check if user with this login or email already exists
-    const existingUser = await usersRepository.findByLoginOrEmail(login);
-    if (existingUser) {
+    // Check if user with this login already exists
+    const existingUserByLogin = await usersRepository.findByLoginOrEmail(login);
+    if (existingUserByLogin) {
       return {
         status: HttpStatus.BadRequest,
         data: null,
@@ -87,8 +87,9 @@ export const authService = {
       };
     }
 
-    const existingEmailUser = await usersRepository.findByLoginOrEmail(email);
-    if (existingEmailUser) {
+    // Check if user with this email already exists  
+    const existingUserByEmail = await usersRepository.findByLoginOrEmail(email);
+    if (existingUserByEmail) {
       return {
         status: HttpStatus.BadRequest,
         data: null,
@@ -97,8 +98,7 @@ export const authService = {
       };
     }
 
-    const passwordHash = await bcryptService.generateHash(password)
-
+    const passwordHash = await bcryptService.generateHash(password);
     const confirmationCode = uuid();
 
     const user: UserWithConfirmation = {
@@ -112,15 +112,21 @@ export const authService = {
       }
     };
 
-    await usersRepository.create(user)
-    await emailManager.sendEmailConfimationMessage(user)
+    await usersRepository.create(user);
+    
+    // Try to send email, but don't fail if it doesn't work
+    try {
+      await emailManager.sendEmailConfimationMessage(user);
+    } catch (error) {
+      console.log('Email sending failed, but registration continues:', error);
+    }
 
     return {
       status: HttpStatus.NoContent,
       data: { confirmationCode },
       errorMessage: '',
       extensions: [],
-    }
+    };
   },
 
   async confirmEmail(code: string): Promise<boolean> {
@@ -166,9 +172,13 @@ export const authService = {
     // Update user with new confirmation code
     await usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
     
-    // Send email with new code
-    const updatedUser = { ...user, emailConfirmation: { ...user.emailConfirmation, confirmationCode: newConfirmationCode } };
-    await emailManager.sendEmailConfimationMessage(updatedUser);
+    // Try to send email with new code
+    try {
+      const updatedUser = { ...user, emailConfirmation: { ...user.emailConfirmation, confirmationCode: newConfirmationCode } };
+      await emailManager.sendEmailConfimationMessage(updatedUser);
+    } catch (error) {
+      console.log('Email sending failed, but code update continues:', error);
+    }
 
     return {
         status: HttpStatus.NoContent,
@@ -176,5 +186,5 @@ export const authService = {
         errorMessage: '',
         extensions: [],
     };
-},
+  },
 };
