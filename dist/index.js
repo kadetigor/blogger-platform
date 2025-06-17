@@ -14,8 +14,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const app_1 = require("./app");
 const express_1 = __importDefault(require("express"));
-const settings_1 = require("./core/settings/settings");
 const mongoDb_1 = require("./db/mongoDb");
+const settings_1 = require("./core/settings/settings");
+console.log('Current directory: ', process.cwd());
 // создание приложения
 const bootstrap = () => __awaiter(void 0, void 0, void 0, function* () {
     const app = (0, express_1.default)();

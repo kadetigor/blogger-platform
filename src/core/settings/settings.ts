@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 export const SETTINGS = {
     PORT: process.env.PORT || 3002,
     MONGO_URL:

@@ -1,7 +1,8 @@
 import { setupApp } from "./app";
 import express from "express";
-import { SETTINGS } from "./core/settings/settings";
 import { runDB } from "./db/mongoDb";
+import { SETTINGS } from "./core/settings/settings";
+console.log('Current directory: ', process.cwd());
 
 // создание приложения
 const bootstrap = async () => {
