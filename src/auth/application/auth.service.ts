@@ -156,7 +156,7 @@ export const authService = {
         };
     }
 
-    // Check if user is already confirmed
+    // Check if user is already confirmed - this is the fix for the failing test
     if (user.emailConfirmation?.isConfirmed) {
         return {
             status: HttpStatus.BadRequest,

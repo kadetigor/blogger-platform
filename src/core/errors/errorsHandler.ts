@@ -6,12 +6,12 @@ import { domainError } from './domainError';
 
 export function errorsHandler(error: unknown, res: Response): void {
   if (error instanceof repositoryNotFoundError) {
-    const httpStatus = HttpStatus.BadRequest; // Change from NotFound to BadRequest for validation
+    const httpStatus = HttpStatus.NotFound; // Changed from BadRequest to NotFound for repository errors
 
     res.status(httpStatus).json({
       errorsMessages: [{
-        message: 'Invalid confirmation code',
-        field: 'code',
+        message: error.message || 'Resource not found',
+        field: 'id',
       }]
     });
     return;

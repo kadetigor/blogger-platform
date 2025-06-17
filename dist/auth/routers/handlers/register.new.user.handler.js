@@ -15,6 +15,7 @@ const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 const httpStatus_1 = require("../../../core/types/httpStatus");
 function registrationHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
         try {
             const { login, email, password } = req.body;
             const result = yield auth_service_1.authService.registerUser(login, email, password);
@@ -24,8 +25,12 @@ function registrationHandler(req, res) {
                 });
                 return;
             }
-            res.sendStatus(httpStatus_1.HttpStatus.NoContent);
-            return result.data.confirmationCode;
+            if ((_a = result.data) === null || _a === void 0 ? void 0 : _a.confirmationCode) {
+                res.status(httpStatus_1.HttpStatus.NoContent).json({
+                    confirmationCode: result.data.confirmationCode
+                });
+                return;
+            }
         }
         catch (e) {
             (0, errorsHandler_1.errorsHandler)(e, res);

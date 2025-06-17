@@ -6,11 +6,11 @@ const httpStatus_1 = require("../types/httpStatus");
 const domainError_1 = require("./domainError");
 function errorsHandler(error, res) {
     if (error instanceof repositoryNotFoundError_1.repositoryNotFoundError) {
-        const httpStatus = httpStatus_1.HttpStatus.BadRequest; // Change from NotFound to BadRequest for validation
+        const httpStatus = httpStatus_1.HttpStatus.NotFound; // Changed from BadRequest to NotFound for repository errors
         res.status(httpStatus).json({
             errorsMessages: [{
-                    message: 'Invalid confirmation code',
-                    field: 'code',
+                    message: error.message || 'Resource not found',
+                    field: 'id',
                 }]
         });
         return;

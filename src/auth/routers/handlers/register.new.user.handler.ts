@@ -18,8 +18,12 @@ export async function registrationHandler(
       return;
     }
 
-    res.sendStatus(HttpStatus.NoContent);
-    return result.data!.confirmationCode;
+    if (result.data?.confirmationCode) {
+      res.status(HttpStatus.NoContent).json({
+        confirmationCode: result.data.confirmationCode
+      });
+      return;
+    }
   } catch (e: unknown) {
     errorsHandler(e, res);
   }

@@ -147,7 +147,7 @@ exports.authService = {
                     extensions: [{ field: 'email', message: 'User with this email does not exist' }],
                 };
             }
-            // Check if user is already confirmed
+            // Check if user is already confirmed - this is the fix for the failing test
             if ((_a = user.emailConfirmation) === null || _a === void 0 ? void 0 : _a.isConfirmed) {
                 return {
                     status: httpStatus_1.HttpStatus.BadRequest,
