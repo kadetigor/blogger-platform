@@ -92,13 +92,14 @@ exports.authService = {
                 };
             }
             const passwordHash = yield bcrypt_service_1.bcryptService.generateHash(password);
+            const confirmationCode = (0, uuid_1.v4)();
             const user = {
                 login,
                 email,
                 passwordHash,
                 createdAt: new Date(),
                 emailConfirmation: {
-                    confirmationCode: (0, uuid_1.v4)(),
+                    confirmationCode: confirmationCode,
                     isConfirmed: false
                 }
             };
@@ -106,7 +107,7 @@ exports.authService = {
             yield email_manager_1.emailManager.sendEmailConfimationMessage(user);
             return {
                 status: httpStatus_1.HttpStatus.NoContent,
-                data: null,
+                data: { confirmationCode },
                 errorMessage: '',
                 extensions: [],
             };

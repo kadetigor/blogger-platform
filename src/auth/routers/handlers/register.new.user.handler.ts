@@ -6,7 +6,7 @@ import { HttpStatus } from "../../../core/types/httpStatus";
 export async function registrationHandler(
   req: Request,
   res: Response,
-): Promise<void> {
+): Promise<any> {
   try {
     const { login, email, password } = req.body;
     const result = await authService.registerUser(login, email, password);
@@ -17,8 +17,9 @@ export async function registrationHandler(
       });
       return;
     }
-    
+
     res.sendStatus(HttpStatus.NoContent);
+    return { confirmationCode: result.data!.confirmationCode };
   } catch (e: unknown) {
     errorsHandler(e, res);
   }

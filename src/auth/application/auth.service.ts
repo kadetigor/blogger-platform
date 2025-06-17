@@ -75,7 +75,7 @@ export const authService = {
     login: string,
     email: string,
     password: string
-  ): Promise<Result<WithId<User> | null>> {
+  ): Promise<Result<{ confirmationCode: string } | null>> {
     // Check if user with this login or email already exists
     const existingUser = await usersRepository.findByLoginOrEmail(login);
     if (existingUser) {
@@ -99,13 +99,15 @@ export const authService = {
 
     const passwordHash = await bcryptService.generateHash(password)
 
+    const confirmationCode = uuid();
+
     const user: UserWithConfirmation = {
       login,
       email,
       passwordHash,
       createdAt: new Date(),
       emailConfirmation: {
-        confirmationCode: uuid(),
+        confirmationCode: confirmationCode,
         isConfirmed: false
       }
     };
@@ -115,7 +117,7 @@ export const authService = {
 
     return {
       status: HttpStatus.NoContent,
-      data: null,
+      data: { confirmationCode },
       errorMessage: '',
       extensions: [],
     }

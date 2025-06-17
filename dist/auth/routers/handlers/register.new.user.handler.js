@@ -25,6 +25,7 @@ function registrationHandler(req, res) {
                 return;
             }
             res.sendStatus(httpStatus_1.HttpStatus.NoContent);
+            return { confirmationCode: result.data.confirmationCode };
         }
         catch (e) {
             (0, errorsHandler_1.errorsHandler)(e, res);
