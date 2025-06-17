@@ -29,7 +29,7 @@ exports.emailAdapter = {
                     },
                 });
                 let info = yield transport.sendMail({
-                    from: `Igor <kadet3216@gmail.com>`,
+                    from: `Igor <kadet3216@em3772.ftpropaganda.com>`,
                     to: email,
                     subject: subject,
                     html: message
