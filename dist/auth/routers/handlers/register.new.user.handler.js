@@ -25,11 +25,12 @@ function registrationHandler(req, res) {
                 });
                 return;
             }
+            res.status(httpStatus_1.HttpStatus.NoContent);
             if ((_a = result.data) === null || _a === void 0 ? void 0 : _a.confirmationCode) {
-                res.status(httpStatus_1.HttpStatus.NoContent).json({
-                    confirmationCode: result.data.confirmationCode
-                });
-                return;
+                res.json({ confirmationCode: result.data.confirmationCode });
+            }
+            else {
+                res.send();
             }
         }
         catch (e) {

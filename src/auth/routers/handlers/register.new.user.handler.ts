@@ -17,12 +17,12 @@ export async function registrationHandler(
       });
       return;
     }
-
+    res.status(HttpStatus.NoContent);
+    
     if (result.data?.confirmationCode) {
-      res.status(HttpStatus.NoContent).json({
-        confirmationCode: result.data.confirmationCode
-      });
-      return;
+      res.json({ confirmationCode: result.data.confirmationCode });
+    } else {
+      res.send();
     }
   } catch (e: unknown) {
     errorsHandler(e, res);
