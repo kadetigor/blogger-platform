@@ -11,6 +11,9 @@ import { userInputDtoValidation } from "../../users/routers/middleware/userInput
 import { registrationHandler } from "./handlers/register.new.user.handler";
 import { confirmEmailHandler } from "./handlers/confirm.email.handler";
 import { resendConfirmEmailHandler } from "./handlers/resend.email.confirm.email.handler";
+import { refreshTokenHandler } from "./handlers/refresh.token.handler";
+import { logoutHandler } from "./handlers/logout.handler";
+import { refreshTokenGuard } from "./guards/refresh.token.guard";
 
 export const authRouter = Router();
 
@@ -37,6 +40,7 @@ authRouter.post(
 authRouter.get(
   '/me',
   accessTokenGuard,
+  refreshTokenGuard,
   async (req: RequestWithUserId<IdType>, res: Response): Promise<void> => {
     const userId = req.user?.id as string;
     if (!userId) {
@@ -44,9 +48,20 @@ authRouter.get(
       return;
     }
 
-    const me = await usersQueryRepository.findByIdOrFail(userId);
-    res.status(HttpStatus.Ok).send(me);
-    return;
+    try {
+      const user = await usersQueryRepository.findByIdOrFail(userId);
+      
+      // Return only the required fields: userId, login, email
+      const meResponse = {
+        userId: user._id.toString(),
+        login: user.login,
+        email: user.email
+      };
+      
+      res.status(HttpStatus.Ok).send(meResponse);
+    } catch (error) {
+      res.sendStatus(HttpStatus.NotFound);
+    }
   },
 );
 
@@ -76,3 +91,15 @@ authRouter.post(
   inputValidationResultMiddleware,
   resendConfirmEmailHandler
 );
+
+authRouter.post(
+  '/refresh-token',
+  refreshTokenGuard,
+  refreshTokenHandler
+);
+
+authRouter.post(
+  '/logout',
+  refreshTokenGuard,
+  logoutHandler
+)

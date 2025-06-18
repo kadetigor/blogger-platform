@@ -21,6 +21,9 @@ const userInputDtoValidation_1 = require("../../users/routers/middleware/userInp
 const register_new_user_handler_1 = require("./handlers/register.new.user.handler");
 const confirm_email_handler_1 = require("./handlers/confirm.email.handler");
 const resend_email_confirm_email_handler_1 = require("./handlers/resend.email.confirm.email.handler");
+const refresh_token_handler_1 = require("./handlers/refresh.token.handler");
+const logout_handler_1 = require("./handlers/logout.handler");
+const refresh_token_guard_1 = require("./guards/refresh.token.guard");
 exports.authRouter = (0, express_1.Router)();
 const loginOrEmailValidation = (0, express_validator_1.body)('loginOrEmail')
     .exists().withMessage('email')
@@ -34,16 +37,26 @@ exports.authRouter.post('/login', [
     loginOrEmailValidation,
     passwordValidation,
 ], input_validtion_result_middleware_1.inputValidationResultMiddleware, login_user_handler_1.loginHandler);
-exports.authRouter.get('/me', access_token_guard_1.accessTokenGuard, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.authRouter.get('/me', access_token_guard_1.accessTokenGuard, refresh_token_guard_1.refreshTokenGuard, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
     if (!userId) {
         res.sendStatus(httpStatus_1.HttpStatus.Unauthorized);
         return;
     }
-    const me = yield usersQueryRepository_1.usersQueryRepository.findByIdOrFail(userId);
-    res.status(httpStatus_1.HttpStatus.Ok).send(me);
-    return;
+    try {
+        const user = yield usersQueryRepository_1.usersQueryRepository.findByIdOrFail(userId);
+        // Return only the required fields: userId, login, email
+        const meResponse = {
+            userId: user._id.toString(),
+            login: user.login,
+            email: user.email
+        };
+        res.status(httpStatus_1.HttpStatus.Ok).send(meResponse);
+    }
+    catch (error) {
+        res.sendStatus(httpStatus_1.HttpStatus.NotFound);
+    }
 }));
 exports.authRouter.post('/registration', userInputDtoValidation_1.userInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, register_new_user_handler_1.registrationHandler);
 exports.authRouter.post('/registration-confirmation', (0, express_validator_1.body)('code')
@@ -54,3 +67,5 @@ exports.authRouter.post('/registration-email-resending', (0, express_validator_1
     .exists().withMessage('Email is required')
     .isEmail().withMessage('Invalid email format')
     .trim(), input_validtion_result_middleware_1.inputValidationResultMiddleware, resend_email_confirm_email_handler_1.resendConfirmEmailHandler);
+exports.authRouter.post('/refresh-token', refresh_token_guard_1.refreshTokenGuard, refresh_token_handler_1.refreshTokenHandler);
+exports.authRouter.post('/logout', refresh_token_guard_1.refreshTokenGuard, logout_handler_1.logoutHandler);
