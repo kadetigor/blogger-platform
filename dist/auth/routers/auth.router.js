@@ -37,7 +37,7 @@ exports.authRouter.post('/login', [
     loginOrEmailValidation,
     passwordValidation,
 ], input_validtion_result_middleware_1.inputValidationResultMiddleware, login_user_handler_1.loginHandler);
-exports.authRouter.get('/me', access_token_guard_1.accessTokenGuard, refresh_token_guard_1.refreshTokenGuard, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.authRouter.get('/me', access_token_guard_1.accessTokenGuard, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
     if (!userId) {

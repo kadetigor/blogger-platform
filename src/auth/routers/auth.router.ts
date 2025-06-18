@@ -40,7 +40,6 @@ authRouter.post(
 authRouter.get(
   '/me',
   accessTokenGuard,
-  refreshTokenGuard,
   async (req: RequestWithUserId<IdType>, res: Response): Promise<void> => {
     const userId = req.user?.id as string;
     if (!userId) {
