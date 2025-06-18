@@ -10,14 +10,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.usersService = void 0;
-const bcrypt_service_1 = require("../../auth/adapters/bcrypt.service");
+const bcrypt_adapter_1 = require("../../auth/adapters/bcrypt.adapter");
 const usersRepository_1 = require("../repositories/usersRepository");
 const uuid_1 = require("uuid");
 exports.usersService = {
     create(dto) {
         return __awaiter(this, void 0, void 0, function* () {
             const { login, password, email } = dto;
-            const passwordHash = yield bcrypt_service_1.bcryptService.generateHash(password);
+            const passwordHash = yield bcrypt_adapter_1.bcryptService.generateHash(password);
             // Create user with already confirmed email when created through admin endpoint
             const newUser = {
                 login,

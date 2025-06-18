@@ -10,12 +10,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authService = void 0;
-const jwt_service_1 = require("../adapters/jwt.service");
-const bcrypt_service_1 = require("../adapters/bcrypt.service");
+const jwt_adapter_1 = require("../adapters/jwt.adapter");
+const bcrypt_adapter_1 = require("../adapters/bcrypt.adapter");
 const httpStatus_1 = require("../../core/types/httpStatus");
 const usersRepository_1 = require("../../users/repositories/usersRepository");
 const email_manager_1 = require("../../email/managers/email.manager");
 const uuid_1 = require("uuid");
+const refresh_token_sessions_repository_1 = require("../repositories/refresh.token.sessions.repository");
+const date_fns_1 = require("date-fns");
+const settings_1 = require("../../core/settings/settings");
 exports.authService = {
     loginUser(loginOrEmail, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -27,10 +30,13 @@ exports.authService = {
                     extensions: [{ field: 'loginOrEmail', message: 'Wrong credentials' }],
                     data: null,
                 };
-            const accessToken = yield jwt_service_1.jwtService.createToken(result.data._id.toString(), result.data.login);
+            const userId = result.data._id.toString();
+            const accessToken = yield jwt_adapter_1.jwtService.createToken(userId, result.data.login);
+            const tokenId = yield this.createRefreshSession(userId);
+            const refreshToken = yield jwt_adapter_1.jwtService.createRefreshToken(userId, tokenId);
             return {
                 status: httpStatus_1.HttpStatus.Ok,
-                data: { accessToken },
+                data: { accessToken, refreshToken },
                 extensions: [],
             };
         });
@@ -46,7 +52,7 @@ exports.authService = {
                     errorMessage: 'Not Found',
                     extensions: [{ field: 'loginOrEmail', message: 'Not Found' }],
                 };
-            const isPassCorrect = yield bcrypt_service_1.bcryptService.checkPassword(password, user.passwordHash);
+            const isPassCorrect = yield bcrypt_adapter_1.bcryptService.checkPassword(password, user.passwordHash);
             if (!isPassCorrect)
                 return {
                     status: httpStatus_1.HttpStatus.BadRequest,
@@ -92,7 +98,7 @@ exports.authService = {
                     extensions: [{ field: 'email', message: 'User with this email already exists' }],
                 };
             }
-            const passwordHash = yield bcrypt_service_1.bcryptService.generateHash(password);
+            const passwordHash = yield bcrypt_adapter_1.bcryptService.generateHash(password);
             const confirmationCode = (0, uuid_1.v4)();
             const user = {
                 login,
@@ -174,6 +180,179 @@ exports.authService = {
                 errorMessage: '',
                 extensions: [],
             };
+        });
+    },
+    // Новые методы для auth flow
+    refreshTokens(oldRefreshToken) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                // 1. Верифицировать старый refresh токен
+                const payload = yield jwt_adapter_1.jwtService.verifyRefreshToken(oldRefreshToken);
+                if (!payload) {
+                    return {
+                        status: httpStatus_1.HttpStatus.Unauthorized,
+                        errorMessage: 'Invalid refresh token',
+                        extensions: [{ field: 'refreshToken', message: 'Invalid token' }],
+                        data: null,
+                    };
+                }
+                // 2. Валидировать сессию в БД
+                const sessionValidation = yield this.validateRefreshSession(payload.tokenId);
+                if (!sessionValidation.isValid) {
+                    return {
+                        status: httpStatus_1.HttpStatus.Unauthorized,
+                        errorMessage: 'Session invalid',
+                        extensions: [{ field: 'refreshToken', message: sessionValidation.error || 'Session invalid' }],
+                        data: null,
+                    };
+                }
+                // 3. Отозвать старую сессию
+                yield this.invalidateRefreshSession(payload.tokenId);
+                // 4. Создать новую сессию
+                const newTokenId = yield this.createRefreshSession(payload.userId);
+                // 5. Создать новые токены
+                const user = yield usersRepository_1.usersRepository.findByIdOrFail(payload.userId);
+                const accessToken = yield jwt_adapter_1.jwtService.createToken(payload.userId, user.login);
+                const refreshToken = yield jwt_adapter_1.jwtService.createRefreshToken(payload.userId, newTokenId);
+                return {
+                    status: httpStatus_1.HttpStatus.Ok,
+                    data: { accessToken, refreshToken },
+                    extensions: [],
+                };
+            }
+            catch (error) {
+                console.log('Refresh tokens failed:', error);
+                return {
+                    status: httpStatus_1.HttpStatus.Unauthorized,
+                    errorMessage: 'Failed to refresh tokens',
+                    extensions: [{ field: 'refreshToken', message: 'Token refresh failed' }],
+                    data: null,
+                };
+            }
+        });
+    },
+    logout(refreshToken) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                // 1. Верифицировать refresh токен
+                const payload = yield jwt_adapter_1.jwtService.verifyRefreshToken(refreshToken);
+                if (!payload) {
+                    return {
+                        status: httpStatus_1.HttpStatus.Unauthorized,
+                        errorMessage: 'Invalid refresh token',
+                        extensions: [{ field: 'refreshToken', message: 'Invalid token' }],
+                        data: null,
+                    };
+                }
+                // 2. Валидировать сессию в БД
+                const sessionValidation = yield this.validateRefreshSession(payload.tokenId);
+                if (!sessionValidation.isValid) {
+                    // Даже если сессия невалидна, логаут считается успешным
+                    // (токен уже недействителен)
+                    return {
+                        status: httpStatus_1.HttpStatus.NoContent,
+                        data: null,
+                        extensions: [],
+                    };
+                }
+                // 3. Отозвать сессию
+                const revoked = yield this.invalidateRefreshSession(payload.tokenId);
+                if (!revoked) {
+                    console.log('Failed to revoke session:', payload.tokenId);
+                }
+                return {
+                    status: httpStatus_1.HttpStatus.NoContent,
+                    data: null,
+                    extensions: [],
+                };
+            }
+            catch (error) {
+                console.log('Logout failed:', error);
+                return {
+                    status: httpStatus_1.HttpStatus.Unauthorized,
+                    errorMessage: 'Logout failed',
+                    extensions: [{ field: 'refreshToken', message: 'Invalid token' }],
+                    data: null,
+                };
+            }
+        });
+    },
+    createRefreshSession(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const tokenId = (0, uuid_1.v4)();
+            const expiresAt = (0, date_fns_1.add)(new Date(), { seconds: settings_1.SETTINGS.REFRESH_TIME });
+            const newSession = {
+                userId: userId,
+                tokenId: tokenId,
+                expiresAt: expiresAt,
+                isRevoked: false,
+                createdAt: new Date(),
+            };
+            try {
+                yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.create(newSession);
+                return newSession.tokenId;
+            }
+            catch (e) {
+                console.log('Session creation faild:', e);
+                throw e;
+            }
+        });
+    },
+    validateRefreshSession(tokenId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const session = yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.findByTokenId(tokenId);
+            if (!session) {
+                return {
+                    isValid: false,
+                    error: 'NOT_FOUND'
+                };
+            }
+            ;
+            if (session.isRevoked === true) {
+                return {
+                    isValid: false,
+                    session: session,
+                    userId: session.userId,
+                    error: 'REVOKED'
+                };
+            }
+            ;
+            if (new Date() >= session.expiresAt) {
+                return {
+                    isValid: false,
+                    session: session,
+                    userId: session.userId,
+                    error: 'EXPIRED',
+                };
+            }
+            ;
+            return {
+                isValid: true,
+                session: session,
+                userId: session.userId
+            };
+        });
+    },
+    invalidateRefreshSession(tokenId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.updateToRevoked(tokenId);
+            }
+            catch (e) {
+                console.log('Refresh token invalidation failed:', e);
+                return false;
+            }
+        });
+    },
+    deleteExpiredSessions() {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                return yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.deleteExpired();
+            }
+            catch (e) {
+                console.log('Deleting expired sessions faild:', e);
+                throw e;
+            }
         });
     },
 };

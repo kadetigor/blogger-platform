@@ -9,17 +9,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loginHandler = loginHandler;
-const httpStatus_1 = require("../../../core/types/httpStatus");
+exports.refreshTokenHandler = refreshTokenHandler;
 const auth_service_1 = require("../../application/auth.service");
+const httpStatus_1 = require("../../../core/types/httpStatus");
 const settings_1 = require("../../../core/settings/settings");
-function loginHandler(req, res) {
+function refreshTokenHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const { loginOrEmail, password } = req.body;
-            const result = yield auth_service_1.authService.loginUser(loginOrEmail, password);
+            const refreshToken = req.cookies.refreshToken;
+            if (!refreshToken) {
+                res.status(httpStatus_1.HttpStatus.Unauthorized).json({
+                    errorsMessages: [{ field: 'refreshToken', message: 'Refresh token required' }]
+                });
+                return;
+            }
+            const result = yield auth_service_1.authService.refreshTokens(refreshToken);
             if (result.status !== httpStatus_1.HttpStatus.Ok) {
-                res.status(httpStatus_1.HttpStatus.Unauthorized).send(result.extensions);
+                res.status(result.status).json({ errorsMessages: result.extensions });
                 return;
             }
             res.cookie('refreshToken', result.data.refreshToken, {

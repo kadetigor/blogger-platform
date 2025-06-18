@@ -1,19 +1,23 @@
 import { WithId } from 'mongodb';
-import { jwtService } from '../adapters/jwt.service';
-import { bcryptService } from '../adapters/bcrypt.service';
+import { jwtService } from '../adapters/jwt.adapter';
+import { bcryptService } from '../adapters/bcrypt.adapter';
 import { HttpStatus } from '../../core/types/httpStatus';
 import { Result } from '../../core/result/result.type';
 import { usersRepository } from '../../users/repositories/usersRepository';
-import { User } from '../../users/domain/user';
 import { emailManager } from '../../email/managers/email.manager';
 import { v4 as uuid } from 'uuid';
 import { UserWithConfirmation } from '../../email/user.with.confirmation.type';
+import { RefreshTokenSession } from "../domain/refresh.token.session";
+import { refreshTokenSessionsRepository } from "../repositories/refresh.token.sessions.repository";
+import { add, addMilliseconds, addMinutes } from 'date-fns'
+import { SETTINGS } from '../../core/settings/settings';
+import { SessionValidationResult } from '../types/refresh.token.types';
 
 export const authService = {
   async loginUser(
     loginOrEmail: string,
     password: string,
-  ): Promise<Result<{ accessToken: string } | null>> {
+  ): Promise<Result<{ accessToken: string, refreshToken: string } | null>> {
     const result = await this.checkUserCredentials(loginOrEmail, password);
     if (result.status !== HttpStatus.Ok)
       return {
@@ -22,12 +26,18 @@ export const authService = {
         extensions: [{ field: 'loginOrEmail', message: 'Wrong credentials' }],
         data: null,
       };
+    
+    const userId = result.data!._id.toString()
 
-    const accessToken = await jwtService.createToken(result.data!._id.toString(), result.data!.login);
+    const accessToken = await jwtService.createToken(userId, result.data!.login);
+
+    const tokenId = await this.createRefreshSession(userId)
+
+    const refreshToken = await jwtService.createRefreshToken(userId, tokenId)
 
     return {
       status: HttpStatus.Ok,
-      data: { accessToken },
+      data: { accessToken, refreshToken },
       extensions: [],
     };
   },
@@ -187,4 +197,180 @@ export const authService = {
         extensions: [],
     };
   },
+  // Новые методы для auth flow
+  async refreshTokens(oldRefreshToken: string): Promise<Result<{ accessToken: string, refreshToken: string } | null>> {
+  try {
+    // 1. Верифицировать старый refresh токен
+    const payload = await jwtService.verifyRefreshToken(oldRefreshToken);
+    if (!payload) {
+      return {
+        status: HttpStatus.Unauthorized,
+        errorMessage: 'Invalid refresh token',
+        extensions: [{ field: 'refreshToken', message: 'Invalid token' }],
+        data: null,
+      };
+    }
+
+    // 2. Валидировать сессию в БД
+    const sessionValidation = await this.validateRefreshSession(payload.tokenId);
+    if (!sessionValidation.isValid) {
+      return {
+        status: HttpStatus.Unauthorized,
+        errorMessage: 'Session invalid',
+        extensions: [{ field: 'refreshToken', message: sessionValidation.error || 'Session invalid' }],
+        data: null,
+      };
+    }
+
+    // 3. Отозвать старую сессию
+    await this.invalidateRefreshSession(payload.tokenId);
+
+    // 4. Создать новую сессию
+    const newTokenId = await this.createRefreshSession(payload.userId);
+
+    // 5. Создать новые токены
+    const user = await usersRepository.findByIdOrFail(payload.userId);
+    const accessToken = await jwtService.createToken(payload.userId, user.login);
+    const refreshToken = await jwtService.createRefreshToken(payload.userId, newTokenId);
+
+    return {
+      status: HttpStatus.Ok,
+      data: { accessToken, refreshToken },
+      extensions: [],
+    };
+
+  } catch (error) {
+    console.log('Refresh tokens failed:', error);
+    return {
+      status: HttpStatus.Unauthorized,
+      errorMessage: 'Failed to refresh tokens',
+      extensions: [{ field: 'refreshToken', message: 'Token refresh failed' }],
+      data: null,
+    };
+  }
+},
+
+  async logout(refreshToken: string): Promise<Result<null>> {
+  try {
+    // 1. Верифицировать refresh токен
+    const payload = await jwtService.verifyRefreshToken(refreshToken);
+    if (!payload) {
+      return {
+        status: HttpStatus.Unauthorized,
+        errorMessage: 'Invalid refresh token',
+        extensions: [{ field: 'refreshToken', message: 'Invalid token' }],
+        data: null,
+      };
+    }
+
+    // 2. Валидировать сессию в БД
+    const sessionValidation = await this.validateRefreshSession(payload.tokenId);
+    if (!sessionValidation.isValid) {
+      // Даже если сессия невалидна, логаут считается успешным
+      // (токен уже недействителен)
+      return {
+        status: HttpStatus.NoContent,
+        data: null,
+        extensions: [],
+      };
+    }
+
+    // 3. Отозвать сессию
+    const revoked = await this.invalidateRefreshSession(payload.tokenId);
+    if (!revoked) {
+      console.log('Failed to revoke session:', payload.tokenId);
+    }
+
+    return {
+      status: HttpStatus.NoContent,
+      data: null,
+      extensions: [],
+    };
+
+  } catch (error) {
+    console.log('Logout failed:', error);
+    return {
+      status: HttpStatus.Unauthorized,
+      errorMessage: 'Logout failed',
+      extensions: [{ field: 'refreshToken', message: 'Invalid token' }],
+      data: null,
+    };
+  }
+},
+
+  async createRefreshSession(userId: string): Promise<string> {
+
+    const tokenId = uuid()
+    const expiresAt = add(new Date(),{ seconds: SETTINGS.REFRESH_TIME as number })
+
+    const newSession = {
+      userId: userId,
+      tokenId: tokenId,
+      expiresAt: expiresAt,
+      isRevoked: false,
+      createdAt: new Date(),
+    } as RefreshTokenSession
+
+    try {
+      await refreshTokenSessionsRepository.create(newSession)
+      return newSession.tokenId
+    } catch (e: unknown) {
+      console.log('Session creation faild:', e);
+      throw e;
+    }
+  },
+
+  async validateRefreshSession(tokenId: string): Promise<SessionValidationResult> {
+
+    const session = await refreshTokenSessionsRepository.findByTokenId(tokenId)
+
+    if (!session) {
+      return {
+        isValid: false,
+        error: 'NOT_FOUND'
+      }
+    };
+
+    if (session.isRevoked === true) {
+      return {
+        isValid: false,
+        session: session,
+        userId: session.userId,
+        error: 'REVOKED'
+      }
+    };
+
+    if (new Date() >= session.expiresAt) {
+      return {
+        isValid: false,
+        session: session,
+        userId: session.userId,
+        error: 'EXPIRED',
+      }
+    };
+
+    return {
+      isValid: true,
+      session: session,
+      userId: session.userId
+    }
+   },
+
+  async invalidateRefreshSession(tokenId: string): Promise<boolean> {
+    try {
+      return await refreshTokenSessionsRepository.updateToRevoked(tokenId);
+    } catch (e: unknown) {
+      console.log('Refresh token invalidation failed:', e);
+      return false;
+    }
+  },
+
+  async deleteExpiredSessions(): Promise<number> {
+    try {
+      return await refreshTokenSessionsRepository.deleteExpired()
+    } catch (e: unknown) {
+      console.log('Deleting expired sessions faild:', e)
+      throw e;
+    }
+   },
 };

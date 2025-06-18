@@ -22,10 +22,12 @@ const paths_1 = require("./core/paths/paths");
 const usersRouter_1 = require("./users/routers/usersRouter");
 const auth_router_1 = require("./auth/routers/auth.router");
 const comments_router_1 = require("./comments/routers/comments.router");
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const setupApp = (app) => __awaiter(void 0, void 0, void 0, function* () {
     // export const app = express();
     app.use(express_1.default.json());
     app.use((0, cors_1.default)());
+    app.use((0, cookie_parser_1.default)());
     // The following block allows us to write into consol requested endpoint address
     app.use((_req, res, next) => {
         console.log(_req.path);

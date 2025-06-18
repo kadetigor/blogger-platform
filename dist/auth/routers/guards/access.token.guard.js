@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.accessTokenGuard = void 0;
-const jwt_service_1 = require("../../adapters/jwt.service");
+const jwt_adapter_1 = require("../../adapters/jwt.adapter");
 const accessTokenGuard = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -24,7 +24,7 @@ const accessTokenGuard = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         return;
     }
     try {
-        const payload = yield jwt_service_1.jwtService.verifyToken(token);
+        const payload = yield jwt_adapter_1.jwtService.verifyToken(token);
         if (!payload) {
             res.sendStatus(401);
             return;

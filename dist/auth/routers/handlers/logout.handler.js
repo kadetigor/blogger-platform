@@ -9,29 +9,27 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loginHandler = loginHandler;
-const httpStatus_1 = require("../../../core/types/httpStatus");
+exports.logoutHandler = logoutHandler;
 const auth_service_1 = require("../../application/auth.service");
-const settings_1 = require("../../../core/settings/settings");
-function loginHandler(req, res) {
+const httpStatus_1 = require("../../../core/types/httpStatus");
+function logoutHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const { loginOrEmail, password } = req.body;
-            const result = yield auth_service_1.authService.loginUser(loginOrEmail, password);
-            if (result.status !== httpStatus_1.HttpStatus.Ok) {
-                res.status(httpStatus_1.HttpStatus.Unauthorized).send(result.extensions);
+            const refreshToken = req.cookies.refreshToken;
+            if (!refreshToken) {
+                res.sendStatus(httpStatus_1.HttpStatus.Unauthorized);
                 return;
             }
-            res.cookie('refreshToken', result.data.refreshToken, {
-                maxAge: settings_1.SETTINGS.REFRESH_TIME * 1000,
-                httpOnly: true,
-                secure: true,
-                sameSite: 'strict'
-            });
-            res.status(httpStatus_1.HttpStatus.Ok).send({ accessToken: result.data.accessToken });
+            const result = yield auth_service_1.authService.logout(refreshToken);
+            if (result.status !== httpStatus_1.HttpStatus.NoContent) {
+                res.sendStatus(httpStatus_1.HttpStatus.Unauthorized);
+                return;
+            }
+            res.clearCookie('refreshToken');
+            res.sendStatus(httpStatus_1.HttpStatus.NoContent);
         }
         catch (e) {
-            res.status(httpStatus_1.HttpStatus.InternalServerError);
+            res.status(httpStatus_1.HttpStatus.Unauthorized);
         }
     });
 }

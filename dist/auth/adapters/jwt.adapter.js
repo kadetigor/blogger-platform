@@ -15,9 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.jwtService = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const settings_1 = require("../../core/settings/settings");
-const refresh_token_sessions_repository_1 = require("../repositories/refresh.token.sessions.repository");
-const uuid_1 = require("uuid");
-const date_fns_1 = require("date-fns");
 exports.jwtService = {
     createToken(userId, userLogin) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -55,41 +52,4 @@ exports.jwtService = {
             }
         });
     },
-    createRefreshSession(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const tokenId = (0, uuid_1.v4)();
-            const expiresAt = (0, date_fns_1.add)(new Date(), { seconds: settings_1.SETTINGS.REFRESH_TIME });
-            const newSession = {
-                userId: userId,
-                tokenId: tokenId,
-                expiresAt: expiresAt,
-                isRevoked: false,
-                createdAt: new Date(),
-            };
-            try {
-                yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.create(newSession);
-            }
-            catch (e) {
-                console.log('Email sending failed, but code update continues:', e);
-            }
-            return newSession.tokenId;
-        });
-    },
-    validateRefreshSession(tokenId) {
-        return __awaiter(this, void 0, void 0, function* () {
-        });
-    },
-    invalidateRefreshSession(...) {
-        return __awaiter(this, void 0, void 0, function* () { });
-    },
-    deleteExpiredSessions(...) {
-        return __awaiter(this, void 0, void 0, function* () { });
-    },
-    // Новые методы для auth flow
-    refreshTokens(...) {
-        return __awaiter(this, void 0, void 0, function* () { });
-    },
-    logout(...) {
-        return __awaiter(this, void 0, void 0, function* () { });
-    }
 };

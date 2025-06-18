@@ -1,4 +1,4 @@
-import { bcryptService } from "../../auth/adapters/bcrypt.service";
+import { bcryptService } from "../../auth/adapters/bcrypt.adapter";
 import { User } from "../domain/user";
 import { usersRepository } from "../repositories/usersRepository";
 import { userAttributes } from "./dtos/userAttributes";

@@ -7,6 +7,7 @@ import { POSTS_PATH, BLOGS_PATH, TESTING_PATH, USERS_PATH, AUTH_PATH, COMMENTS_P
 import { usersRouter } from "./users/routers/usersRouter";
 import { authRouter } from "./auth/routers/auth.router";
 import { commentsRouter } from "./comments/routers/comments.router";
+import cookieParser from "cookie-parser";
 
 
 export const setupApp = async (app: Express) => {
@@ -14,6 +15,7 @@ export const setupApp = async (app: Express) => {
 
   app.use(express.json());
   app.use(cors());
+  app.use(cookieParser())
 
   // The following block allows us to write into consol requested endpoint address
   app.use((_req, res, next) => {
