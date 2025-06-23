@@ -23,18 +23,24 @@ function refreshTokenHandler(req, res) {
                 });
                 return;
             }
+            const deviceId = yield auth_service_1.authService.extractDeviceIdFromToken(refreshToken);
+            if (!deviceId) {
+                res.status(httpStatus_1.HttpStatus.Unauthorized).send();
+                return;
+            }
             const result = yield auth_service_1.authService.refreshTokens(refreshToken);
             if (result.status !== httpStatus_1.HttpStatus.Ok) {
                 res.status(result.status).json({ errorsMessages: result.extensions });
                 return;
             }
-            res.cookie('refreshToken', result.data.refreshToken, {
+            const { accessToken, refreshToken: newRefreshToken } = result.data;
+            res.cookie('refreshToken', newRefreshToken, {
                 maxAge: settings_1.SETTINGS.REFRESH_TIME * 1000,
                 httpOnly: true,
                 secure: true,
                 sameSite: 'strict'
             });
-            res.status(httpStatus_1.HttpStatus.Ok).send({ accessToken: result.data.accessToken });
+            res.status(httpStatus_1.HttpStatus.Ok).send({ accessToken: accessToken });
         }
         catch (e) {
             res.status(httpStatus_1.HttpStatus.InternalServerError);

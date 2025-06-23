@@ -23,11 +23,13 @@ const usersRouter_1 = require("./users/routers/usersRouter");
 const auth_router_1 = require("./auth/routers/auth.router");
 const comments_router_1 = require("./comments/routers/comments.router");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const security_devices_router_1 = require("./auth/devices/routers/security-devices.router");
 const setupApp = (app) => __awaiter(void 0, void 0, void 0, function* () {
     // export const app = express();
     app.use(express_1.default.json());
     app.use((0, cors_1.default)());
     app.use((0, cookie_parser_1.default)());
+    app.set('trust proxy', true);
     // The following block allows us to write into consol requested endpoint address
     app.use((_req, res, next) => {
         console.log(_req.path);
@@ -42,6 +44,7 @@ const setupApp = (app) => __awaiter(void 0, void 0, void 0, function* () {
     app.use(paths_1.TESTING_PATH, testingRouter_1.testingRouter);
     app.use(paths_1.AUTH_PATH, auth_router_1.authRouter);
     app.use(paths_1.COMMENTS_PATH, comments_router_1.commentsRouter);
+    app.use(paths_1.SECURITY_DEVICES_PATH, security_devices_router_1.devicesRouter);
     return app;
 });
 exports.setupApp = setupApp;

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshTokenSessionCollection = exports.commentCollection = exports.userCollection = exports.blogCollection = exports.postCollection = exports.client = void 0;
+exports.securityDevicesCollection = exports.refreshTokenSessionCollection = exports.commentCollection = exports.userCollection = exports.blogCollection = exports.postCollection = exports.client = void 0;
 exports.runDB = runDB;
 exports.stopDb = stopDb;
 const mongodb_1 = require("mongodb");
@@ -19,7 +19,8 @@ const BLOGS_COLLECTION_NAME = 'blogs';
 const USER_COLLECTION_NAME = 'users';
 const COMMENT_COLLECTION_NAME = 'comments';
 const REFRESH_TOKEN_SESSIONS_COLLECTION_NAME = 'refreshTokenSessions';
-// Connectiong to the DataBase
+const SECURITY_DEVICES_COLLECTION_NAME = 'securityDevices';
+//Connecting to the Database
 function runDB(url) {
     return __awaiter(this, void 0, void 0, function* () {
         exports.client = new mongodb_1.MongoClient(url);
@@ -29,6 +30,7 @@ function runDB(url) {
         exports.userCollection = db.collection(USER_COLLECTION_NAME);
         exports.commentCollection = db.collection(COMMENT_COLLECTION_NAME);
         exports.refreshTokenSessionCollection = db.collection(REFRESH_TOKEN_SESSIONS_COLLECTION_NAME);
+        exports.securityDevicesCollection = db.collection(SECURITY_DEVICES_COLLECTION_NAME);
         try {
             yield exports.client.connect();
             yield db.command({ ping: 1 });

@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { authService } from "../../application/auth.service";
 import { HttpStatus } from "../../../core/types/httpStatus";
 import { SETTINGS } from "../../../core/settings/settings";
+import { jwtService } from "../../adapters/jwt.adapter";
 
 export async function refreshTokenHandler(
     req: Request,
@@ -15,19 +16,29 @@ export async function refreshTokenHandler(
             });
             return;
         }
+
+        const deviceId = await authService.extractDeviceIdFromToken(refreshToken);
+
+          if (!deviceId) {
+            res.status(HttpStatus.Unauthorized).send();
+            return
+          }
         
         const result = await authService.refreshTokens(refreshToken)
         if (result.status !== HttpStatus.Ok) {
             res.status(result.status).json({ errorsMessages: result.extensions });
             return;
         }
-        res.cookie('refreshToken', result.data!.refreshToken, {
+
+        const { accessToken, refreshToken: newRefreshToken } = result.data!;
+
+        res.cookie('refreshToken', newRefreshToken, {
             maxAge: (SETTINGS.REFRESH_TIME as number) * 1000,
             httpOnly: true, 
             secure: true, 
             sameSite: 'strict'
         });
-        res.status(HttpStatus.Ok).send({ accessToken: result.data!.accessToken});
+        res.status(HttpStatus.Ok).send({ accessToken: accessToken});
     } catch (e: unknown) {
         res.status(HttpStatus.InternalServerError);
     }

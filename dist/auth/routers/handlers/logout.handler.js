@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.logoutHandler = logoutHandler;
 const auth_service_1 = require("../../application/auth.service");
 const httpStatus_1 = require("../../../core/types/httpStatus");
+const security_devices_service_1 = require("../../devices/security-devices.service");
 function logoutHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -20,6 +21,12 @@ function logoutHandler(req, res) {
                 res.sendStatus(httpStatus_1.HttpStatus.Unauthorized);
                 return;
             }
+            const deviceId = yield auth_service_1.authService.extractDeviceIdFromToken(refreshToken);
+            if (!deviceId) {
+                res.status(httpStatus_1.HttpStatus.Unauthorized).send();
+                return;
+            }
+            yield security_devices_service_1.securityDevicesService.deleteDevice(req.user.id, deviceId);
             const result = yield auth_service_1.authService.logout(refreshToken);
             if (result.status !== httpStatus_1.HttpStatus.NoContent) {
                 res.sendStatus(httpStatus_1.HttpStatus.Unauthorized);

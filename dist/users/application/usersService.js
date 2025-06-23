@@ -32,4 +32,16 @@ exports.usersService = {
             return usersRepository_1.usersRepository.create(newUser);
         });
     },
+    udate(id, dto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield usersRepository_1.usersRepository.update(id, dto);
+            return;
+        });
+    },
+    delete(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield usersRepository_1.usersRepository.delete(id);
+            return;
+        });
+    },
 };

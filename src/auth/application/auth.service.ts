@@ -17,7 +17,7 @@ export const authService = {
   async loginUser(
     loginOrEmail: string,
     password: string,
-  ): Promise<Result<{ accessToken: string, refreshToken: string } | null>> {
+  ): Promise<Result<{ accessToken: string, refreshToken: string, userId: string } | null>> {
     const result = await this.checkUserCredentials(loginOrEmail, password);
     if (result.status !== HttpStatus.Ok)
       return {
@@ -33,11 +33,13 @@ export const authService = {
 
     const tokenId = await this.createRefreshSession(userId)
 
-    const refreshToken = await jwtService.createRefreshToken(userId, tokenId)
+    const deviceId = uuid()
+
+    const refreshToken = await jwtService.createRefreshToken(userId, tokenId, deviceId)
 
     return {
       status: HttpStatus.Ok,
-      data: { accessToken, refreshToken },
+      data: { accessToken, refreshToken, userId },
       extensions: [],
     };
   },
@@ -231,7 +233,7 @@ export const authService = {
     // 5. Создать новые токены
     const user = await usersRepository.findByIdOrFail(payload.userId);
     const accessToken = await jwtService.createToken(payload.userId, user.login);
-    const refreshToken = await jwtService.createRefreshToken(payload.userId, newTokenId);
+    const refreshToken = await jwtService.createRefreshToken(payload.userId, newTokenId, payload.deviceId);
 
     return {
       status: HttpStatus.Ok,
@@ -373,4 +375,12 @@ export const authService = {
       throw e;
     }
    },
+
+  async extractDeviceIdFromToken(token: string): Promise<string> {
+    const payload = await jwtService.verifyRefreshToken(token)
+    if (!payload) {
+      throw new Error('Invalid token')
+    }
+    return payload.deviceId
+  }
 };

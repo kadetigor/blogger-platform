@@ -33,10 +33,11 @@ exports.authService = {
             const userId = result.data._id.toString();
             const accessToken = yield jwt_adapter_1.jwtService.createToken(userId, result.data.login);
             const tokenId = yield this.createRefreshSession(userId);
-            const refreshToken = yield jwt_adapter_1.jwtService.createRefreshToken(userId, tokenId);
+            const deviceId = (0, uuid_1.v4)();
+            const refreshToken = yield jwt_adapter_1.jwtService.createRefreshToken(userId, tokenId, deviceId);
             return {
                 status: httpStatus_1.HttpStatus.Ok,
-                data: { accessToken, refreshToken },
+                data: { accessToken, refreshToken, userId },
                 extensions: [],
             };
         });
@@ -213,7 +214,7 @@ exports.authService = {
                 // 5. Создать новые токены
                 const user = yield usersRepository_1.usersRepository.findByIdOrFail(payload.userId);
                 const accessToken = yield jwt_adapter_1.jwtService.createToken(payload.userId, user.login);
-                const refreshToken = yield jwt_adapter_1.jwtService.createRefreshToken(payload.userId, newTokenId);
+                const refreshToken = yield jwt_adapter_1.jwtService.createRefreshToken(payload.userId, newTokenId, payload.deviceId);
                 return {
                     status: httpStatus_1.HttpStatus.Ok,
                     data: { accessToken, refreshToken },
@@ -355,4 +356,13 @@ exports.authService = {
             }
         });
     },
+    extractDeviceIdFromToken(token) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const payload = yield jwt_adapter_1.jwtService.verifyRefreshToken(token);
+            if (!payload) {
+                throw new Error('Invalid token');
+            }
+            return payload.deviceId;
+        });
+    }
 };

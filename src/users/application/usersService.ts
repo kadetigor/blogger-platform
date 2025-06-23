@@ -26,4 +26,14 @@ export const usersService = {
         
         return usersRepository.create(newUser);
     },
+
+    async udate(id: string, dto: userAttributes): Promise<void> {
+        await usersRepository.update(id, dto)
+        return;
+    },
+
+    async delete(id: string): Promise<void> {
+        await usersRepository.delete(id);
+        return;
+    },
 }

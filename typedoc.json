@@ -1,0 +1,11 @@
+{
+  "entryPoints": ["src"],       // point to your source folder
+  "out": "docs/api",            // where to dump the generated docs
+  "tsconfig": "tsconfig.json",  // your existing TS config
+  "exclude": ["**/*.spec.ts"],  // skip tests
+  "excludePrivate": true,       // hide private/internal members
+  "excludeProtected": true,     // hide protected members
+  "includeVersion": true,       // stamp your package version
+  "plugin": ["typedoc-plugin-markdown"],
+  "readme": "none"              // disable the default README page
+}

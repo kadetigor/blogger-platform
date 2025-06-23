@@ -24,12 +24,12 @@ export const jwtService = {
     }
   },
 
-  async createRefreshToken(userId: string, tokenId: string): Promise<string> {
+  async createRefreshToken(userId: string, tokenId: string, deviceId: string): Promise<string> {
     const secret = SETTINGS.REFRESH_SECRET
     const acTime = SETTINGS.REFRESH_TIME as number
 
     return jwt.sign(
-      {userId, tokenId} as RefreshTokenPayload,
+      {userId, tokenId, deviceId} as RefreshTokenPayload,
       secret,
       {expiresIn: `${acTime}s`}
     )

@@ -1,0 +1,74 @@
+
+import { Request, Response, NextFunction } from 'express';
+  import { HttpStatus } from '../types/httpStatus';
+
+  interface AttemptRecord {
+      count: number;
+      resetTime: number;
+  }
+
+  class RateLimiter {
+      private attempts: Map<string, AttemptRecord> = new Map();
+      private maxAttempts: number;
+      private windowMs: number;
+
+      constructor(maxAttempts: number, windowMs: number) {
+          this.maxAttempts = maxAttempts;
+          this.windowMs = windowMs;
+      }
+
+      isAllowed(ip: string): boolean {
+          const now = Date.now();
+          const record = this.attempts.get(ip);
+
+          if (!record) {
+              return true;
+          }
+
+          if (now > record.resetTime) {
+              this.attempts.delete(ip);
+              return true;
+          }
+
+          return record.count < this.maxAttempts;
+      }
+
+      recordAttempt(ip: string): void {
+          const now = Date.now();
+          const record = this.attempts.get(ip);
+
+          if (!record || now > record.resetTime) {
+              this.attempts.set(ip, {
+                  count: 1,
+                  resetTime: now + this.windowMs
+              });
+          } else {
+              record.count++;
+              this.attempts.set(ip, record);
+          }
+      }
+  }
+
+  export function createRateLimitMiddleware(maxAttempts: number, windowMs: number) {
+      const rateLimiter = new RateLimiter(maxAttempts, windowMs);
+
+      return (req: Request, res: Response, next: NextFunction): void => {
+          const ip = req.ip;
+
+          if (!ip) {
+              res.status(HttpStatus.InternalServerError).send();
+              return;
+          }
+
+          if (!rateLimiter.isAllowed(ip)) {
+              res.status(429).send();
+              return;
+          }
+
+          rateLimiter.recordAttempt(ip);
+          next();
+      };
+  }
+
+// Export for direct usage if needed
+export { RateLimiter };

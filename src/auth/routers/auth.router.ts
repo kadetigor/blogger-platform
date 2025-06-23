@@ -14,6 +14,9 @@ import { resendConfirmEmailHandler } from "./handlers/resend.email.confirm.email
 import { refreshTokenHandler } from "./handlers/refresh.token.handler";
 import { logoutHandler } from "./handlers/logout.handler";
 import { refreshTokenGuard } from "./guards/refresh.token.guard";
+import { createRateLimitMiddleware } from "../../core/middlewares/rate.limiter.middleware";
+
+const authRateLimit = createRateLimitMiddleware(5, 10 * 1000);
 
 export const authRouter = Router();
 
@@ -29,6 +32,7 @@ const passwordValidation = body('password')
 
 authRouter.post(
   '/login',
+  authRateLimit,
   [
     loginOrEmailValidation,
     passwordValidation,
@@ -66,6 +70,7 @@ authRouter.get(
 
 authRouter.post(
   '/registration',
+  authRateLimit,
   userInputDtoValidation,
   inputValidationResultMiddleware,
   registrationHandler
@@ -73,6 +78,7 @@ authRouter.post(
 
 authRouter.post(
   '/registration-confirmation',
+  authRateLimit,
   body('code')
     .exists().withMessage('Code is required')
     .isString().withMessage('Code must be a string')
@@ -83,6 +89,7 @@ authRouter.post(
 
 authRouter.post(
   '/registration-email-resending',
+  authRateLimit,
   body('email')
     .exists().withMessage('Email is required')
     .isEmail().withMessage('Invalid email format')

@@ -24,6 +24,8 @@ const resend_email_confirm_email_handler_1 = require("./handlers/resend.email.co
 const refresh_token_handler_1 = require("./handlers/refresh.token.handler");
 const logout_handler_1 = require("./handlers/logout.handler");
 const refresh_token_guard_1 = require("./guards/refresh.token.guard");
+const rate_limiter_middleware_1 = require("../../core/middlewares/rate.limiter.middleware");
+const authRateLimit = (0, rate_limiter_middleware_1.createRateLimitMiddleware)(5, 10 * 1000);
 exports.authRouter = (0, express_1.Router)();
 const loginOrEmailValidation = (0, express_validator_1.body)('loginOrEmail')
     .exists().withMessage('email')
@@ -33,7 +35,7 @@ const passwordValidation = (0, express_validator_1.body)('password')
     .exists().withMessage('Password is required')
     .isString().withMessage('Password should be a string')
     .trim().notEmpty().withMessage('Password should not be empty');
-exports.authRouter.post('/login', [
+exports.authRouter.post('/login', authRateLimit, [
     loginOrEmailValidation,
     passwordValidation,
 ], input_validtion_result_middleware_1.inputValidationResultMiddleware, login_user_handler_1.loginHandler);
@@ -58,12 +60,12 @@ exports.authRouter.get('/me', access_token_guard_1.accessTokenGuard, (req, res) 
         res.sendStatus(httpStatus_1.HttpStatus.NotFound);
     }
 }));
-exports.authRouter.post('/registration', userInputDtoValidation_1.userInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, register_new_user_handler_1.registrationHandler);
-exports.authRouter.post('/registration-confirmation', (0, express_validator_1.body)('code')
+exports.authRouter.post('/registration', authRateLimit, userInputDtoValidation_1.userInputDtoValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, register_new_user_handler_1.registrationHandler);
+exports.authRouter.post('/registration-confirmation', authRateLimit, (0, express_validator_1.body)('code')
     .exists().withMessage('Code is required')
     .isString().withMessage('Code must be a string')
     .trim().notEmpty().withMessage('Code cannot be empty'), input_validtion_result_middleware_1.inputValidationResultMiddleware, confirm_email_handler_1.confirmEmailHandler);
-exports.authRouter.post('/registration-email-resending', (0, express_validator_1.body)('email')
+exports.authRouter.post('/registration-email-resending', authRateLimit, (0, express_validator_1.body)('email')
     .exists().withMessage('Email is required')
     .isEmail().withMessage('Invalid email format')
     .trim(), input_validtion_result_middleware_1.inputValidationResultMiddleware, resend_email_confirm_email_handler_1.resendConfirmEmailHandler);

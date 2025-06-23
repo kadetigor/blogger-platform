@@ -4,4 +4,5 @@ export type RefreshTokenSession = {
     expiresAt: Date;
     isRevoked: boolean;
     createdAt: Date;
+    deviceId: string;
 }

@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.devicesRouter = void 0;
+const express_1 = require("express");
+const refresh_token_guard_1 = require("../../routers/guards/refresh.token.guard");
+const get_devices_handler_1 = require("./handlers/get.devices.handler");
+const delete_device_handler_1 = require("./handlers/delete.device.handler");
+const delete_all_other_devices_handler_1 = require("./handlers/delete.all.other.devices.handler");
+exports.devicesRouter = (0, express_1.Router)();
+exports.devicesRouter.get('/', refresh_token_guard_1.refreshTokenGuard, get_devices_handler_1.getDevicesHandler);
+exports.devicesRouter.delete('/', refresh_token_guard_1.refreshTokenGuard, delete_all_other_devices_handler_1.deleteAllOtherDevicesHandler);
+exports.devicesRouter.delete('/:id', refresh_token_guard_1.refreshTokenGuard, delete_device_handler_1.deleteDeviceHandler);

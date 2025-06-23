@@ -10,6 +10,7 @@ export type CreateRefreshSessionDto = {
 export type RefreshTokenPayload = {
     userId: string;
     tokenId: string;
+    deviceId: string;
     iat: number;
     exp: number;
 }

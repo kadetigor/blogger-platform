@@ -3,11 +3,12 @@ import cors from "cors";
 import { blogsRouter } from "./blogs/routers/blogsRouter";
 import { postsRouter } from "./posts/routers/postsRouter";
 import { testingRouter } from "./testing/routers/testingRouter";
-import { POSTS_PATH, BLOGS_PATH, TESTING_PATH, USERS_PATH, AUTH_PATH, COMMENTS_PATH } from './core/paths/paths'
+import { POSTS_PATH, BLOGS_PATH, TESTING_PATH, USERS_PATH, AUTH_PATH, COMMENTS_PATH, SECURITY_DEVICES_PATH } from './core/paths/paths'
 import { usersRouter } from "./users/routers/usersRouter";
 import { authRouter } from "./auth/routers/auth.router";
 import { commentsRouter } from "./comments/routers/comments.router";
 import cookieParser from "cookie-parser";
+import { devicesRouter } from "./auth/devices/routers/security-devices.router";
 
 
 export const setupApp = async (app: Express) => {
@@ -16,6 +17,7 @@ export const setupApp = async (app: Express) => {
   app.use(express.json());
   app.use(cors());
   app.use(cookieParser())
+  app.set('trust proxy', true)
 
   // The following block allows us to write into consol requested endpoint address
   app.use((_req, res, next) => {
@@ -33,6 +35,7 @@ export const setupApp = async (app: Express) => {
   app.use(TESTING_PATH, testingRouter);
   app.use(AUTH_PATH, authRouter);
   app.use(COMMENTS_PATH, commentsRouter);
+  app.use(SECURITY_DEVICES_PATH, devicesRouter)
 
   return app;
 }

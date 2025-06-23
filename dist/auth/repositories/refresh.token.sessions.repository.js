@@ -30,6 +30,17 @@ exports.refreshTokenSessionsRepository = {
             return session;
         });
     },
+    findByDeviceId(deviceId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const session = yield mongoDb_1.refreshTokenSessionCollection.findOne({
+                "deviceId": deviceId
+            });
+            if (!session) {
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('Session does not exist');
+            }
+            return session;
+        });
+    },
     updateToRevoked(tokenId) {
         return __awaiter(this, void 0, void 0, function* () {
             const updateResult = yield mongoDb_1.refreshTokenSessionCollection.updateOne({

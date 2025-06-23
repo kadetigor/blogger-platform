@@ -22,6 +22,18 @@ export const refreshTokenSessionsRepository = {
     return session
    },
 
+   async findByDeviceId(deviceId: string): Promise<WithId<RefreshTokenSession>> {
+    const session = await refreshTokenSessionCollection.findOne<WithId<RefreshTokenSession>>({
+        "deviceId": deviceId
+    });
+
+    if (!session) {
+        throw new repositoryNotFoundError('Session does not exist')
+    }
+
+    return session
+   },
+
   async updateToRevoked(tokenId: string): Promise<boolean> {
     const updateResult = await refreshTokenSessionCollection.updateOne(
         {

@@ -34,11 +34,11 @@ exports.jwtService = {
             }
         });
     },
-    createRefreshToken(userId, tokenId) {
+    createRefreshToken(userId, tokenId, deviceId) {
         return __awaiter(this, void 0, void 0, function* () {
             const secret = settings_1.SETTINGS.REFRESH_SECRET;
             const acTime = settings_1.SETTINGS.REFRESH_TIME;
-            return jsonwebtoken_1.default.sign({ userId, tokenId }, secret, { expiresIn: `${acTime}s` });
+            return jsonwebtoken_1.default.sign({ userId, tokenId, deviceId }, secret, { expiresIn: `${acTime}s` });
         });
     },
     verifyRefreshToken(token) {
