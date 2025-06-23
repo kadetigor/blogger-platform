@@ -25,8 +25,8 @@ function loginHandler(req, res) {
                 res.status(httpStatus_1.HttpStatus.Unauthorized).send(result.extensions);
                 return;
             }
-            const { accessToken, refreshToken, userId } = result.data;
-            yield security_devices_service_1.securityDevicesService.createDevice(userId, ip, headers);
+            const { accessToken, refreshToken, userId, deviceId } = result.data;
+            yield security_devices_service_1.securityDevicesService.createDeviceWithId(userId, deviceId, ip, headers);
             res.cookie('refreshToken', refreshToken, {
                 maxAge: settings_1.SETTINGS.REFRESH_TIME * 1000,
                 httpOnly: true,

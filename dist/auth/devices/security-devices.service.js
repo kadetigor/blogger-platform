@@ -29,6 +29,11 @@ exports.securityDevicesService = {
     createDevice(userId, ip, header) {
         return __awaiter(this, void 0, void 0, function* () {
             const deviceId = (0, uuid_1.v4)();
+            yield this.createDeviceWithId(userId, deviceId, ip, header);
+        });
+    },
+    createDeviceWithId(userId, deviceId, ip, header) {
+        return __awaiter(this, void 0, void 0, function* () {
             const userAgent = yield this.parseUserAgent(header);
             const device = {
                 deviceId: deviceId,

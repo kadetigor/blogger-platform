@@ -1,6 +1,5 @@
 
 import { Request, Response, NextFunction } from 'express';
-  import { HttpStatus } from '../types/httpStatus';
 
   interface AttemptRecord {
       count: number;
@@ -8,7 +7,7 @@ import { Request, Response, NextFunction } from 'express';
   }
 
   class RateLimiter {
-      private attempts: Map<string, AttemptRecord> = new Map();
+      public attempts: Map<string, AttemptRecord> = new Map();
       private maxAttempts: number;
       private windowMs: number;
 
@@ -47,18 +46,31 @@ import { Request, Response, NextFunction } from 'express';
               this.attempts.set(ip, record);
           }
       }
+
+      cleanup(): void {
+          const now = Date.now();
+          for (const [ip, record] of this.attempts.entries()) {
+              if (now > record.resetTime) {
+                  this.attempts.delete(ip);
+              }
+          }
+      }
   }
 
   export function createRateLimitMiddleware(maxAttempts: number, windowMs: number) {
       const rateLimiter = new RateLimiter(maxAttempts, windowMs);
 
-      return (req: Request, res: Response, next: NextFunction): void => {
-          const ip = req.ip;
+      // Clean up expired records periodically
+      const cleanupInterval = setInterval(() => {
+          rateLimiter.cleanup();
+      }, windowMs);
 
-          if (!ip) {
-              res.status(HttpStatus.InternalServerError).send();
-              return;
-          }
+      // Clear interval on process exit
+      process.on('SIGINT', () => clearInterval(cleanupInterval));
+      process.on('SIGTERM', () => clearInterval(cleanupInterval));
+
+      return (req: Request, res: Response, next: NextFunction): void => {
+          const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
 
           if (!rateLimiter.isAllowed(ip)) {
               res.status(429).send();

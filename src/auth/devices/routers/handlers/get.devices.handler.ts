@@ -9,19 +9,22 @@ export async function getDevicesHandler(
     res: Response,
 ) {
     try {
-        const devices = await securityDevicesService.getAllUserDevices(req.user!.id)
+        // Get userId from authenticated request
+        const userId = (req as any).userId;
+        
+        const devices = await securityDevicesService.getAllUserDevices(userId);
 
-        if (!devices) {
-            res.status(HttpStatus.BadRequest).send();
-            return
+        if (!devices || devices.length === 0) {
+            res.status(HttpStatus.Ok).json([]);
+            return;
         }
 
         const devicesViewModels = devices.map(device => mapToDeviceViewModel(device));
         res.status(HttpStatus.Ok).json(devicesViewModels);
-        return
+        return;
     } catch (e: unknown) {
         console.error('Error in getDevicesHandler:', e);
         res.status(HttpStatus.InternalServerError).send();
-        return
+        return;
     }
 }

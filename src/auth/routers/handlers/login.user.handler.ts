@@ -22,9 +22,9 @@ export async function loginHandler(
             return;
         }
 
-        const { accessToken, refreshToken, userId } = result.data!;
+        const { accessToken, refreshToken, userId, deviceId } = result.data!;
 
-        await securityDevicesService.createDevice(userId, ip, headers);
+        await securityDevicesService.createDeviceWithId(userId, deviceId, ip, headers);
         
         res.cookie('refreshToken', refreshToken, {
             maxAge: (SETTINGS.REFRESH_TIME as number) * 1000,

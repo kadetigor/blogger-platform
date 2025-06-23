@@ -19,6 +19,7 @@ const uuid_1 = require("uuid");
 const refresh_token_sessions_repository_1 = require("../repositories/refresh.token.sessions.repository");
 const date_fns_1 = require("date-fns");
 const settings_1 = require("../../core/settings/settings");
+const security_devices_service_1 = require("../devices/security-devices.service");
 exports.authService = {
     loginUser(loginOrEmail, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -37,7 +38,7 @@ exports.authService = {
             const refreshToken = yield jwt_adapter_1.jwtService.createRefreshToken(userId, tokenId, deviceId);
             return {
                 status: httpStatus_1.HttpStatus.Ok,
-                data: { accessToken, refreshToken, userId },
+                data: { accessToken, refreshToken, userId, deviceId },
                 extensions: [],
             };
         });
@@ -260,6 +261,15 @@ exports.authService = {
                 const revoked = yield this.invalidateRefreshSession(payload.tokenId);
                 if (!revoked) {
                     console.log('Failed to revoke session:', payload.tokenId);
+                }
+                // 4. Delete security device
+                try {
+                    if (payload.deviceId && sessionValidation.userId) {
+                        yield security_devices_service_1.securityDevicesService.deleteDevice(sessionValidation.userId, payload.deviceId);
+                    }
+                }
+                catch (e) {
+                    console.error('Failed to delete device on logout:', e);
                 }
                 return {
                     status: httpStatus_1.HttpStatus.NoContent,

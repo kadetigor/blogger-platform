@@ -16,9 +16,11 @@ const httpStatus_1 = require("../../../../core/types/httpStatus");
 function getDevicesHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const devices = yield security_devices_service_1.securityDevicesService.getAllUserDevices(req.user.id);
-            if (!devices) {
-                res.status(httpStatus_1.HttpStatus.BadRequest).send();
+            // Get userId from authenticated request
+            const userId = req.userId;
+            const devices = yield security_devices_service_1.securityDevicesService.getAllUserDevices(userId);
+            if (!devices || devices.length === 0) {
+                res.status(httpStatus_1.HttpStatus.Ok).json([]);
                 return;
             }
             const devicesViewModels = devices.map(device => (0, map_to_device_view_model_1.mapToDeviceViewModel)(device));

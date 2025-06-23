@@ -12,12 +12,13 @@ import { refreshTokenSessionsRepository } from "../repositories/refresh.token.se
 import { add, addMilliseconds, addMinutes } from 'date-fns'
 import { SETTINGS } from '../../core/settings/settings';
 import { SessionValidationResult } from '../types/refresh.token.types';
+import { securityDevicesService } from '../devices/security-devices.service';
 
 export const authService = {
   async loginUser(
     loginOrEmail: string,
     password: string,
-  ): Promise<Result<{ accessToken: string, refreshToken: string, userId: string } | null>> {
+  ): Promise<Result<{ accessToken: string, refreshToken: string, userId: string, deviceId: string } | null>> {
     const result = await this.checkUserCredentials(loginOrEmail, password);
     if (result.status !== HttpStatus.Ok)
       return {
@@ -39,7 +40,7 @@ export const authService = {
 
     return {
       status: HttpStatus.Ok,
-      data: { accessToken, refreshToken, userId },
+      data: { accessToken, refreshToken, userId, deviceId },
       extensions: [],
     };
   },
@@ -281,6 +282,15 @@ export const authService = {
     const revoked = await this.invalidateRefreshSession(payload.tokenId);
     if (!revoked) {
       console.log('Failed to revoke session:', payload.tokenId);
+    }
+
+    // 4. Delete security device
+    try {
+      if (payload.deviceId && sessionValidation.userId) {
+        await securityDevicesService.deleteDevice(sessionValidation.userId, payload.deviceId);
+      }
+    } catch (e) {
+      console.error('Failed to delete device on logout:', e);
     }
 
     return {

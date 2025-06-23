@@ -21,6 +21,10 @@ import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundErr
 export const securityDevicesService = {
   async createDevice(userId: string, ip: string, header: string): Promise<void> {
     const deviceId = uuid()
+    await this.createDeviceWithId(userId, deviceId, ip, header)
+  },
+
+  async createDeviceWithId(userId: string, deviceId: string, ip: string, header: string): Promise<void> {
     const userAgent = await this.parseUserAgent(header)
     const device = {
         deviceId: deviceId,

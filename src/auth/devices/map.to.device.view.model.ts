@@ -1,11 +1,12 @@
 import { DeviceViewModel } from "./device.view.model";
 import { SecurityDevice } from "./security-device";
+import { WithId } from "mongodb";
 
-export async function mapToDeviceViewModel(device: SecurityDevice): Promise<DeviceViewModel> {
+export function mapToDeviceViewModel(device: WithId<SecurityDevice>): DeviceViewModel {
     return {
         ip: device.ip,
         title: device.title,
-        lastActiveDate: device.lastActiveDate,
+        lastActiveDate: device.lastActiveDate.toISOString(),
         deviceId: device.deviceId
     };
 }
