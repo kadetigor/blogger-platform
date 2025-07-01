@@ -31,6 +31,8 @@ const refreshTokenGuard = (req, res, next) => __awaiter(void 0, void 0, void 0, 
             res.sendStatus(401);
             return;
         }
+        req.userId = payload.userId;
+        req.deviceId = payload.deviceId;
         // Attach user info to request
         req.user = {
             id: payload.userId,

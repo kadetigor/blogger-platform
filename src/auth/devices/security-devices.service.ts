@@ -120,10 +120,13 @@ export const securityDevicesService = {
   },
 
   async validateDeviceOwnership(userId: string, deviceId: string): Promise<boolean> {
-    const device = await securityDeviceRepository.findByDeviceId(deviceId)
-    if (device.userId !== userId) {
-        return false
+    const device = await securityDeviceRepository.findByDeviceId(deviceId);
+    if (!device) {
+        return false; // Device not found
     }
-    return true
-  },
+    if (device.userId !== userId) {
+        return false;
+    }
+    return true;
+}
 }

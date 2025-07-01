@@ -55,11 +55,49 @@ function createRateLimitMiddleware(maxAttempts, windowMs) {
     process.on('SIGTERM', () => clearInterval(cleanupInterval));
     return (req, res, next) => {
         const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
+        // Check if request should be blocked
         if (!rateLimiter.isAllowed(ip)) {
             res.status(429).send();
             return;
         }
-        rateLimiter.recordAttempt(ip);
+        // Store original response methods
+        const originalSend = res.send;
+        const originalJson = res.json;
+        const originalSendStatus = res.sendStatus;
+        const originalEnd = res.end;
+        let statusCode;
+        let hasResponded = false;
+        // Override status method to capture status code
+        const originalStatus = res.status;
+        res.status = function (code) {
+            statusCode = code;
+            return originalStatus.call(this, code);
+        };
+        // Helper function to record attempt if needed
+        const checkAndRecordAttempt = () => {
+            if (!hasResponded && statusCode && (statusCode === 401 || statusCode === 400 || statusCode === 404)) {
+                rateLimiter.recordAttempt(ip);
+            }
+            hasResponded = true;
+        };
+        // Override response methods to check status before sending
+        res.send = function (data) {
+            checkAndRecordAttempt();
+            return originalSend.call(this, data);
+        };
+        res.json = function (data) {
+            checkAndRecordAttempt();
+            return originalJson.call(this, data);
+        };
+        res.sendStatus = function (code) {
+            statusCode = code;
+            checkAndRecordAttempt();
+            return originalSendStatus.call(this, code);
+        };
+        res.end = function (chunk, encoding) {
+            checkAndRecordAttempt();
+            return originalEnd.call(this, chunk, encoding);
+        };
         next();
     };
 }

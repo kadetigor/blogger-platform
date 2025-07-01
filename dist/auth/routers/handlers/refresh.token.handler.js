@@ -13,6 +13,7 @@ exports.refreshTokenHandler = refreshTokenHandler;
 const auth_service_1 = require("../../application/auth.service");
 const httpStatus_1 = require("../../../core/types/httpStatus");
 const settings_1 = require("../../../core/settings/settings");
+const security_devices_service_1 = require("../../devices/security-devices.service");
 function refreshTokenHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -28,6 +29,7 @@ function refreshTokenHandler(req, res) {
                 res.status(httpStatus_1.HttpStatus.Unauthorized).send();
                 return;
             }
+            yield security_devices_service_1.securityDevicesService.updateDeviceActivity(deviceId);
             const result = yield auth_service_1.authService.refreshTokens(refreshToken);
             if (result.status !== httpStatus_1.HttpStatus.Ok) {
                 res.status(result.status).json({ errorsMessages: result.extensions });

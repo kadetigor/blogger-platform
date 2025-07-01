@@ -1,86 +1,132 @@
 
 import { Request, Response, NextFunction } from 'express';
 
-  interface AttemptRecord {
-      count: number;
-      resetTime: number;
-  }
+interface AttemptRecord {
+    count: number;
+    resetTime: number;
+}
 
-  class RateLimiter {
-      public attempts: Map<string, AttemptRecord> = new Map();
-      private maxAttempts: number;
-      private windowMs: number;
+class RateLimiter {
+    public attempts: Map<string, AttemptRecord> = new Map();
+    private maxAttempts: number;
+    private windowMs: number;
 
-      constructor(maxAttempts: number, windowMs: number) {
-          this.maxAttempts = maxAttempts;
-          this.windowMs = windowMs;
-      }
+    constructor(maxAttempts: number, windowMs: number) {
+        this.maxAttempts = maxAttempts;
+        this.windowMs = windowMs;
+    }
 
-      isAllowed(ip: string): boolean {
-          const now = Date.now();
-          const record = this.attempts.get(ip);
+    isAllowed(ip: string): boolean {
+        const now = Date.now();
+        const record = this.attempts.get(ip);
 
-          if (!record) {
-              return true;
-          }
+        if (!record) {
+            return true;
+        }
 
-          if (now > record.resetTime) {
-              this.attempts.delete(ip);
-              return true;
-          }
+        if (now > record.resetTime) {
+            this.attempts.delete(ip);
+            return true;
+        }
 
-          return record.count < this.maxAttempts;
-      }
+        return record.count < this.maxAttempts;
+    }
 
-      recordAttempt(ip: string): void {
-          const now = Date.now();
-          const record = this.attempts.get(ip);
+    recordAttempt(ip: string): void {
+        const now = Date.now();
+        const record = this.attempts.get(ip);
 
-          if (!record || now > record.resetTime) {
-              this.attempts.set(ip, {
-                  count: 1,
-                  resetTime: now + this.windowMs
-              });
-          } else {
-              record.count++;
-              this.attempts.set(ip, record);
-          }
-      }
+        if (!record || now > record.resetTime) {
+            this.attempts.set(ip, {
+                count: 1,
+                resetTime: now + this.windowMs
+            });
+        } else {
+            record.count++;
+            this.attempts.set(ip, record);
+        }
+    }
 
-      cleanup(): void {
-          const now = Date.now();
-          for (const [ip, record] of this.attempts.entries()) {
-              if (now > record.resetTime) {
-                  this.attempts.delete(ip);
-              }
-          }
-      }
-  }
+    cleanup(): void {
+        const now = Date.now();
+        for (const [ip, record] of this.attempts.entries()) {
+            if (now > record.resetTime) {
+                this.attempts.delete(ip);
+            }
+        }
+    }
+}
 
-  export function createRateLimitMiddleware(maxAttempts: number, windowMs: number) {
-      const rateLimiter = new RateLimiter(maxAttempts, windowMs);
+export function createRateLimitMiddleware(maxAttempts: number, windowMs: number) {
+    const rateLimiter = new RateLimiter(maxAttempts, windowMs);
 
-      // Clean up expired records periodically
-      const cleanupInterval = setInterval(() => {
-          rateLimiter.cleanup();
-      }, windowMs);
+    // Clean up expired records periodically
+    const cleanupInterval = setInterval(() => {
+        rateLimiter.cleanup();
+    }, windowMs);
 
-      // Clear interval on process exit
-      process.on('SIGINT', () => clearInterval(cleanupInterval));
-      process.on('SIGTERM', () => clearInterval(cleanupInterval));
+    // Clear interval on process exit
+    process.on('SIGINT', () => clearInterval(cleanupInterval));
+    process.on('SIGTERM', () => clearInterval(cleanupInterval));
 
-      return (req: Request, res: Response, next: NextFunction): void => {
-          const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
+    return (req: Request, res: Response, next: NextFunction): void => {
+        const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
 
-          if (!rateLimiter.isAllowed(ip)) {
-              res.status(429).send();
-              return;
-          }
+        // Check if request should be blocked
+        if (!rateLimiter.isAllowed(ip)) {
+            res.status(429).send();
+            return;
+        }
 
-          rateLimiter.recordAttempt(ip);
-          next();
-      };
-  }
+        // Store original response methods
+        const originalSend = res.send;
+        const originalJson = res.json;
+        const originalSendStatus = res.sendStatus;
+        const originalEnd = res.end;
+        
+        let statusCode: number | undefined;
+        let hasResponded = false;
+
+        // Override status method to capture status code
+        const originalStatus = res.status;
+        res.status = function(code: number) {
+            statusCode = code;
+            return originalStatus.call(this, code);
+        };
+
+        // Helper function to record attempt if needed
+        const checkAndRecordAttempt = () => {
+            if (!hasResponded && statusCode && (statusCode === 401 || statusCode === 400 || statusCode === 404)) {
+                rateLimiter.recordAttempt(ip);
+            }
+            hasResponded = true;
+        };
+
+        // Override response methods to check status before sending
+        res.send = function(data?: any) {
+            checkAndRecordAttempt();
+            return originalSend.call(this, data);
+        };
+
+        res.json = function(data: any) {
+            checkAndRecordAttempt();
+            return originalJson.call(this, data);
+        };
+
+        res.sendStatus = function(code: number) {
+            statusCode = code;
+            checkAndRecordAttempt();
+            return originalSendStatus.call(this, code);
+        };
+
+        res.end = function(chunk?: any, encoding?: any) {
+            checkAndRecordAttempt();
+            return originalEnd.call(this, chunk, encoding);
+        };
+
+        next();
+    };
+}
 
 // Export for direct usage if needed
 export { RateLimiter };

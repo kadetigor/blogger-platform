@@ -132,10 +132,13 @@ exports.securityDevicesService = {
     validateDeviceOwnership(userId, deviceId) {
         return __awaiter(this, void 0, void 0, function* () {
             const device = yield security_device_repository_1.securityDeviceRepository.findByDeviceId(deviceId);
+            if (!device) {
+                return false; // Device not found
+            }
             if (device.userId !== userId) {
                 return false;
             }
             return true;
         });
-    },
+    }
 };

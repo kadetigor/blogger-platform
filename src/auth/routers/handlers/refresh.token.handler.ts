@@ -3,6 +3,7 @@ import { authService } from "../../application/auth.service";
 import { HttpStatus } from "../../../core/types/httpStatus";
 import { SETTINGS } from "../../../core/settings/settings";
 import { jwtService } from "../../adapters/jwt.adapter";
+import { securityDevicesService } from "../../devices/security-devices.service";
 
 export async function refreshTokenHandler(
     req: Request,
@@ -23,6 +24,8 @@ export async function refreshTokenHandler(
             res.status(HttpStatus.Unauthorized).send();
             return
           }
+        
+        await securityDevicesService.updateDeviceActivity(deviceId);
         
         const result = await authService.refreshTokens(refreshToken)
         if (result.status !== HttpStatus.Ok) {

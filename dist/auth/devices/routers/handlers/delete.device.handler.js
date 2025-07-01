@@ -12,33 +12,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteDeviceHandler = void 0;
 const security_devices_service_1 = require("../../security-devices.service");
 const httpStatus_1 = require("../../../../core/types/httpStatus");
+const security_device_repository_1 = require("../../security-device.repository");
 const deleteDeviceHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const userId = req.user.id;
+        const userId = req.userId;
         const deviceId = req.params.id;
-        if (!deviceId) {
-            res.status(httpStatus_1.HttpStatus.BadRequest).send();
+        // Check if device exists
+        const device = yield security_device_repository_1.securityDeviceRepository.findByDeviceId(deviceId);
+        if (!device) {
+            res.status(httpStatus_1.HttpStatus.NotFound).send();
             return;
         }
-        // Delete the specific device
-        const result = yield security_devices_service_1.securityDevicesService.deleteDevice(userId, deviceId);
-        if (!result) {
+        // Check ownership
+        const isOwner = yield security_devices_service_1.securityDevicesService.validateDeviceOwnership(userId, deviceId);
+        if (!isOwner) {
             res.status(httpStatus_1.HttpStatus.Forbidden).send();
+            return;
         }
+        // Delete device
+        yield security_devices_service_1.securityDevicesService.deleteDevice(userId, deviceId);
         res.status(httpStatus_1.HttpStatus.NoContent).send();
         return;
     }
     catch (error) {
         console.error('Error in deleteDeviceHandler:', error);
-        // Handle specific errors
-        if (error.message === 'Device does not belong to provided userId.') {
-            res.status(httpStatus_1.HttpStatus.Unauthorized).send();
-            return;
-        }
-        if (error.message.includes('not found')) {
-            res.status(httpStatus_1.HttpStatus.BadRequest).send();
-            return;
-        }
         res.status(httpStatus_1.HttpStatus.InternalServerError).send();
         return;
     }

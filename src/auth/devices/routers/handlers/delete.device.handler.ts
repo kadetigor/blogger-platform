@@ -1,44 +1,35 @@
 import { Request, Response } from "express";
 import { securityDevicesService } from "../../security-devices.service";
 import { HttpStatus } from "../../../../core/types/httpStatus";
+import { securityDeviceRepository } from "../../security-device.repository";
 
 
 export const deleteDeviceHandler = async (req: Request, res: Response) => {
     try {
-        const userId = req.user!.id;
-
+        const userId = (req as any).userId;
         const deviceId = req.params.id;
 
-        if (!deviceId) {
-            res.status(HttpStatus.BadRequest).send();
-            return
+        // Check if device exists
+        const device = await securityDeviceRepository.findByDeviceId(deviceId);
+        if (!device) {
+            res.status(HttpStatus.NotFound).send();
+            return;
         }
 
-        // Delete the specific device
-        const result = await securityDevicesService.deleteDevice(userId, deviceId);
-
-        if (!result) {
-            res.status(HttpStatus.Forbidden).send()
+        // Check ownership
+        const isOwner = await securityDevicesService.validateDeviceOwnership(userId, deviceId);
+        if (!isOwner) {
+            res.status(HttpStatus.Forbidden).send();
+            return;
         }
 
+        // Delete device
+        await securityDevicesService.deleteDevice(userId, deviceId);
         res.status(HttpStatus.NoContent).send();
-
-        return
-
-    } catch (error: unknown) {
+        return;
+    } catch (error) {
         console.error('Error in deleteDeviceHandler:', error);
-
-        // Handle specific errors
-        if ((error as any).message === 'Device does not belong to provided userId.') {
-            res.status(HttpStatus.Unauthorized).send();
-            return
-        }
-
-        if ((error as any).message.includes('not found')) {
-            res.status(HttpStatus.BadRequest).send();
-            return
-        }
         res.status(HttpStatus.InternalServerError).send();
-        return
+        return;
     }
 };

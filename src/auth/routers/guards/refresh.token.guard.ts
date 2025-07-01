@@ -29,6 +29,9 @@ export const refreshTokenGuard = async (
       return;
     }
 
+    (req as any).userId = payload.userId;
+    (req as any).deviceId = payload.deviceId;
+
     // Attach user info to request
     req.user = { 
       id: payload.userId,
