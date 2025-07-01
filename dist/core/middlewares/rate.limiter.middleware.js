@@ -76,10 +76,17 @@ function createRateLimitMiddleware(maxAttempts, windowMs) {
         // Helper function to record attempt if needed
         const checkAndRecordAttempt = () => {
             if (!hasResponded) {
-                // Only count error responses (4xx), NOT successful ones (2xx)
-                // For registration endpoints, don't count 204 responses
-                if (statusCode && statusCode >= 400 && statusCode < 500) {
+                // For registration endpoints, count ALL attempts (including successful ones)
+                const isRegistrationEndpoint = req.path.includes('/registration');
+                if (isRegistrationEndpoint) {
+                    // Count all registration attempts
                     rateLimiter.recordAttempt(ip);
+                }
+                else {
+                    // For other endpoints, only count 4xx errors
+                    if (statusCode && statusCode >= 400 && statusCode < 500) {
+                        rateLimiter.recordAttempt(ip);
+                    }
                 }
             }
             hasResponded = true;

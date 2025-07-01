@@ -20,6 +20,7 @@ const refresh_token_sessions_repository_1 = require("../repositories/refresh.tok
 const date_fns_1 = require("date-fns");
 const settings_1 = require("../../core/settings/settings");
 const security_devices_service_1 = require("../devices/security-devices.service");
+const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 exports.authService = {
     loginUser(loginOrEmail, password) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -126,39 +127,46 @@ exports.authService = {
     confirmEmail(code) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const user = yield usersRepository_1.usersRepository.findByConfirmationCode(code);
-            if (!user) {
+            try {
+                const user = yield usersRepository_1.usersRepository.findByConfirmationCode(code);
+                // Check if already confirmed
+                if ((_a = user.emailConfirmation) === null || _a === void 0 ? void 0 : _a.isConfirmed) {
+                    return {
+                        status: httpStatus_1.HttpStatus.BadRequest,
+                        errorMessage: 'Email already confirmed',
+                        extensions: [{ field: 'code', message: 'Email is already confirmed' }],
+                        data: null,
+                    };
+                }
+                // Confirm email
+                const confirmed = yield usersRepository_1.usersRepository.updateConfirmation(user._id);
+                if (!confirmed) {
+                    return {
+                        status: httpStatus_1.HttpStatus.InternalServerError,
+                        errorMessage: 'Failed to confirm email',
+                        extensions: [],
+                        data: null,
+                    };
+                }
                 return {
-                    status: httpStatus_1.HttpStatus.BadRequest,
-                    errorMessage: 'Invalid confirmation code',
-                    extensions: [{ field: 'code', message: 'Confirmation code is invalid' }],
+                    status: httpStatus_1.HttpStatus.NoContent,
                     data: null,
-                };
-            }
-            // Check if already confirmed
-            if ((_a = user.emailConfirmation) === null || _a === void 0 ? void 0 : _a.isConfirmed) {
-                return {
-                    status: httpStatus_1.HttpStatus.BadRequest,
-                    errorMessage: 'Email already confirmed',
-                    extensions: [{ field: 'code', message: 'Email is already confirmed' }],
-                    data: null,
-                };
-            }
-            // Confirm email
-            const confirmed = yield usersRepository_1.usersRepository.updateConfirmation(user._id);
-            if (!confirmed) {
-                return {
-                    status: httpStatus_1.HttpStatus.InternalServerError,
-                    errorMessage: 'Failed to confirm email',
                     extensions: [],
-                    data: null,
                 };
             }
-            return {
-                status: httpStatus_1.HttpStatus.NoContent,
-                data: null,
-                extensions: [],
-            };
+            catch (error) {
+                // Handle repositoryNotFoundError when confirmation code doesn't exist
+                if (error instanceof repositoryNotFoundError_1.repositoryNotFoundError) {
+                    return {
+                        status: httpStatus_1.HttpStatus.BadRequest,
+                        errorMessage: 'Invalid confirmation code',
+                        extensions: [{ field: 'code', message: 'Confirmation code is invalid' }],
+                        data: null,
+                    };
+                }
+                // Re-throw other errors
+                throw error;
+            }
         });
     },
     resendConfirmationEmail(email) {

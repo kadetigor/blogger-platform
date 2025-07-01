@@ -13,6 +13,7 @@ import { add, addMilliseconds, addMinutes } from 'date-fns'
 import { SETTINGS } from '../../core/settings/settings';
 import { SessionValidationResult } from '../types/refresh.token.types';
 import { securityDevicesService } from '../devices/security-devices.service';
+import { repositoryNotFoundError } from '../../core/errors/repositoryNotFoundError';
 
 export const authService = {
   async loginUser(
@@ -138,44 +139,50 @@ export const authService = {
   },
 
   async confirmEmail(code: string): Promise<Result<null>> {
-    const user = await usersRepository.findByConfirmationCode(code);
-    
-    if (!user) {
-      return {
-        status: HttpStatus.BadRequest,
-        errorMessage: 'Invalid confirmation code',
-        extensions: [{ field: 'code', message: 'Confirmation code is invalid' }],
-        data: null,
-      };
-    }
+    try {
+      const user = await usersRepository.findByConfirmationCode(code);
+      
+      // Check if already confirmed
+      if (user.emailConfirmation?.isConfirmed) {
+        return {
+          status: HttpStatus.BadRequest,
+          errorMessage: 'Email already confirmed',
+          extensions: [{ field: 'code', message: 'Email is already confirmed' }],
+          data: null,
+        };
+      }
 
-    // Check if already confirmed
-    if (user.emailConfirmation?.isConfirmed) {
-      return {
-        status: HttpStatus.BadRequest,
-        errorMessage: 'Email already confirmed',
-        extensions: [{ field: 'code', message: 'Email is already confirmed' }],
-        data: null,
-      };
-    }
+      // Confirm email
+      const confirmed = await usersRepository.updateConfirmation(user._id);
+      
+      if (!confirmed) {
+        return {
+          status: HttpStatus.InternalServerError,
+          errorMessage: 'Failed to confirm email',
+          extensions: [],
+          data: null,
+        };
+      }
 
-    // Confirm email
-    const confirmed = await usersRepository.updateConfirmation(user._id);
-    
-    if (!confirmed) {
       return {
-        status: HttpStatus.InternalServerError,
-        errorMessage: 'Failed to confirm email',
+        status: HttpStatus.NoContent,
+        data: null,
         extensions: [],
-        data: null,
       };
+    } catch (error) {
+      // Handle repositoryNotFoundError when confirmation code doesn't exist
+      if (error instanceof repositoryNotFoundError) {
+        return {
+          status: HttpStatus.BadRequest,
+          errorMessage: 'Invalid confirmation code',
+          extensions: [{ field: 'code', message: 'Confirmation code is invalid' }],
+          data: null,
+        };
+      }
+      
+      // Re-throw other errors
+      throw error;
     }
-
-    return {
-      status: HttpStatus.NoContent,
-      data: null,
-      extensions: [],
-    };
   },
 
   async resendConfirmationEmail(email: string): Promise<Result<null>> {
