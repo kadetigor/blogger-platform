@@ -53,17 +53,6 @@ authRouter.post(
   loginHandler
 );
 
-authRouter.post(
-  '/login',
-  authRateLimit,
-  [
-    loginOrEmailValidation,
-    passwordValidation,
-  ],
-  inputValidationResultMiddleware,
-  loginHandler
-);
-
 authRouter.get(
   '/me',
   accessTokenGuard,

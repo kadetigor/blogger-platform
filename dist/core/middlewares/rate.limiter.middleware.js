@@ -52,8 +52,7 @@ class RateLimiter {
             return true;
         }
         // If the window has expired, delete the old record and allow the request
-        // Add a 50ms buffer to account for timing precision issues
-        if (now >= record.resetTime - 50) {
+        if (now >= record.resetTime) {
             this.attempts.delete(ip);
             this.addDebugLog('shouldAllowRequest', ip, {
                 result: true,
@@ -133,6 +132,17 @@ class RateLimiter {
         this.attempts.clear();
         this.debugLog = [];
     }
+    // Force cleanup for a specific IP (useful for testing)
+    forceCleanup(ip) {
+        const record = this.attempts.get(ip);
+        if (record && Date.now() >= record.resetTime) {
+            this.attempts.delete(ip);
+            this.addDebugLog('forceCleanup', ip, {
+                action: 'deleted in force cleanup',
+                oldCount: record === null || record === void 0 ? void 0 : record.count
+            });
+        }
+    }
 }
 exports.RateLimiter = RateLimiter;
 function createRateLimitMiddleware(maxAttempts, windowMs) {
@@ -140,7 +150,7 @@ function createRateLimitMiddleware(maxAttempts, windowMs) {
     // Clean up expired records periodically
     const cleanupInterval = setInterval(() => {
         rateLimiter.cleanup();
-    }, 1000); // Run cleanup every second for more responsive cleanup
+    }, 500); // Run cleanup every 500ms for more responsive cleanup
     // Clear interval on process exit
     process.on('SIGINT', () => clearInterval(cleanupInterval));
     process.on('SIGTERM', () => clearInterval(cleanupInterval));
@@ -158,7 +168,9 @@ function createRateLimitMiddleware(maxAttempts, windowMs) {
         if (ip === '::1' || ip === '::ffff:127.0.0.1') {
             ip = '127.0.0.1';
         }
-        // CRITICAL: Check and clean up expired records before deciding to block
+        // CRITICAL: Force cleanup for this IP before checking if request is allowed
+        rateLimiter.forceCleanup(ip);
+        // Check if request should be allowed
         if (!rateLimiter.shouldAllowRequest(ip)) {
             res.status(429).send();
             return;
