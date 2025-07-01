@@ -1,8 +1,8 @@
 export type RefreshTokenSession = {
     userId: string;
     tokenId: string;
-    expiresAt: Date;
+    deviceId: string;  // Add this field to link sessions to devices
     isRevoked: boolean;
     createdAt: Date;
-    deviceId: string;
-}
+    expiresAt: Date;
+};

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { HttpStatus } from "../../../../core/types/httpStatus";
 import { authService } from "../../../application/auth.service";
 import { securityDevicesService } from "../../security-devices.service";
-
+import { refreshTokenSessionsRepository } from "../../../repositories/refresh.token.sessions.repository";
 
 export const deleteAllOtherDevicesHandler = async (req: Request, res: Response) => {
     try {
@@ -14,7 +14,7 @@ export const deleteAllOtherDevicesHandler = async (req: Request, res: Response) 
 
         if (!refreshToken) {
             res.status(HttpStatus.Unauthorized).send();
-            return
+            return;
         }
 
         // Extract deviceId from the refresh token
@@ -22,17 +22,22 @@ export const deleteAllOtherDevicesHandler = async (req: Request, res: Response) 
 
         if (!currentDeviceId) {
             res.status(HttpStatus.Unauthorized).send();
-            return
+            return;
         }
 
         // Delete all other devices except current one
         await securityDevicesService.deleteAllOtherDevices(userId, currentDeviceId);
+
+        // IMPORTANT: Also delete all refresh token sessions for other devices
+        // This ensures refresh tokens for deleted devices become invalid
+        await refreshTokenSessionsRepository.deleteAllUserSessionsExceptOne(userId, currentDeviceId);
+
         res.status(HttpStatus.NoContent).send();
-        return
+        return;
 
     } catch (error) {
         console.error('Error in deleteAllOtherDevicesHandler:', error);
-        res.status(HttpStatus.Unauthorized).send();
-        return
+        res.status(HttpStatus.InternalServerError).send();
+        return;
     }
 };

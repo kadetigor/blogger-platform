@@ -1,4 +1,3 @@
-
 import { Request, Response, NextFunction } from 'express';
 
 interface AttemptRecord {
@@ -96,8 +95,12 @@ export function createRateLimitMiddleware(maxAttempts: number, windowMs: number)
 
         // Helper function to record attempt if needed
         const checkAndRecordAttempt = () => {
-            if (!hasResponded && statusCode && (statusCode === 401 || statusCode === 400 || statusCode === 404)) {
-                rateLimiter.recordAttempt(ip);
+            if (!hasResponded) {
+                // Only count error responses (4xx), NOT successful ones (2xx)
+                // For registration endpoints, don't count 204 responses
+                if (statusCode && statusCode >= 400 && statusCode < 500) {
+                    rateLimiter.recordAttempt(ip);
+                }
             }
             hasResponded = true;
         };

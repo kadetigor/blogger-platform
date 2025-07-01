@@ -11,59 +11,49 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.refreshTokenSessionsRepository = void 0;
 const mongoDb_1 = require("../../db/mongoDb");
-const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 exports.refreshTokenSessionsRepository = {
-    create(newSession) {
+    createSession(session) {
         return __awaiter(this, void 0, void 0, function* () {
-            const insertResult = yield mongoDb_1.refreshTokenSessionCollection.insertOne(newSession);
-            return insertResult.insertedId.toString();
+            yield mongoDb_1.refreshTokenSessionCollection.insertOne(session);
         });
     },
-    findByTokenId(tokenId) {
+    findSessionByTokenId(tokenId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const session = yield mongoDb_1.refreshTokenSessionCollection.findOne({
-                "tokenId": tokenId
+            return yield mongoDb_1.refreshTokenSessionCollection.findOne({ tokenId });
+        });
+    },
+    invalidateSession(tokenId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield mongoDb_1.refreshTokenSessionCollection.updateOne({ tokenId }, { $set: { isRevoked: true } });
+            return result.modifiedCount > 0;
+        });
+    },
+    deleteExpiredSessions() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield mongoDb_1.refreshTokenSessionCollection.deleteMany({
+                expiresAt: { $lt: new Date() }
             });
-            if (!session) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('Session does not exist');
-            }
-            return session;
         });
     },
-    findByDeviceId(deviceId) {
+    // Add these new methods for device-related operations
+    deleteByDeviceId(deviceId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const session = yield mongoDb_1.refreshTokenSessionCollection.findOne({
-                "deviceId": deviceId
+            const result = yield mongoDb_1.refreshTokenSessionCollection.deleteMany({ deviceId });
+            return result.deletedCount > 0;
+        });
+    },
+    deleteAllUserSessionsExceptOne(userId, deviceIdToKeep) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield mongoDb_1.refreshTokenSessionCollection.deleteMany({
+                userId,
+                deviceId: { $ne: deviceIdToKeep }
             });
-            if (!session) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('Session does not exist');
-            }
-            return session;
+            return result.deletedCount > 0;
         });
     },
-    updateToRevoked(tokenId) {
+    findSessionsByUserId(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const updateResult = yield mongoDb_1.refreshTokenSessionCollection.updateOne({
-                tokenId: tokenId
-            }, {
-                $set: {
-                    isRevoked: true
-                },
-            });
-            if (updateResult.modifiedCount < 1) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('Session with provided tokenId does not exist');
-            }
-            return updateResult.modifiedCount > 0;
+            return yield mongoDb_1.refreshTokenSessionCollection.find({ userId }).toArray();
         });
-    },
-    deleteExpired() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const now = new Date();
-            const filter = {
-                expiresAt: { $lt: now },
-            };
-            const result = yield mongoDb_1.refreshTokenSessionCollection.deleteMany(filter);
-            return result.deletedCount;
-        });
-    },
+    }
 };

@@ -1,30 +1,34 @@
 import { Request, Response } from "express";
-import { securityDevicesService } from "../../security-devices.service";
 import { HttpStatus } from "../../../../core/types/httpStatus";
+import { securityDevicesService } from "../../security-devices.service";
 import { securityDeviceRepository } from "../../security-device.repository";
-
+import { refreshTokenSessionsRepository } from "../../../repositories/refresh.token.sessions.repository";
 
 export const deleteDeviceHandler = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).userId;
-        const deviceId = req.params.id;
+        const deviceIdToDelete = req.params.id;
 
         // Check if device exists
-        const device = await securityDeviceRepository.findByDeviceId(deviceId);
+        const device = await securityDeviceRepository.findByDeviceId(deviceIdToDelete);
         if (!device) {
             res.status(HttpStatus.NotFound).send();
             return;
         }
 
         // Check ownership
-        const isOwner = await securityDevicesService.validateDeviceOwnership(userId, deviceId);
-        if (!isOwner) {
+        if (device.userId !== userId) {
             res.status(HttpStatus.Forbidden).send();
             return;
         }
 
-        // Delete device
-        await securityDevicesService.deleteDevice(userId, deviceId);
+        // Delete the device
+        await securityDeviceRepository.deleteByDeviceId(deviceIdToDelete);
+
+        // IMPORTANT: Also invalidate all refresh token sessions for this device
+        // This ensures the refresh token becomes invalid after device deletion
+        await refreshTokenSessionsRepository.deleteByDeviceId(deviceIdToDelete);
+
         res.status(HttpStatus.NoContent).send();
         return;
     } catch (error) {

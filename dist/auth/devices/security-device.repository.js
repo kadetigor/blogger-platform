@@ -10,79 +10,54 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.securityDeviceRepository = void 0;
-const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 const mongoDb_1 = require("../../db/mongoDb");
 exports.securityDeviceRepository = {
     create(device) {
         return __awaiter(this, void 0, void 0, function* () {
-            const insertResult = yield mongoDb_1.securityDevicesCollection.insertOne(device);
-            return insertResult.insertedId.toString();
-        });
-    },
-    findDevicesByUserId(userId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const devices = yield mongoDb_1.securityDevicesCollection.find({
-                "userId": userId
-            });
-            if (!devices) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('Devices for this user do not exist.');
-            }
-            return devices.toArray();
+            yield mongoDb_1.securityDevicesCollection.insertOne(device);
         });
     },
     findByDeviceId(deviceId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const device = yield mongoDb_1.securityDevicesCollection.findOne({
-                "deviceId": deviceId
-            });
-            if (!device) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('Device with provided deviceId does not exist.');
+            try {
+                return yield mongoDb_1.securityDevicesCollection.findOne({ deviceId });
             }
-            return device;
+            catch (error) {
+                console.error('Error finding device by deviceId:', error);
+                return null;
+            }
         });
     },
-    updateLastActiveDate(deviceId, date) {
+    findDevicesByUserId(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const updateResult = yield mongoDb_1.securityDevicesCollection.updateOne({
-                deviceId: deviceId
-            }, {
-                $set: {
-                    lastActiveDate: date
-                },
-            });
-            return updateResult.modifiedCount > 0;
+            return yield mongoDb_1.securityDevicesCollection.find({ userId }).toArray();
+        });
+    },
+    updateLastActiveDate(deviceId, lastActiveDate) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield mongoDb_1.securityDevicesCollection.updateOne({ deviceId }, { $set: { lastActiveDate } });
+            return result.modifiedCount > 0;
         });
     },
     deleteByDeviceId(deviceId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield mongoDb_1.securityDevicesCollection.deleteOne({
-                deviceId: deviceId
-            });
-            if (result.deletedCount === 0) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('Device with provided deviceId does not exist.');
-            }
-            return;
+            const result = yield mongoDb_1.securityDevicesCollection.deleteOne({ deviceId });
+            return result.deletedCount > 0;
         });
     },
     deleteAllExceptOne(userId, deviceIdToKeep) {
         return __awaiter(this, void 0, void 0, function* () {
             const result = yield mongoDb_1.securityDevicesCollection.deleteMany({
-                userId: userId,
+                userId,
                 deviceId: { $ne: deviceIdToKeep }
             });
-            if (result.deletedCount === 0) {
-            }
-            return;
+            return result.deletedCount > 0;
         });
     },
-    deleteExpiredDevices() {
+    deleteAllByUserId(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const now = new Date();
-            const filter = {
-                expiresAt: { $lt: now },
-            };
-            const result = yield mongoDb_1.securityDevicesCollection.deleteMany(filter);
-            return result.deletedCount;
+            const result = yield mongoDb_1.securityDevicesCollection.deleteMany({ userId });
+            return result.deletedCount > 0;
         });
     }
 };

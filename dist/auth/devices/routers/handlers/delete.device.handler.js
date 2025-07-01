@@ -10,27 +10,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteDeviceHandler = void 0;
-const security_devices_service_1 = require("../../security-devices.service");
 const httpStatus_1 = require("../../../../core/types/httpStatus");
 const security_device_repository_1 = require("../../security-device.repository");
+const refresh_token_sessions_repository_1 = require("../../../repositories/refresh.token.sessions.repository");
 const deleteDeviceHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.userId;
-        const deviceId = req.params.id;
+        const deviceIdToDelete = req.params.id;
         // Check if device exists
-        const device = yield security_device_repository_1.securityDeviceRepository.findByDeviceId(deviceId);
+        const device = yield security_device_repository_1.securityDeviceRepository.findByDeviceId(deviceIdToDelete);
         if (!device) {
             res.status(httpStatus_1.HttpStatus.NotFound).send();
             return;
         }
         // Check ownership
-        const isOwner = yield security_devices_service_1.securityDevicesService.validateDeviceOwnership(userId, deviceId);
-        if (!isOwner) {
+        if (device.userId !== userId) {
             res.status(httpStatus_1.HttpStatus.Forbidden).send();
             return;
         }
-        // Delete device
-        yield security_devices_service_1.securityDevicesService.deleteDevice(userId, deviceId);
+        // Delete the device
+        yield security_device_repository_1.securityDeviceRepository.deleteByDeviceId(deviceIdToDelete);
+        // IMPORTANT: Also invalidate all refresh token sessions for this device
+        // This ensures the refresh token becomes invalid after device deletion
+        yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.deleteByDeviceId(deviceIdToDelete);
         res.status(httpStatus_1.HttpStatus.NoContent).send();
         return;
     }

@@ -28,20 +28,18 @@ export const authService = {
         data: null,
       };
     
-    const userId = result.data!._id.toString()
-
+    const userId = result.data!._id.toString();
     const accessToken = await jwtService.createToken(userId, result.data!.login);
-
-    const tokenId = await this.createRefreshSession(userId)
-
-    const deviceId = uuid()
-
-    const refreshToken = await jwtService.createRefreshToken(userId, tokenId, deviceId)
+    
+    const deviceId = uuid();
+    const tokenId = await this.createRefreshSession(userId, deviceId);
+    
+    const refreshToken = await jwtService.createRefreshToken(userId, tokenId, deviceId);
 
     return {
       status: HttpStatus.Ok,
       data: { accessToken, refreshToken, userId, deviceId },
-      extensions: [],
+      extensions: []
     };
   },
 
@@ -50,30 +48,22 @@ export const authService = {
     password: string,
   ): Promise<Result<WithId<UserWithConfirmation> | null>> {
     const user = await usersRepository.findByLoginOrEmail(loginOrEmail);
-    if (!user)
-      return {
-        status: HttpStatus.NotFound,
-        data: null,
-        errorMessage: 'Not Found',
-        extensions: [{ field: 'loginOrEmail', message: 'Not Found' }],
-      };
-
-    const isPassCorrect = await bcryptService.checkPassword(password, user.passwordHash);
-    if (!isPassCorrect)
-      return {
-        status: HttpStatus.BadRequest,
-        data: null,
-        errorMessage: 'Bad Request',
-        extensions: [{ field: 'password', message: 'Wrong password' }],
-      };
-
-    // Check if user is confirmed before allowing login
-    if (!user.emailConfirmation?.isConfirmed) {
+    if (!user) {
       return {
         status: HttpStatus.Unauthorized,
+        errorMessage: 'Wrong credentials',
+        extensions: [{ field: 'loginOrEmail', message: 'Login or email is wrong' }],
         data: null,
-        errorMessage: 'Email not confirmed',
-        extensions: [{ field: 'loginOrEmail', message: 'Please confirm your email before logging in' }],
+      };
+    }
+
+    const isPasswordCorrect = await bcryptService.checkPassword(password, user.passwordHash);
+    if (!isPasswordCorrect) {
+      return {
+        status: HttpStatus.Unauthorized,
+        errorMessage: 'Wrong credentials',
+        extensions: [{ field: 'password', message: 'Password is wrong' }],
+        data: null,
       };
     }
 
@@ -87,74 +77,105 @@ export const authService = {
   async registerUser(
     login: string,
     email: string,
-    password: string
-  ): Promise<Result<{ confirmationCode: string } | null>> {
-    // Check if user with this login already exists
-    const existingUserByLogin = await usersRepository.findByLoginOrEmail(login);
-    if (existingUserByLogin) {
+    password: string,
+  ): Promise<Result<{ id: string } | null>> {
+    // Check if user already exists
+    const existingUser = await usersRepository.findByLoginOrEmail(login) || 
+                        await usersRepository.findByLoginOrEmail(email);
+    
+    if (existingUser) {
+      const field = existingUser.login === login ? 'login' : 'email';
       return {
         status: HttpStatus.BadRequest,
-        data: null,
         errorMessage: 'User already exists',
-        extensions: [{ field: 'login', message: 'User with this login already exists' }],
+        extensions: [{ field, message: `${field} already exists` }],
+        data: null,
       };
     }
 
-    // Check if user with this email already exists  
-    const existingUserByEmail = await usersRepository.findByLoginOrEmail(email);
-    if (existingUserByEmail) {
-      return {
-        status: HttpStatus.BadRequest,
-        data: null,
-        errorMessage: 'User already exists',
-        extensions: [{ field: 'email', message: 'User with this email already exists' }],
-      };
-    }
-
+    // Hash password
     const passwordHash = await bcryptService.generateHash(password);
+    
+    // Generate confirmation code
     const confirmationCode = uuid();
-
+    
+    // Create user with confirmation info
     const user: UserWithConfirmation = {
       login,
       email,
       passwordHash,
       createdAt: new Date(),
       emailConfirmation: {
-        confirmationCode: confirmationCode,
-        isConfirmed: false
-      }
+        confirmationCode,
+        isConfirmed: false,
+      },
     };
 
-    await usersRepository.create(user);
+    // Save user
+    const userId = await usersRepository.create(user);
     
-    // Try to send email, but don't fail if it doesn't work
+    if (!userId) {
+      return {
+        status: HttpStatus.InternalServerError,
+        errorMessage: 'Failed to create user',
+        extensions: [],
+        data: null,
+      };
+    }
+
+    // Send confirmation email
     try {
       await emailManager.sendEmailConfimationMessage(user);
     } catch (error) {
-      console.log('Email sending failed, but registration continues:', error);
+      console.log('Email sending failed, but user was created:', error);
     }
 
     return {
       status: HttpStatus.NoContent,
-      data: { confirmationCode },
-      errorMessage: '',
+      data: { id: userId },
       extensions: [],
     };
   },
 
-  async confirmEmail(code: string): Promise<boolean> {
-    try {
-        const user = await usersRepository.findByConfirmationCode(code);
-        
-        if (user.emailConfirmation.isConfirmed) {
-            return false; // Already confirmed
-        }
-        
-        const result = await usersRepository.updateConfirmation(user._id);
-        return result;
-    } catch (error) {
-        return false; // User not found or other error
+  async confirmEmail(code: string): Promise<Result<null>> {
+    const user = await usersRepository.findByConfirmationCode(code);
+    
+    if (!user) {
+      return {
+        status: HttpStatus.BadRequest,
+        errorMessage: 'Invalid confirmation code',
+        extensions: [{ field: 'code', message: 'Confirmation code is invalid' }],
+        data: null,
+      };
     }
+
+    // Check if already confirmed
+    if (user.emailConfirmation?.isConfirmed) {
+      return {
+        status: HttpStatus.BadRequest,
+        errorMessage: 'Email already confirmed',
+        extensions: [{ field: 'code', message: 'Email is already confirmed' }],
+        data: null,
+      };
+    }
+
+    // Confirm email
+    const confirmed = await usersRepository.updateConfirmation(user._id);
+    
+    if (!confirmed) {
+      return {
+        status: HttpStatus.InternalServerError,
+        errorMessage: 'Failed to confirm email',
+        extensions: [],
+        data: null,
+      };
+    }
+
+    return {
+      status: HttpStatus.NoContent,
+      data: null,
+      extensions: [],
+    };
   },
 
   async resendConfirmationEmail(email: string): Promise<Result<null>> {
@@ -169,7 +190,7 @@ export const authService = {
         };
     }
 
-    // Check if user is already confirmed - this is the fix for the failing test
+    // Check if user is already confirmed
     if (user.emailConfirmation?.isConfirmed) {
         return {
             status: HttpStatus.BadRequest,
@@ -200,197 +221,159 @@ export const authService = {
         extensions: [],
     };
   },
-  // Новые методы для auth flow
+
   async refreshTokens(oldRefreshToken: string): Promise<Result<{ accessToken: string, refreshToken: string } | null>> {
-  try {
-    // 1. Верифицировать старый refresh токен
-    const payload = await jwtService.verifyRefreshToken(oldRefreshToken);
-    if (!payload) {
+    try {
+      // 1. Verify old refresh token
+      const payload = await jwtService.verifyRefreshToken(oldRefreshToken);
+      if (!payload) {
+        return {
+          status: HttpStatus.Unauthorized,
+          errorMessage: 'Invalid refresh token',
+          extensions: [{ field: 'refreshToken', message: 'Invalid token' }],
+          data: null,
+        };
+      }
+
+      // 2. Validate session in DB
+      const sessionValidation = await this.validateRefreshSession(payload.tokenId);
+      if (!sessionValidation.isValid) {
+        return {
+          status: HttpStatus.Unauthorized,
+          errorMessage: 'Session invalid',
+          extensions: [{ field: 'refreshToken', message: sessionValidation.error || 'Session invalid' }],
+          data: null,
+        };
+      }
+
+      // 3. Revoke old session
+      await this.invalidateRefreshSession(payload.tokenId);
+
+      // 4. Create new session with same deviceId
+      const newTokenId = await this.createRefreshSession(payload.userId, payload.deviceId);
+
+      // 5. Create new tokens
+      const user = await usersRepository.findByIdOrFail(payload.userId);
+      const accessToken = await jwtService.createToken(payload.userId, user.login);
+      const refreshToken = await jwtService.createRefreshToken(payload.userId, newTokenId, payload.deviceId);
+
+      // 6. Update device activity
+      await securityDevicesService.updateDeviceActivity(payload.deviceId);
+
+      return {
+        status: HttpStatus.Ok,
+        data: { accessToken, refreshToken },
+        extensions: [],
+      };
+    } catch (error) {
+      console.log('Refresh tokens failed:', error);
       return {
         status: HttpStatus.Unauthorized,
-        errorMessage: 'Invalid refresh token',
-        extensions: [{ field: 'refreshToken', message: 'Invalid token' }],
+        errorMessage: 'Failed to refresh tokens',
+        extensions: [{ field: 'refreshToken', message: 'Token refresh failed' }],
         data: null,
       };
     }
-
-    // 2. Валидировать сессию в БД
-    const sessionValidation = await this.validateRefreshSession(payload.tokenId);
-    if (!sessionValidation.isValid) {
-      return {
-        status: HttpStatus.Unauthorized,
-        errorMessage: 'Session invalid',
-        extensions: [{ field: 'refreshToken', message: sessionValidation.error || 'Session invalid' }],
-        data: null,
-      };
-    }
-
-    // 3. Отозвать старую сессию
-    await this.invalidateRefreshSession(payload.tokenId);
-
-    // 4. Создать новую сессию
-    const newTokenId = await this.createRefreshSession(payload.userId);
-
-    // 5. Создать новые токены
-    const user = await usersRepository.findByIdOrFail(payload.userId);
-    const accessToken = await jwtService.createToken(payload.userId, user.login);
-    const refreshToken = await jwtService.createRefreshToken(payload.userId, newTokenId, payload.deviceId);
-
-    return {
-      status: HttpStatus.Ok,
-      data: { accessToken, refreshToken },
-      extensions: [],
-    };
-
-  } catch (error) {
-    console.log('Refresh tokens failed:', error);
-    return {
-      status: HttpStatus.Unauthorized,
-      errorMessage: 'Failed to refresh tokens',
-      extensions: [{ field: 'refreshToken', message: 'Token refresh failed' }],
-      data: null,
-    };
-  }
-},
+  },
 
   async logout(refreshToken: string): Promise<Result<null>> {
-  try {
-    // 1. Верифицировать refresh токен
-    const payload = await jwtService.verifyRefreshToken(refreshToken);
-    if (!payload) {
-      return {
-        status: HttpStatus.Unauthorized,
-        errorMessage: 'Invalid refresh token',
-        extensions: [{ field: 'refreshToken', message: 'Invalid token' }],
-        data: null,
-      };
-    }
+    try {
+      // 1. Verify refresh token
+      const payload = await jwtService.verifyRefreshToken(refreshToken);
+      if (!payload) {
+        return {
+          status: HttpStatus.Unauthorized,
+          errorMessage: 'Invalid refresh token',
+          extensions: [{ field: 'refreshToken', message: 'Invalid token' }],
+          data: null,
+        };
+      }
 
-    // 2. Валидировать сессию в БД
-    const sessionValidation = await this.validateRefreshSession(payload.tokenId);
-    if (!sessionValidation.isValid) {
-      // Даже если сессия невалидна, логаут считается успешным
-      // (токен уже недействителен)
+      // 2. Validate session in DB
+      const sessionValidation = await this.validateRefreshSession(payload.tokenId);
+      if (!sessionValidation.isValid) {
+        // Even if session is invalid, logout is considered successful
+        return {
+          status: HttpStatus.NoContent,
+          data: null,
+          extensions: [],
+        };
+      }
+
+      // 3. Revoke session
+      const revoked = await this.invalidateRefreshSession(payload.tokenId);
+      if (!revoked) {
+        console.log('Failed to revoke session:', payload.tokenId);
+      }
+
       return {
         status: HttpStatus.NoContent,
         data: null,
         extensions: [],
       };
+    } catch (error) {
+      console.log('Logout failed:', error);
+      return {
+        status: HttpStatus.InternalServerError,
+        errorMessage: 'Logout failed',
+        extensions: [],
+        data: null,
+      };
     }
+  },
 
-    // 3. Отозвать сессию
-    const revoked = await this.invalidateRefreshSession(payload.tokenId);
-    if (!revoked) {
-      console.log('Failed to revoke session:', payload.tokenId);
-    }
-
-    // 4. Delete security device
-    try {
-      if (payload.deviceId && sessionValidation.userId) {
-        await securityDevicesService.deleteDevice(sessionValidation.userId, payload.deviceId);
-      }
-    } catch (e) {
-      console.error('Failed to delete device on logout:', e);
-    }
-
-    return {
-      status: HttpStatus.NoContent,
-      data: null,
-      extensions: [],
-    };
-
-  } catch (error) {
-    console.log('Logout failed:', error);
-    return {
-      status: HttpStatus.Unauthorized,
-      errorMessage: 'Logout failed',
-      extensions: [{ field: 'refreshToken', message: 'Invalid token' }],
-      data: null,
-    };
-  }
-},
-
-  async createRefreshSession(userId: string): Promise<string> {
-
-    const tokenId = uuid()
-    const expiresAt = add(new Date(),{ seconds: SETTINGS.REFRESH_TIME as number })
-
-    const newSession = {
-      userId: userId,
-      tokenId: tokenId,
-      expiresAt: expiresAt,
+  async createRefreshSession(userId: string, deviceId: string): Promise<string> {
+    const tokenId = uuid();
+    const session: RefreshTokenSession = {
+      userId,
+      tokenId,
+      deviceId,
       isRevoked: false,
       createdAt: new Date(),
-    } as RefreshTokenSession
-
-    try {
-      await refreshTokenSessionsRepository.create(newSession)
-      return newSession.tokenId
-    } catch (e: unknown) {
-      console.log('Session creation faild:', e);
-      throw e;
-    }
+      expiresAt: add(new Date(), { seconds: SETTINGS.REFRESH_TIME as number })
+    };
+    
+    await refreshTokenSessionsRepository.createSession(session);
+    return tokenId;
   },
 
   async validateRefreshSession(tokenId: string): Promise<SessionValidationResult> {
-
-    const session = await refreshTokenSessionsRepository.findByTokenId(tokenId)
-
+    const session = await refreshTokenSessionsRepository.findSessionByTokenId(tokenId);
+    
     if (!session) {
-      return {
-        isValid: false,
-        error: 'NOT_FOUND'
-      }
-    };
-
-    if (session.isRevoked === true) {
-      return {
-        isValid: false,
-        session: session,
-        userId: session.userId,
-        error: 'REVOKED'
-      }
-    };
-
-    if (new Date() >= session.expiresAt) {
-      return {
-        isValid: false,
-        session: session,
-        userId: session.userId,
-        error: 'EXPIRED',
-      }
-    };
-
-    return {
-      isValid: true,
-      session: session,
-      userId: session.userId
+      return { isValid: false, error: 'NOT_FOUND' };
     }
-   },
+    
+    if (session.isRevoked) {
+      return { isValid: false, error: 'REVOKED' };
+    }
+    
+    if (session.expiresAt < new Date()) {
+      return { isValid: false, error: 'EXPIRED' };
+    }
+    
+    return { isValid: true };
+  },
 
   async invalidateRefreshSession(tokenId: string): Promise<boolean> {
+    return await refreshTokenSessionsRepository.invalidateSession(tokenId);
+  },
+
+  async extractDeviceIdFromToken(refreshToken: string): Promise<string | null> {
     try {
-      return await refreshTokenSessionsRepository.updateToRevoked(tokenId);
-    } catch (e: unknown) {
-      console.log('Refresh token invalidation failed:', e);
-      return false;
+      const payload = await jwtService.verifyRefreshToken(refreshToken);
+      return payload?.deviceId || null;
+    } catch (error) {
+      return null;
     }
   },
 
-  async deleteExpiredSessions(): Promise<number> {
+  async isEmailAlreadyConfirmed(email: string): Promise<boolean> {
     try {
-      return await refreshTokenSessionsRepository.deleteExpired()
-    } catch (e: unknown) {
-      console.log('Deleting expired sessions faild:', e)
-      throw e;
+      const user = await usersRepository.findByLoginOrEmail(email);
+      return user?.emailConfirmation?.isConfirmed || false;
+    } catch (error) {
+      return false;
     }
-   },
-
-  async extractDeviceIdFromToken(token: string): Promise<string> {
-    const payload = await jwtService.verifyRefreshToken(token)
-    if (!payload) {
-      throw new Error('Invalid token')
-    }
-    return payload.deviceId
-  }
+  },
 };

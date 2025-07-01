@@ -13,6 +13,7 @@ exports.deleteAllOtherDevicesHandler = void 0;
 const httpStatus_1 = require("../../../../core/types/httpStatus");
 const auth_service_1 = require("../../../application/auth.service");
 const security_devices_service_1 = require("../../security-devices.service");
+const refresh_token_sessions_repository_1 = require("../../../repositories/refresh.token.sessions.repository");
 const deleteAllOtherDevicesHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get userId from authenticated request
@@ -31,12 +32,15 @@ const deleteAllOtherDevicesHandler = (req, res) => __awaiter(void 0, void 0, voi
         }
         // Delete all other devices except current one
         yield security_devices_service_1.securityDevicesService.deleteAllOtherDevices(userId, currentDeviceId);
+        // IMPORTANT: Also delete all refresh token sessions for other devices
+        // This ensures refresh tokens for deleted devices become invalid
+        yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.deleteAllUserSessionsExceptOne(userId, currentDeviceId);
         res.status(httpStatus_1.HttpStatus.NoContent).send();
         return;
     }
     catch (error) {
         console.error('Error in deleteAllOtherDevicesHandler:', error);
-        res.status(httpStatus_1.HttpStatus.Unauthorized).send();
+        res.status(httpStatus_1.HttpStatus.InternalServerError).send();
         return;
     }
 });

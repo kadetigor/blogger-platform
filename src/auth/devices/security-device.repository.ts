@@ -1,85 +1,48 @@
-import { WithId } from "mongodb";
-import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
+import { ObjectId, WithId } from "mongodb";
 import { SecurityDevice } from "./security-device";
 import { securityDevicesCollection } from "../../db/mongoDb";
 
 export const securityDeviceRepository = {
-
-  async create(device: SecurityDevice): Promise<string> {
-    const insertResult = await securityDevicesCollection.insertOne(device);
-    return insertResult.insertedId.toString();
-   },
-
-  async findDevicesByUserId(userId: string): Promise<WithId<SecurityDevice>[]> {
-    const devices = await securityDevicesCollection.find<WithId<SecurityDevice>>({
-        "userId": userId
-    });
-
-    if (!devices) {
-        throw new repositoryNotFoundError('Devices for this user do not exist.')
-    }
-
-    return devices.toArray()
-   },
-   
-   async findByDeviceId(deviceId: string): Promise<WithId<SecurityDevice>> {
-    const device = await securityDevicesCollection.findOne<WithId<SecurityDevice>>({
-        "deviceId": deviceId
-    });
-
-    if (!device) {
-        throw new repositoryNotFoundError('Device with provided deviceId does not exist.')
-    }
-
-    return device
+    async create(device: SecurityDevice): Promise<void> {
+        await securityDevicesCollection.insertOne(device);
     },
 
-  async updateLastActiveDate(deviceId: string, date: Date): Promise<boolean> {
-    const updateResult = await securityDevicesCollection.updateOne(
-        {
-            deviceId: deviceId
-        },
-        {
-            $set: {
-                lastActiveDate: date
-            },
-        },
-    );
-    return updateResult.modifiedCount > 0;
-   },
+    async findByDeviceId(deviceId: string): Promise<WithId<SecurityDevice> | null> {
+        try {
+            return await securityDevicesCollection.findOne({ deviceId });
+        } catch (error) {
+            console.error('Error finding device by deviceId:', error);
+            return null;
+        }
+    },
 
-  async deleteByDeviceId(deviceId: string): Promise<void> {
-		const result = await securityDevicesCollection.deleteOne({
-			deviceId: deviceId
-		});
+    async findDevicesByUserId(userId: string): Promise<WithId<SecurityDevice>[]> {
+        return await securityDevicesCollection.find({ userId }).toArray();
+    },
 
-		if (result.deletedCount === 0) {
-			throw new repositoryNotFoundError('Device with provided deviceId does not exist.')
-		}
+    async updateLastActiveDate(deviceId: string, lastActiveDate: Date): Promise<boolean> {
+        const result = await securityDevicesCollection.updateOne(
+            { deviceId },
+            { $set: { lastActiveDate } }
+        );
+        return result.modifiedCount > 0;
+    },
 
-		return
-	},
+    async deleteByDeviceId(deviceId: string): Promise<boolean> {
+        const result = await securityDevicesCollection.deleteOne({ deviceId });
+        return result.deletedCount > 0;
+    },
 
-	async deleteAllExceptOne(userId: string, deviceIdToKeep: string): Promise<void> {
-		const result = await securityDevicesCollection.deleteMany({
-			userId: userId,
-			deviceId: { $ne: deviceIdToKeep }
-		});
+    async deleteAllExceptOne(userId: string, deviceIdToKeep: string): Promise<boolean> {
+        const result = await securityDevicesCollection.deleteMany({
+            userId,
+            deviceId: { $ne: deviceIdToKeep }
+        });
+        return result.deletedCount > 0;
+    },
 
-		if (result.deletedCount === 0) {
-	}
-
-	return
-	},
-
-	async deleteExpiredDevices(): Promise<number> {
-		const now = new Date()
-		const filter = {
-			expiresAt: { $lt: now },
-		}
-
-		const result = await securityDevicesCollection.deleteMany(filter)
-
-		return result.deletedCount
-	}
-}
+    async deleteAllByUserId(userId: string): Promise<boolean> {
+        const result = await securityDevicesCollection.deleteMany({ userId });
+        return result.deletedCount > 0;
+    }
+};

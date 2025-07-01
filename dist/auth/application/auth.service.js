@@ -33,42 +33,34 @@ exports.authService = {
                 };
             const userId = result.data._id.toString();
             const accessToken = yield jwt_adapter_1.jwtService.createToken(userId, result.data.login);
-            const tokenId = yield this.createRefreshSession(userId);
             const deviceId = (0, uuid_1.v4)();
+            const tokenId = yield this.createRefreshSession(userId, deviceId);
             const refreshToken = yield jwt_adapter_1.jwtService.createRefreshToken(userId, tokenId, deviceId);
             return {
                 status: httpStatus_1.HttpStatus.Ok,
                 data: { accessToken, refreshToken, userId, deviceId },
-                extensions: [],
+                extensions: []
             };
         });
     },
     checkUserCredentials(loginOrEmail, password) {
         return __awaiter(this, void 0, void 0, function* () {
-            var _a;
             const user = yield usersRepository_1.usersRepository.findByLoginOrEmail(loginOrEmail);
-            if (!user)
-                return {
-                    status: httpStatus_1.HttpStatus.NotFound,
-                    data: null,
-                    errorMessage: 'Not Found',
-                    extensions: [{ field: 'loginOrEmail', message: 'Not Found' }],
-                };
-            const isPassCorrect = yield bcrypt_adapter_1.bcryptService.checkPassword(password, user.passwordHash);
-            if (!isPassCorrect)
-                return {
-                    status: httpStatus_1.HttpStatus.BadRequest,
-                    data: null,
-                    errorMessage: 'Bad Request',
-                    extensions: [{ field: 'password', message: 'Wrong password' }],
-                };
-            // Check if user is confirmed before allowing login
-            if (!((_a = user.emailConfirmation) === null || _a === void 0 ? void 0 : _a.isConfirmed)) {
+            if (!user) {
                 return {
                     status: httpStatus_1.HttpStatus.Unauthorized,
+                    errorMessage: 'Wrong credentials',
+                    extensions: [{ field: 'loginOrEmail', message: 'Login or email is wrong' }],
                     data: null,
-                    errorMessage: 'Email not confirmed',
-                    extensions: [{ field: 'loginOrEmail', message: 'Please confirm your email before logging in' }],
+                };
+            }
+            const isPasswordCorrect = yield bcrypt_adapter_1.bcryptService.checkPassword(password, user.passwordHash);
+            if (!isPasswordCorrect) {
+                return {
+                    status: httpStatus_1.HttpStatus.Unauthorized,
+                    errorMessage: 'Wrong credentials',
+                    extensions: [{ field: 'password', message: 'Password is wrong' }],
+                    data: null,
                 };
             }
             return {
@@ -80,67 +72,93 @@ exports.authService = {
     },
     registerUser(login, email, password) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Check if user with this login already exists
-            const existingUserByLogin = yield usersRepository_1.usersRepository.findByLoginOrEmail(login);
-            if (existingUserByLogin) {
+            // Check if user already exists
+            const existingUser = (yield usersRepository_1.usersRepository.findByLoginOrEmail(login)) ||
+                (yield usersRepository_1.usersRepository.findByLoginOrEmail(email));
+            if (existingUser) {
+                const field = existingUser.login === login ? 'login' : 'email';
                 return {
                     status: httpStatus_1.HttpStatus.BadRequest,
-                    data: null,
                     errorMessage: 'User already exists',
-                    extensions: [{ field: 'login', message: 'User with this login already exists' }],
+                    extensions: [{ field, message: `${field} already exists` }],
+                    data: null,
                 };
             }
-            // Check if user with this email already exists  
-            const existingUserByEmail = yield usersRepository_1.usersRepository.findByLoginOrEmail(email);
-            if (existingUserByEmail) {
-                return {
-                    status: httpStatus_1.HttpStatus.BadRequest,
-                    data: null,
-                    errorMessage: 'User already exists',
-                    extensions: [{ field: 'email', message: 'User with this email already exists' }],
-                };
-            }
+            // Hash password
             const passwordHash = yield bcrypt_adapter_1.bcryptService.generateHash(password);
+            // Generate confirmation code
             const confirmationCode = (0, uuid_1.v4)();
+            // Create user with confirmation info
             const user = {
                 login,
                 email,
                 passwordHash,
                 createdAt: new Date(),
                 emailConfirmation: {
-                    confirmationCode: confirmationCode,
-                    isConfirmed: false
-                }
+                    confirmationCode,
+                    isConfirmed: false,
+                },
             };
-            yield usersRepository_1.usersRepository.create(user);
-            // Try to send email, but don't fail if it doesn't work
+            // Save user
+            const userId = yield usersRepository_1.usersRepository.create(user);
+            if (!userId) {
+                return {
+                    status: httpStatus_1.HttpStatus.InternalServerError,
+                    errorMessage: 'Failed to create user',
+                    extensions: [],
+                    data: null,
+                };
+            }
+            // Send confirmation email
             try {
                 yield email_manager_1.emailManager.sendEmailConfimationMessage(user);
             }
             catch (error) {
-                console.log('Email sending failed, but registration continues:', error);
+                console.log('Email sending failed, but user was created:', error);
             }
             return {
                 status: httpStatus_1.HttpStatus.NoContent,
-                data: { confirmationCode },
-                errorMessage: '',
+                data: { id: userId },
                 extensions: [],
             };
         });
     },
     confirmEmail(code) {
         return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const user = yield usersRepository_1.usersRepository.findByConfirmationCode(code);
-                if (user.emailConfirmation.isConfirmed) {
-                    return false; // Already confirmed
-                }
-                const result = yield usersRepository_1.usersRepository.updateConfirmation(user._id);
-                return result;
+            var _a;
+            const user = yield usersRepository_1.usersRepository.findByConfirmationCode(code);
+            if (!user) {
+                return {
+                    status: httpStatus_1.HttpStatus.BadRequest,
+                    errorMessage: 'Invalid confirmation code',
+                    extensions: [{ field: 'code', message: 'Confirmation code is invalid' }],
+                    data: null,
+                };
             }
-            catch (error) {
-                return false; // User not found or other error
+            // Check if already confirmed
+            if ((_a = user.emailConfirmation) === null || _a === void 0 ? void 0 : _a.isConfirmed) {
+                return {
+                    status: httpStatus_1.HttpStatus.BadRequest,
+                    errorMessage: 'Email already confirmed',
+                    extensions: [{ field: 'code', message: 'Email is already confirmed' }],
+                    data: null,
+                };
             }
+            // Confirm email
+            const confirmed = yield usersRepository_1.usersRepository.updateConfirmation(user._id);
+            if (!confirmed) {
+                return {
+                    status: httpStatus_1.HttpStatus.InternalServerError,
+                    errorMessage: 'Failed to confirm email',
+                    extensions: [],
+                    data: null,
+                };
+            }
+            return {
+                status: httpStatus_1.HttpStatus.NoContent,
+                data: null,
+                extensions: [],
+            };
         });
     },
     resendConfirmationEmail(email) {
@@ -155,7 +173,7 @@ exports.authService = {
                     extensions: [{ field: 'email', message: 'User with this email does not exist' }],
                 };
             }
-            // Check if user is already confirmed - this is the fix for the failing test
+            // Check if user is already confirmed
             if ((_a = user.emailConfirmation) === null || _a === void 0 ? void 0 : _a.isConfirmed) {
                 return {
                     status: httpStatus_1.HttpStatus.BadRequest,
@@ -184,11 +202,10 @@ exports.authService = {
             };
         });
     },
-    // Новые методы для auth flow
     refreshTokens(oldRefreshToken) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                // 1. Верифицировать старый refresh токен
+                // 1. Verify old refresh token
                 const payload = yield jwt_adapter_1.jwtService.verifyRefreshToken(oldRefreshToken);
                 if (!payload) {
                     return {
@@ -198,7 +215,7 @@ exports.authService = {
                         data: null,
                     };
                 }
-                // 2. Валидировать сессию в БД
+                // 2. Validate session in DB
                 const sessionValidation = yield this.validateRefreshSession(payload.tokenId);
                 if (!sessionValidation.isValid) {
                     return {
@@ -208,14 +225,16 @@ exports.authService = {
                         data: null,
                     };
                 }
-                // 3. Отозвать старую сессию
+                // 3. Revoke old session
                 yield this.invalidateRefreshSession(payload.tokenId);
-                // 4. Создать новую сессию
-                const newTokenId = yield this.createRefreshSession(payload.userId);
-                // 5. Создать новые токены
+                // 4. Create new session with same deviceId
+                const newTokenId = yield this.createRefreshSession(payload.userId, payload.deviceId);
+                // 5. Create new tokens
                 const user = yield usersRepository_1.usersRepository.findByIdOrFail(payload.userId);
                 const accessToken = yield jwt_adapter_1.jwtService.createToken(payload.userId, user.login);
                 const refreshToken = yield jwt_adapter_1.jwtService.createRefreshToken(payload.userId, newTokenId, payload.deviceId);
+                // 6. Update device activity
+                yield security_devices_service_1.securityDevicesService.updateDeviceActivity(payload.deviceId);
                 return {
                     status: httpStatus_1.HttpStatus.Ok,
                     data: { accessToken, refreshToken },
@@ -236,7 +255,7 @@ exports.authService = {
     logout(refreshToken) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                // 1. Верифицировать refresh токен
+                // 1. Verify refresh token
                 const payload = yield jwt_adapter_1.jwtService.verifyRefreshToken(refreshToken);
                 if (!payload) {
                     return {
@@ -246,30 +265,20 @@ exports.authService = {
                         data: null,
                     };
                 }
-                // 2. Валидировать сессию в БД
+                // 2. Validate session in DB
                 const sessionValidation = yield this.validateRefreshSession(payload.tokenId);
                 if (!sessionValidation.isValid) {
-                    // Даже если сессия невалидна, логаут считается успешным
-                    // (токен уже недействителен)
+                    // Even if session is invalid, logout is considered successful
                     return {
                         status: httpStatus_1.HttpStatus.NoContent,
                         data: null,
                         extensions: [],
                     };
                 }
-                // 3. Отозвать сессию
+                // 3. Revoke session
                 const revoked = yield this.invalidateRefreshSession(payload.tokenId);
                 if (!revoked) {
                     console.log('Failed to revoke session:', payload.tokenId);
-                }
-                // 4. Delete security device
-                try {
-                    if (payload.deviceId && sessionValidation.userId) {
-                        yield security_devices_service_1.securityDevicesService.deleteDevice(sessionValidation.userId, payload.deviceId);
-                    }
-                }
-                catch (e) {
-                    console.error('Failed to delete device on logout:', e);
                 }
                 return {
                     status: httpStatus_1.HttpStatus.NoContent,
@@ -280,99 +289,70 @@ exports.authService = {
             catch (error) {
                 console.log('Logout failed:', error);
                 return {
-                    status: httpStatus_1.HttpStatus.Unauthorized,
+                    status: httpStatus_1.HttpStatus.InternalServerError,
                     errorMessage: 'Logout failed',
-                    extensions: [{ field: 'refreshToken', message: 'Invalid token' }],
+                    extensions: [],
                     data: null,
                 };
             }
         });
     },
-    createRefreshSession(userId) {
+    createRefreshSession(userId, deviceId) {
         return __awaiter(this, void 0, void 0, function* () {
             const tokenId = (0, uuid_1.v4)();
-            const expiresAt = (0, date_fns_1.add)(new Date(), { seconds: settings_1.SETTINGS.REFRESH_TIME });
-            const newSession = {
-                userId: userId,
-                tokenId: tokenId,
-                expiresAt: expiresAt,
+            const session = {
+                userId,
+                tokenId,
+                deviceId,
                 isRevoked: false,
                 createdAt: new Date(),
+                expiresAt: (0, date_fns_1.add)(new Date(), { seconds: settings_1.SETTINGS.REFRESH_TIME })
             };
-            try {
-                yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.create(newSession);
-                return newSession.tokenId;
-            }
-            catch (e) {
-                console.log('Session creation faild:', e);
-                throw e;
-            }
+            yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.createSession(session);
+            return tokenId;
         });
     },
     validateRefreshSession(tokenId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const session = yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.findByTokenId(tokenId);
+            const session = yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.findSessionByTokenId(tokenId);
             if (!session) {
-                return {
-                    isValid: false,
-                    error: 'NOT_FOUND'
-                };
+                return { isValid: false, error: 'NOT_FOUND' };
             }
-            ;
-            if (session.isRevoked === true) {
-                return {
-                    isValid: false,
-                    session: session,
-                    userId: session.userId,
-                    error: 'REVOKED'
-                };
+            if (session.isRevoked) {
+                return { isValid: false, error: 'REVOKED' };
             }
-            ;
-            if (new Date() >= session.expiresAt) {
-                return {
-                    isValid: false,
-                    session: session,
-                    userId: session.userId,
-                    error: 'EXPIRED',
-                };
+            if (session.expiresAt < new Date()) {
+                return { isValid: false, error: 'EXPIRED' };
             }
-            ;
-            return {
-                isValid: true,
-                session: session,
-                userId: session.userId
-            };
+            return { isValid: true };
         });
     },
     invalidateRefreshSession(tokenId) {
         return __awaiter(this, void 0, void 0, function* () {
+            return yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.invalidateSession(tokenId);
+        });
+    },
+    extractDeviceIdFromToken(refreshToken) {
+        return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.updateToRevoked(tokenId);
+                const payload = yield jwt_adapter_1.jwtService.verifyRefreshToken(refreshToken);
+                return (payload === null || payload === void 0 ? void 0 : payload.deviceId) || null;
             }
-            catch (e) {
-                console.log('Refresh token invalidation failed:', e);
+            catch (error) {
+                return null;
+            }
+        });
+    },
+    isEmailAlreadyConfirmed(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            try {
+                const user = yield usersRepository_1.usersRepository.findByLoginOrEmail(email);
+                return ((_a = user === null || user === void 0 ? void 0 : user.emailConfirmation) === null || _a === void 0 ? void 0 : _a.isConfirmed) || false;
+            }
+            catch (error) {
                 return false;
             }
         });
     },
-    deleteExpiredSessions() {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                return yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.deleteExpired();
-            }
-            catch (e) {
-                console.log('Deleting expired sessions faild:', e);
-                throw e;
-            }
-        });
-    },
-    extractDeviceIdFromToken(token) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const payload = yield jwt_adapter_1.jwtService.verifyRefreshToken(token);
-            if (!payload) {
-                throw new Error('Invalid token');
-            }
-            return payload.deviceId;
-        });
-    }
 };
