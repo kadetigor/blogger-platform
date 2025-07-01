@@ -23,12 +23,13 @@ class RateLimiter {
             return true;
         }
 
-        // If the window has expired, allow the request
+        // If the window has expired, delete the old record and allow the request
         if (now >= record.resetTime) {
+            this.attempts.delete(ip);
             return true;
         }
 
-        // Check if we've exceeded the limit (note: we check against maxAttempts, not maxAttempts - 1)
+        // Check if we've exceeded the limit
         return record.count < this.maxAttempts;
     }
 
