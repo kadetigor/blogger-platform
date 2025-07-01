@@ -19,11 +19,6 @@ export async function registrationHandler(
     }
     res.status(HttpStatus.NoContent);
     
-    if (result.data?.confirmationCode) {
-      res.json({ confirmationCode: result.data.confirmationCode });
-    } else {
-      res.send();
-    }
   } catch (e: unknown) {
     errorsHandler(e, res);
   }

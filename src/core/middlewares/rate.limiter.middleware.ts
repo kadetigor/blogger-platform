@@ -15,7 +15,7 @@ class RateLimiter {
         this.windowMs = windowMs;
     }
 
-    isAllowed(ip: string): boolean {
+    shouldAllowRequest(ip: string): boolean {
         const now = Date.now();
         const record = this.attempts.get(ip);
 
@@ -23,13 +23,12 @@ class RateLimiter {
             return true;
         }
 
-        // If the window has expired, delete the record and allow the request
+        // If the window has expired, allow the request
         if (now >= record.resetTime) {
-            this.attempts.delete(ip);
             return true;
         }
 
-        // Check if we've exceeded the limit
+        // Check if we've exceeded the limit (note: we check against maxAttempts, not maxAttempts - 1)
         return record.count < this.maxAttempts;
     }
 
@@ -82,7 +81,7 @@ export function createRateLimitMiddleware(maxAttempts: number, windowMs: number)
         const originalStatus = res.status;
         
         let statusCode: number | undefined;
-        let hasResponded = false;
+        let attemptRecorded = false;
 
         // Override status method to capture status code
         res.status = function(code: number) {
@@ -90,51 +89,60 @@ export function createRateLimitMiddleware(maxAttempts: number, windowMs: number)
             return originalStatus.call(this, code);
         };
 
-        // Helper function to record attempt if needed
-        const checkAndRecordAttempt = () => {
-            if (!hasResponded) {
-                hasResponded = true;
+        // Helper function to determine if we should count this attempt
+        const shouldCountAttempt = (): boolean => {
+            const isRegistrationEndpoint = req.path.includes('/registration');
+            
+            if (isRegistrationEndpoint) {
+                // Always count registration attempts
+                return true;
+            } else {
+                // For other endpoints (like /login), only count client errors (4xx)
+                return statusCode !== undefined && statusCode >= 400 && statusCode < 500;
+            }
+        };
+
+        // Helper function to handle rate limiting
+        const handleRateLimiting = () => {
+            if (!attemptRecorded && shouldCountAttempt()) {
+                attemptRecorded = true;
                 
-                // For registration endpoints, count ALL attempts
-                const isRegistrationEndpoint = req.path.includes('/registration');
+                // First record the attempt
+                rateLimiter.recordAttempt(ip);
                 
-                if (isRegistrationEndpoint) {
-                    // Always count registration attempts
-                    rateLimiter.recordAttempt(ip);
-                } else {
-                    // For other endpoints (like /login), only count client errors (4xx)
-                    if (statusCode && statusCode >= 400 && statusCode < 500) {
-                        rateLimiter.recordAttempt(ip);
-                    }
+                // Then check if we should block future requests
+                if (!rateLimiter.shouldAllowRequest(ip)) {
+                    // The NEXT request will be blocked, not this one
+                    // This is intentional - we count the attempt that puts us over the limit
                 }
             }
         };
 
-        // Check if request should be blocked AFTER recording any previous attempts
-        if (!rateLimiter.isAllowed(ip)) {
+        // Check if this request should be blocked (before we process it)
+        if (!rateLimiter.shouldAllowRequest(ip)) {
             res.status(429).send();
             return;
         }
 
-        // Override response methods to check status before sending
+        // Override response methods to record attempts when appropriate
         res.send = function(data?: any) {
-            checkAndRecordAttempt();
+            handleRateLimiting();
             return originalSend.call(this, data);
         };
 
         res.json = function(data: any) {
-            checkAndRecordAttempt();
+            handleRateLimiting();
             return originalJson.call(this, data);
         };
 
         res.sendStatus = function(code: number) {
             statusCode = code;
-            checkAndRecordAttempt();
+            handleRateLimiting();
             return originalSendStatus.call(this, code);
         };
 
         res.end = function(chunk?: any, encoding?: any) {
-            checkAndRecordAttempt();
+            handleRateLimiting();
             return originalEnd.call(this, chunk, encoding);
         };
 
