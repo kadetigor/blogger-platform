@@ -88,11 +88,11 @@ export const securityDevicesService = {
     }
   },
 
-  async deleteDevice(userId: string, deviceId: string): Promise<void> {
+  async deleteDevice(userId: string, deviceId: string): Promise<void | boolean> {
     const deviceOwnership = await this.validateDeviceOwnership(userId, deviceId)
 
     if (!deviceOwnership) {
-        throw new Error('Not your device')
+        return false
     }
     try {
         await securityDeviceRepository.deleteByDeviceId(deviceId)

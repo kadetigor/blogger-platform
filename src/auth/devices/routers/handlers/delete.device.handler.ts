@@ -5,9 +5,9 @@ import { HttpStatus } from "../../../../core/types/httpStatus";
 
 export const deleteDeviceHandler = async (req: Request, res: Response) => {
     try {
-        const userId = (req as any).userId;
+        const userId = req.user!.id;
 
-        const deviceId = req.params.deviceId;
+        const deviceId = req.params.id;
 
         if (!deviceId) {
             res.status(HttpStatus.BadRequest).send();
@@ -15,7 +15,11 @@ export const deleteDeviceHandler = async (req: Request, res: Response) => {
         }
 
         // Delete the specific device
-        await securityDevicesService.deleteDevice(userId, deviceId);
+        const result = await securityDevicesService.deleteDevice(userId, deviceId);
+
+        if (!result) {
+            res.status(HttpStatus.Forbidden).send()
+        }
 
         res.status(HttpStatus.NoContent).send();
 

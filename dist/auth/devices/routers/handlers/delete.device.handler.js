@@ -14,14 +14,17 @@ const security_devices_service_1 = require("../../security-devices.service");
 const httpStatus_1 = require("../../../../core/types/httpStatus");
 const deleteDeviceHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const userId = req.userId;
-        const deviceId = req.params.deviceId;
+        const userId = req.user.id;
+        const deviceId = req.params.id;
         if (!deviceId) {
             res.status(httpStatus_1.HttpStatus.BadRequest).send();
             return;
         }
         // Delete the specific device
-        yield security_devices_service_1.securityDevicesService.deleteDevice(userId, deviceId);
+        const result = yield security_devices_service_1.securityDevicesService.deleteDevice(userId, deviceId);
+        if (!result) {
+            res.status(httpStatus_1.HttpStatus.Forbidden).send();
+        }
         res.status(httpStatus_1.HttpStatus.NoContent).send();
         return;
     }

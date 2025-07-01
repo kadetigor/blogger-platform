@@ -97,7 +97,7 @@ exports.securityDevicesService = {
         return __awaiter(this, void 0, void 0, function* () {
             const deviceOwnership = yield this.validateDeviceOwnership(userId, deviceId);
             if (!deviceOwnership) {
-                throw new Error('Not your device');
+                return false;
             }
             try {
                 yield security_device_repository_1.securityDeviceRepository.deleteByDeviceId(deviceId);
