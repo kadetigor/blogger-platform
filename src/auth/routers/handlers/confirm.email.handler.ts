@@ -10,12 +10,9 @@ export async function confirmEmailHandler(
     try {
         const result = await authService.confirmEmail(req.body.code);
         
-        if (!result) {
-            res.status(HttpStatus.BadRequest).json({
-                errorsMessages: [{
-                    message: "Invalid or expired confirmation code",
-                    field: "code"
-                }]
+        if (result.status !== HttpStatus.NoContent) {
+            res.status(result.status).json({
+                errorsMessages: result.extensions
             });
             return;
         }

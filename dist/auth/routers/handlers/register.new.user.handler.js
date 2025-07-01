@@ -24,7 +24,7 @@ function registrationHandler(req, res) {
                 });
                 return;
             }
-            res.status(httpStatus_1.HttpStatus.NoContent);
+            res.sendStatus(httpStatus_1.HttpStatus.NoContent);
         }
         catch (e) {
             (0, errorsHandler_1.errorsHandler)(e, res);

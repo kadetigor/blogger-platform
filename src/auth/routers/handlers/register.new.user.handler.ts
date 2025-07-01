@@ -17,8 +17,8 @@ export async function registrationHandler(
       });
       return;
     }
-    res.status(HttpStatus.NoContent);
-    
+    res.sendStatus(HttpStatus.NoContent);
+
   } catch (e: unknown) {
     errorsHandler(e, res);
   }

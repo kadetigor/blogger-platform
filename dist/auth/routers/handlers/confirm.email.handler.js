@@ -17,12 +17,9 @@ function confirmEmailHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const result = yield auth_service_1.authService.confirmEmail(req.body.code);
-            if (!result) {
-                res.status(httpStatus_1.HttpStatus.BadRequest).json({
-                    errorsMessages: [{
-                            message: "Invalid or expired confirmation code",
-                            field: "code"
-                        }]
+            if (result.status !== httpStatus_1.HttpStatus.NoContent) {
+                res.status(result.status).json({
+                    errorsMessages: result.extensions
                 });
                 return;
             }
