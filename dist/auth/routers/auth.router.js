@@ -35,6 +35,19 @@ const passwordValidation = (0, express_validator_1.body)('password')
     .exists().withMessage('Password is required')
     .isString().withMessage('Password should be a string')
     .trim().notEmpty().withMessage('Password should not be empty');
+exports.authRouter.get('/debug/rate-limit', (req, res) => {
+    // Access the rate limiter instance through the global variable
+    const rateLimiter = global.__rateLimiter;
+    if (!rateLimiter) {
+        res.status(404).json({ error: 'Rate limiter not found. Make sure to use the debug version of the rate limiter.' });
+        return;
+    }
+    res.json(rateLimiter.getDebugInfo());
+});
+exports.authRouter.post('/login', authRateLimit, [
+    loginOrEmailValidation,
+    passwordValidation,
+], input_validtion_result_middleware_1.inputValidationResultMiddleware, login_user_handler_1.loginHandler);
 exports.authRouter.post('/login', authRateLimit, [
     loginOrEmailValidation,
     passwordValidation,
