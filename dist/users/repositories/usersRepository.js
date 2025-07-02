@@ -29,7 +29,7 @@ exports.usersRepository = {
                 "emailConfirmation.confirmationCode": emailConfirmationCode
             });
             if (!user) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('User does not exist');
+                throw new repositoryNotFoundError_1.BadRequestError('Invalid confirmation code');
             }
             return user;
         });

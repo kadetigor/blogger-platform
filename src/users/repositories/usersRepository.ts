@@ -2,7 +2,7 @@ import { ObjectId, WithId } from "mongodb";
 import { userCollection } from "../../db/mongoDb";
 import { userAttributes } from "../application/dtos/userAttributes";
 import { User } from "../domain/user";
-import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
+import { BadRequestError, repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
 import { UserWithConfirmation } from "../../email/user.with.confirmation.type";
 
 export const usersRepository = {
@@ -22,7 +22,7 @@ export const usersRepository = {
         });
 
         if (!user) {
-            throw new repositoryNotFoundError('User does not exist');
+            throw new BadRequestError('Invalid confirmation code');
         }
         return user;
     },
