@@ -89,4 +89,12 @@ export const usersRepository = {
         );
         return result.modifiedCount === 1;
     },
+
+    async updatePassword(_id: ObjectId, passwordHash: string): Promise<boolean> {
+        const result = await userCollection.updateOne(
+            { _id },
+            { $set: { 'passwordHash': passwordHash }}
+        );
+        return result.modifiedCount === 1;
+    }
 };

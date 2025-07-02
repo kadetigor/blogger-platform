@@ -363,4 +363,65 @@ exports.authService = {
             }
         });
     },
+    sendPasswordRecoveryEmail(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield usersRepository_1.usersRepository.findByLoginOrEmail(email);
+            if (!user) {
+                return {
+                    status: httpStatus_1.HttpStatus.NoContent,
+                    data: null,
+                    errorMessage: '',
+                    extensions: [],
+                };
+            }
+            const newConfirmationCode = (0, uuid_1.v4)();
+            yield usersRepository_1.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
+            try {
+                const updatedUser = Object.assign(Object.assign({}, user), { emailConfirmation: Object.assign(Object.assign({}, user.emailConfirmation), { confirmationCode: newConfirmationCode }) });
+                yield email_manager_1.emailManager.sendPasswordRecoveryEmail(updatedUser);
+            }
+            catch (error) {
+                console.log('Email sending failed, but code update continues:', error);
+            }
+            return {
+                status: httpStatus_1.HttpStatus.NoContent,
+                data: null,
+                errorMessage: '',
+                extensions: [],
+            };
+        });
+    },
+    confirmPasswordRecovery(code, password) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const user = yield usersRepository_1.usersRepository.findByConfirmationCode(code);
+                if (!user) {
+                    return {
+                        status: httpStatus_1.HttpStatus.InternalServerError,
+                        errorMessage: 'Failed to find confirmation code',
+                        extensions: [],
+                        data: null,
+                    };
+                }
+                const newPasswordHash = yield bcrypt_adapter_1.bcryptService.generateHash(password);
+                yield usersRepository_1.usersRepository.updatePassword(user._id, newPasswordHash);
+                if (!user) {
+                    return {
+                        status: httpStatus_1.HttpStatus.InternalServerError,
+                        errorMessage: 'Failed to udpate password',
+                        extensions: [],
+                        data: null,
+                    };
+                }
+                return {
+                    status: httpStatus_1.HttpStatus.NoContent,
+                    extensions: [],
+                    data: null
+                };
+            }
+            catch (error) {
+                throw error;
+            }
+        });
+    }
 };

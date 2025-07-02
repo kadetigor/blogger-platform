@@ -87,4 +87,10 @@ exports.usersRepository = {
             return result.modifiedCount === 1;
         });
     },
+    updatePassword(_id, passwordHash) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield mongoDb_1.userCollection.updateOne({ _id }, { $set: { 'passwordHash': passwordHash } });
+            return result.modifiedCount === 1;
+        });
+    }
 };

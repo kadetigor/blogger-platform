@@ -25,6 +25,8 @@ const refresh_token_handler_1 = require("./handlers/refresh.token.handler");
 const logout_handler_1 = require("./handlers/logout.handler");
 const refresh_token_guard_1 = require("./guards/refresh.token.guard");
 const rate_limiter_middleware_1 = require("../../core/middlewares/rate.limiter.middleware");
+const password_recovery_email_handler_1 = require("./handlers/password.recovery.email.handler");
+const confirm_password_reset_handler_1 = require("./handlers/confirm.password.reset.handler");
 const authRateLimit = (0, rate_limiter_middleware_1.createRateLimitMiddleware)(5, 10 * 1000);
 exports.authRouter = (0, express_1.Router)();
 const loginOrEmailValidation = (0, express_validator_1.body)('loginOrEmail')
@@ -35,15 +37,6 @@ const passwordValidation = (0, express_validator_1.body)('password')
     .exists().withMessage('Password is required')
     .isString().withMessage('Password should be a string')
     .trim().notEmpty().withMessage('Password should not be empty');
-exports.authRouter.get('/debug/rate-limit', (req, res) => {
-    // Access the rate limiter instance through the global variable
-    const rateLimiter = global.__rateLimiter;
-    if (!rateLimiter) {
-        res.status(404).json({ error: 'Rate limiter not found. Make sure to use the debug version of the rate limiter.' });
-        return;
-    }
-    res.json(rateLimiter.getDebugInfo());
-});
 exports.authRouter.post('/login', authRateLimit, [
     loginOrEmailValidation,
     passwordValidation,
@@ -80,3 +73,14 @@ exports.authRouter.post('/registration-email-resending', authRateLimit, (0, expr
     .trim(), input_validtion_result_middleware_1.inputValidationResultMiddleware, resend_email_confirm_email_handler_1.resendConfirmEmailHandler);
 exports.authRouter.post('/refresh-token', refresh_token_guard_1.refreshTokenGuard, refresh_token_handler_1.refreshTokenHandler);
 exports.authRouter.post('/logout', refresh_token_guard_1.refreshTokenGuard, logout_handler_1.logoutHandler);
+exports.authRouter.post('/password-recovery', authRateLimit, (0, express_validator_1.body)('email')
+    .exists().withMessage('Email is required')
+    .isEmail().withMessage('Invalid email format')
+    .trim(), input_validtion_result_middleware_1.inputValidationResultMiddleware, password_recovery_email_handler_1.passwordRecoveryEmailHandler);
+exports.authRouter.post(// Used to confirm password recovery
+'/new-password', authRateLimit, (0, express_validator_1.body)('newPassword')
+    .exists().withMessage('New Password is required')
+    .isString().withMessage('New Password should be a string')
+    .trim().isLength({ min: 6, max: 20 }).withMessage('Length of the New Password should be no less then 6 characters and no more then 20 characters'), (0, express_validator_1.body)('recoveryCode')
+    .exists().withMessage('Recovery code is required')
+    .isString().withMessage('Recovery code should be a string'), confirm_password_reset_handler_1.confirmPasswordResetHandler);

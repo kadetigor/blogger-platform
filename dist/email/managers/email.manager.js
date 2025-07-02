@@ -19,5 +19,13 @@ exports.emailManager = {
      <a href='https://somesite.com/confirm-email?code=${user.emailConfirmation.confirmationCode}'>complete registration</a>
  </p>`);
         });
+    },
+    sendPasswordRecoveryEmail(user) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield email_adapter_1.emailAdapter.sendEmail(user.email, "Password Recovery", `<h1>Password recovery</h1>
+       <p>To finish password recovery please follow the link below:
+          <a href='https://somesite.com/password-recovery?recoveryCode=${user.emailConfirmation.confirmationCode}'>recovery password</a>
+      </p>`);
+        });
     }
 };

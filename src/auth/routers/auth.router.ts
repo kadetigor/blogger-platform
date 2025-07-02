@@ -15,6 +15,8 @@ import { refreshTokenHandler } from "./handlers/refresh.token.handler";
 import { logoutHandler } from "./handlers/logout.handler";
 import { refreshTokenGuard } from "./guards/refresh.token.guard";
 import { createRateLimitMiddleware } from "../../core/middlewares/rate.limiter.middleware";
+import { passwordRecoveryEmailHandler } from "./handlers/password.recovery.email.handler";
+import { confirmPasswordResetHandler } from "./handlers/confirm.password.reset.handler";
 
 const authRateLimit = createRateLimitMiddleware(5, 10 * 1000);
 
@@ -29,18 +31,6 @@ const passwordValidation = body('password')
   .exists().withMessage('Password is required')
   .isString().withMessage('Password should be a string')
   .trim().notEmpty().withMessage('Password should not be empty');
-
-authRouter.get('/debug/rate-limit', (req, res) => {
-  // Access the rate limiter instance through the global variable
-  const rateLimiter = (global as any).__rateLimiter;
-  
-  if (!rateLimiter) {
-    res.status(404).json({ error: 'Rate limiter not found. Make sure to use the debug version of the rate limiter.' });
-    return;
-  }
-  
-  res.json(rateLimiter.getDebugInfo());
-});
 
 authRouter.post(
   '/login',
@@ -120,4 +110,28 @@ authRouter.post(
   '/logout',
   refreshTokenGuard,
   logoutHandler
+)
+
+authRouter.post(
+  '/password-recovery',
+  authRateLimit,
+  body('email')
+    .exists().withMessage('Email is required')
+    .isEmail().withMessage('Invalid email format')
+    .trim(),
+  inputValidationResultMiddleware,
+  passwordRecoveryEmailHandler
+)
+
+authRouter.post( // Used to confirm password recovery
+  '/new-password',
+  authRateLimit,
+  body('newPassword')
+    .exists().withMessage('New Password is required')
+    .isString().withMessage('New Password should be a string')
+    .trim().isLength({ min: 6, max: 20}).withMessage('Length of the New Password should be no less then 6 characters and no more then 20 characters'),
+  body('recoveryCode')
+    .exists().withMessage('Recovery code is required')
+    .isString().withMessage('Recovery code should be a string'),
+  confirmPasswordResetHandler
 )

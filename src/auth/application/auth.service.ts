@@ -383,4 +383,72 @@ export const authService = {
       return false;
     }
   },
+
+  async sendPasswordRecoveryEmail(email: string): Promise<Result<null>> {
+    const user = await usersRepository.findByLoginOrEmail(email);
+
+    if(!user) {
+      return {
+        status: HttpStatus.NoContent,
+        data: null,
+        errorMessage: '',
+        extensions: [],
+      };
+    }
+
+    const newConfirmationCode = uuid();
+
+    await usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
+
+    try {
+      const updatedUser = { ...user, emailConfirmation: { ...user.emailConfirmation, confirmationCode: newConfirmationCode } }
+      await emailManager.sendPasswordRecoveryEmail(updatedUser);
+    } catch (error) {
+      console.log('Email sending failed, but code update continues:', error);
+    }
+
+    return {
+        status: HttpStatus.NoContent,
+        data: null,
+        errorMessage: '',
+        extensions: [],
+    };
+  },
+
+  async confirmPasswordRecovery(code: string, password: string): Promise<Result<null>> {
+    try {
+      const user = await usersRepository.findByConfirmationCode(code)
+
+      if (!user) {
+        return {
+          status: HttpStatus.InternalServerError,
+          errorMessage: 'Failed to find confirmation code',
+          extensions: [],
+          data: null,
+        };
+      }
+
+      const newPasswordHash = await bcryptService.generateHash(password);
+
+      await usersRepository.updatePassword(user._id, newPasswordHash)
+
+      if (!user) {
+        return {
+          status: HttpStatus.InternalServerError,
+          errorMessage: 'Failed to udpate password',
+          extensions: [],
+          data: null,
+        };
+      }
+      
+      return {
+        status: HttpStatus.NoContent,
+        extensions: [],
+        data: null
+      };
+
+    } catch (error) {
+      throw error;
+    }
+  }
 };
