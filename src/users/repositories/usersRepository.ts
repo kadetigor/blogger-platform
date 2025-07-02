@@ -16,14 +16,11 @@ export const usersRepository = {
         return res;
     },
 
-    async findByConfirmationCode(emailConfirmationCode: string): Promise<WithId<UserWithConfirmation>> {
+    async findByConfirmationCode(emailConfirmationCode: string): Promise<WithId<UserWithConfirmation>  | null > {
         const user = await userCollection.findOne<WithId<UserWithConfirmation>>({
             "emailConfirmation.confirmationCode": emailConfirmationCode
         });
 
-        if (!user) {
-            throw new BadRequestError('Invalid confirmation code');
-        }
         return user;
     },
         
@@ -96,5 +93,13 @@ export const usersRepository = {
             { $set: { 'passwordHash': passwordHash }}
         );
         return result.modifiedCount === 1;
-    }
+    },
+
+    async clearRecoveryCode(_id: ObjectId): Promise<boolean> {
+        const result = await userCollection.updateOne(
+            { _id },
+            { $set: { 'emailConfirmation.confirmationCode': '' }}
+        );
+        return result.modifiedCount === 1;
+    },
 };

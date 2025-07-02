@@ -397,7 +397,7 @@ exports.authService = {
                 const user = yield usersRepository_1.usersRepository.findByConfirmationCode(code);
                 if (!user) {
                     return {
-                        status: httpStatus_1.HttpStatus.InternalServerError,
+                        status: httpStatus_1.HttpStatus.BadRequest,
                         errorMessage: 'Failed to find confirmation code',
                         extensions: [],
                         data: null,
@@ -405,6 +405,7 @@ exports.authService = {
                 }
                 const newPasswordHash = yield bcrypt_adapter_1.bcryptService.generateHash(password);
                 yield usersRepository_1.usersRepository.updatePassword(user._id, newPasswordHash);
+                yield usersRepository_1.usersRepository.clearRecoveryCode(user._id);
                 if (!user) {
                     return {
                         status: httpStatus_1.HttpStatus.InternalServerError,

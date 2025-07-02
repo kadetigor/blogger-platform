@@ -9,9 +9,9 @@ export async function confirmPasswordResetHandler(
 ): Promise<void> {
     try {
         const code = req.body.recoveryCode
-        const newPasswrod = req.body.newPasswrod
+        const newPassword = req.body.newPassword
 
-        const result = await authService.confirmPasswordRecovery(code, newPasswrod);
+        const result = await authService.confirmPasswordRecovery(code, newPassword);
         
         if (result.status !== HttpStatus.NoContent) {
             res.status(result.status).json({

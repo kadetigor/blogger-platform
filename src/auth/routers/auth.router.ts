@@ -133,5 +133,6 @@ authRouter.post( // Used to confirm password recovery
   body('recoveryCode')
     .exists().withMessage('Recovery code is required')
     .isString().withMessage('Recovery code should be a string'),
+  inputValidationResultMiddleware,
   confirmPasswordResetHandler
 )

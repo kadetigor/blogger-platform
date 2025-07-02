@@ -143,7 +143,7 @@ export const authService = {
       const user = await usersRepository.findByConfirmationCode(code);
       
       // Check if already confirmed
-      if (user.emailConfirmation?.isConfirmed) {
+      if (user!.emailConfirmation?.isConfirmed) {
         return {
           status: HttpStatus.BadRequest,
           errorMessage: 'Email already confirmed',
@@ -153,7 +153,7 @@ export const authService = {
       }
 
       // Confirm email
-      const confirmed = await usersRepository.updateConfirmation(user._id);
+      const confirmed = await usersRepository.updateConfirmation(user!._id);
       
       if (!confirmed) {
         return {
@@ -421,7 +421,7 @@ export const authService = {
 
       if (!user) {
         return {
-          status: HttpStatus.InternalServerError,
+          status: HttpStatus.BadRequest,
           errorMessage: 'Failed to find confirmation code',
           extensions: [],
           data: null,
@@ -431,6 +431,8 @@ export const authService = {
       const newPasswordHash = await bcryptService.generateHash(password);
 
       await usersRepository.updatePassword(user._id, newPasswordHash)
+
+      await usersRepository.clearRecoveryCode(user._id);
 
       if (!user) {
         return {

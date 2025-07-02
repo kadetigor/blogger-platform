@@ -17,8 +17,8 @@ function confirmPasswordResetHandler(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const code = req.body.recoveryCode;
-            const newPasswrod = req.body.newPasswrod;
-            const result = yield auth_service_1.authService.confirmPasswordRecovery(code, newPasswrod);
+            const newPassword = req.body.newPassword;
+            const result = yield auth_service_1.authService.confirmPasswordRecovery(code, newPassword);
             if (result.status !== httpStatus_1.HttpStatus.NoContent) {
                 res.status(result.status).json({
                     errorsMessages: result.extensions

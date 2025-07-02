@@ -83,4 +83,4 @@ exports.authRouter.post(// Used to confirm password recovery
     .isString().withMessage('New Password should be a string')
     .trim().isLength({ min: 6, max: 20 }).withMessage('Length of the New Password should be no less then 6 characters and no more then 20 characters'), (0, express_validator_1.body)('recoveryCode')
     .exists().withMessage('Recovery code is required')
-    .isString().withMessage('Recovery code should be a string'), confirm_password_reset_handler_1.confirmPasswordResetHandler);
+    .isString().withMessage('Recovery code should be a string'), input_validtion_result_middleware_1.inputValidationResultMiddleware, confirm_password_reset_handler_1.confirmPasswordResetHandler);
