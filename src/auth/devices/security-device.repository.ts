@@ -1,11 +1,14 @@
 import { ObjectId, WithId } from "mongodb";
 import { SecurityDevice } from "./security-device";
 import { securityDevicesCollection } from "../../db/mongoDb";
+import 'reflect-metadata';
+import { injectable } from "inversify";
 
-export const securityDeviceRepository = {
+@injectable()
+export class SecurityDeviceRepository {
     async create(device: SecurityDevice): Promise<void> {
         await securityDevicesCollection.insertOne(device);
-    },
+    }
 
     async findByDeviceId(deviceId: string): Promise<WithId<SecurityDevice> | null> {
         try {
@@ -14,11 +17,10 @@ export const securityDeviceRepository = {
             console.error('Error finding device by deviceId:', error);
             return null;
         }
-    },
-
+    }
     async findDevicesByUserId(userId: string): Promise<WithId<SecurityDevice>[]> {
         return await securityDevicesCollection.find({ userId }).toArray();
-    },
+    }
 
     async updateLastActiveDate(deviceId: string, lastActiveDate: Date): Promise<boolean> {
         const result = await securityDevicesCollection.updateOne(
@@ -26,12 +28,12 @@ export const securityDeviceRepository = {
             { $set: { lastActiveDate } }
         );
         return result.modifiedCount > 0;
-    },
+    }
 
     async deleteByDeviceId(deviceId: string): Promise<boolean> {
         const result = await securityDevicesCollection.deleteOne({ deviceId });
         return result.deletedCount > 0;
-    },
+    }
 
     async deleteAllExceptOne(userId: string, deviceIdToKeep: string): Promise<boolean> {
         const result = await securityDevicesCollection.deleteMany({
@@ -39,7 +41,7 @@ export const securityDeviceRepository = {
             deviceId: { $ne: deviceIdToKeep }
         });
         return result.deletedCount > 0;
-    },
+    }
 
     async deleteAllByUserId(userId: string): Promise<boolean> {
         const result = await securityDevicesCollection.deleteMany({ userId });

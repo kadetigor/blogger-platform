@@ -1,13 +1,15 @@
 import { Router } from "express";
+import 'reflect-metadata';
 import { paginationAndSortingValidation } from "../../core/middlewares/validation/queryPaginationSortingValidationMiddleware";
 import { userSortField } from "./input/userSortField";
 import { inputValidationResultMiddleware } from "../../core/middlewares/validation/input-validtion-result.middleware";
 import { superAdminGuardMiddleware } from "../../auth/routers/guards/basic.guard.middleware";
 import { userInputDtoValidation } from "./middleware/userInputDtoValidation";
 import { idValidationMiddleware } from "../../core/middlewares/validation/params-id.validation-middleware";
-import { getUserListHandler } from "./handlers/getUserListHandler";
-import { createUserHandler } from "./handlers/createUserHandler";
-import { deleteUserHandler } from "./handlers/deleteUserHandler";
+import { container } from "../../composition-root";
+import { UsersController } from "./users.controller";
+
+const usersController = container.get(UsersController)
 
 export const usersRouter = Router({})
 
@@ -17,14 +19,14 @@ usersRouter
         superAdminGuardMiddleware,
         paginationAndSortingValidation(userSortField),
         inputValidationResultMiddleware,
-        getUserListHandler
+        usersController.getUserListHandler.bind(usersController)// getUserListHandler
     )
     .post(
         '/',
         superAdminGuardMiddleware,
         userInputDtoValidation,
         inputValidationResultMiddleware,
-        createUserHandler
+        usersController.createUserHandler.bind(usersController)// createUserHandler
 
     )
     .delete(
@@ -32,6 +34,6 @@ usersRouter
         superAdminGuardMiddleware,
         idValidationMiddleware,
         inputValidationResultMiddleware,
-        deleteUserHandler
+        usersController.deleteUserHandler.bind(usersController)// deleteUserHandler
     )
 

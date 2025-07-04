@@ -1,22 +1,15 @@
 import { Router, Response } from "express";
+import 'reflect-metadata';
 import { body } from "express-validator";
 import { inputValidationResultMiddleware } from "../../core/middlewares/validation/input-validtion-result.middleware";
-import { loginHandler } from "./handlers/login.user.handler";
 import { accessTokenGuard } from "./guards/access.token.guard";
-import { RequestWithUserId } from "../../core/types/requests";
-import { IdType } from "../../core/types/id";
-import { HttpStatus } from "../../core/types/httpStatus";
-import { usersQueryRepository } from "../../users/repositories/usersQueryRepository";
 import { userInputDtoValidation } from "../../users/routers/middleware/userInputDtoValidation";
-import { registrationHandler } from "./handlers/register.new.user.handler";
-import { confirmEmailHandler } from "./handlers/confirm.email.handler";
-import { resendConfirmEmailHandler } from "./handlers/resend.email.confirm.email.handler";
-import { refreshTokenHandler } from "./handlers/refresh.token.handler";
-import { logoutHandler } from "./handlers/logout.handler";
 import { refreshTokenGuard } from "./guards/refresh.token.guard";
 import { createRateLimitMiddleware } from "../../core/middlewares/rate.limiter.middleware";
-import { passwordRecoveryEmailHandler } from "./handlers/password.recovery.email.handler";
-import { confirmPasswordResetHandler } from "./handlers/confirm.password.reset.handler";
+import { AuthController } from "./auth.controller";
+import { container } from "../../composition-root";
+
+const authController = container.get(AuthController)
 
 const authRateLimit = createRateLimitMiddleware(5, 10 * 1000);
 
@@ -40,34 +33,13 @@ authRouter.post(
     passwordValidation,
   ],
   inputValidationResultMiddleware,
-  loginHandler
+  authController.loginHandler.bind(authController)//loginHandler
 );
 
 authRouter.get(
   '/me',
   accessTokenGuard,
-  async (req: RequestWithUserId<IdType>, res: Response): Promise<void> => {
-    const userId = req.user?.id as string;
-    if (!userId) {
-      res.sendStatus(HttpStatus.Unauthorized);
-      return;
-    }
-
-    try {
-      const user = await usersQueryRepository.findByIdOrFail(userId);
-      
-      // Return only the required fields: userId, login, email
-      const meResponse = {
-        userId: user._id.toString(),
-        login: user.login,
-        email: user.email
-      };
-      
-      res.status(HttpStatus.Ok).send(meResponse);
-    } catch (error) {
-      res.sendStatus(HttpStatus.NotFound);
-    }
-  },
+  authController.getInfoOnCurrentUser.bind(authController)
 );
 
 authRouter.post(
@@ -75,7 +47,7 @@ authRouter.post(
   authRateLimit,
   userInputDtoValidation,
   inputValidationResultMiddleware,
-  registrationHandler
+  authController.registrationHandler.bind(authController)//registrationHandler
 )
 
 authRouter.post(
@@ -86,7 +58,7 @@ authRouter.post(
     .isString().withMessage('Code must be a string')
     .trim().notEmpty().withMessage('Code cannot be empty'),
   inputValidationResultMiddleware,
-  confirmEmailHandler
+  authController.confirmEmailHandler.bind(authController)//confirmEmailHandler
 );
 
 authRouter.post(
@@ -97,19 +69,19 @@ authRouter.post(
     .isEmail().withMessage('Invalid email format')
     .trim(),
   inputValidationResultMiddleware,
-  resendConfirmEmailHandler
+  authController.resendConfirmEmailHandler.bind(authController)//resendConfirmEmailHandler
 );
 
 authRouter.post(
   '/refresh-token',
   refreshTokenGuard,
-  refreshTokenHandler
+  authController.refreshTokenHandler.bind(authController)//refreshTokenHandler
 );
 
 authRouter.post(
   '/logout',
   refreshTokenGuard,
-  logoutHandler
+  authController.logoutHandler.bind(authController)//logoutHandler
 )
 
 authRouter.post(
@@ -120,7 +92,7 @@ authRouter.post(
     .isEmail().withMessage('Invalid email format')
     .trim(),
   inputValidationResultMiddleware,
-  passwordRecoveryEmailHandler
+  authController.passwordRecoveryEmailHandler.bind(authController)//passwordRecoveryEmailHandler
 )
 
 authRouter.post( // Used to confirm password recovery
@@ -134,5 +106,5 @@ authRouter.post( // Used to confirm password recovery
     .exists().withMessage('Recovery code is required')
     .isString().withMessage('Recovery code should be a string'),
   inputValidationResultMiddleware,
-  confirmPasswordResetHandler
+  authController.confirmPasswordResetHandler.bind(authController)//confirmPasswordResetHandler
 )

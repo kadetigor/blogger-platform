@@ -1,47 +1,44 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteAllOtherDevicesHandler = void 0;
-const httpStatus_1 = require("../../../../core/types/httpStatus");
-const auth_service_1 = require("../../../application/auth.service");
-const security_devices_service_1 = require("../../security-devices.service");
-const refresh_token_sessions_repository_1 = require("../../../repositories/refresh.token.sessions.repository");
-const deleteAllOtherDevicesHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+/* import { Request, Response } from "express";
+import { HttpStatus } from "../../../../core/types/httpStatus";
+import { AuthService } from "../../../application/auth.service";
+import { SecurityDevicesService } from "../../security-devices.service";
+import { RefreshTokenSessionsRepository } from "../../../repositories/refresh.token.sessions.repository";
+
+export const deleteAllOtherDevicesHandler = async (req: Request, res: Response) => {
     try {
         // Get userId from authenticated request
-        const userId = req.userId;
+        const userId = (req as any).userId;
+
         // Get current deviceId from refresh token
         const refreshToken = req.cookies.refreshToken;
+
         if (!refreshToken) {
-            res.status(httpStatus_1.HttpStatus.Unauthorized).send();
+            res.status(HttpStatus.Unauthorized).send();
             return;
         }
+
         // Extract deviceId from the refresh token
-        const currentDeviceId = yield auth_service_1.authService.extractDeviceIdFromToken(refreshToken);
+        const currentDeviceId = await authService.extractDeviceIdFromToken(refreshToken);
+
         if (!currentDeviceId) {
-            res.status(httpStatus_1.HttpStatus.Unauthorized).send();
+            res.status(HttpStatus.Unauthorized).send();
             return;
         }
+
         // Delete all other devices except current one
-        yield security_devices_service_1.securityDevicesService.deleteAllOtherDevices(userId, currentDeviceId);
+        await securityDevicesService.deleteAllOtherDevices(userId, currentDeviceId);
+
         // IMPORTANT: Also delete all refresh token sessions for other devices
         // This ensures refresh tokens for deleted devices become invalid
-        yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.deleteAllUserSessionsExceptOne(userId, currentDeviceId);
-        res.status(httpStatus_1.HttpStatus.NoContent).send();
+        await refreshTokenSessionsRepository.deleteAllUserSessionsExceptOne(userId, currentDeviceId);
+
+        res.status(HttpStatus.NoContent).send();
         return;
-    }
-    catch (error) {
+
+    } catch (error) {
         console.error('Error in deleteAllOtherDevicesHandler:', error);
-        res.status(httpStatus_1.HttpStatus.InternalServerError).send();
+        res.status(HttpStatus.InternalServerError).send();
         return;
     }
-});
-exports.deleteAllOtherDevicesHandler = deleteAllOtherDevicesHandler;
+}; */ 

@@ -12,6 +12,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.refreshTokenGuard = void 0;
 const jwt_adapter_1 = require("../../adapters/jwt.adapter");
 const auth_service_1 = require("../../application/auth.service");
+const refresh_token_sessions_repository_1 = require("../../repositories/refresh.token.sessions.repository");
+const bcrypt_adapter_1 = require("../../adapters/bcrypt.adapter");
+const security_devices_service_1 = require("../../devices/security-devices.service");
+const usersRepository_1 = require("../../../users/repositories/usersRepository");
+const security_device_repository_1 = require("../../devices/security-device.repository");
+const jwtService = new jwt_adapter_1.JwtService();
+const refreshTokenSessionsRepository = new refresh_token_sessions_repository_1.RefreshTokenSessionsRepository();
+const bcryptService = new bcrypt_adapter_1.BcryptService();
+const usersRepository = new usersRepository_1.UsersRepository();
+const securityDeviceRepository = new security_device_repository_1.SecurityDeviceRepository();
+const securityDevicesService = new security_devices_service_1.SecurityDevicesService(securityDeviceRepository);
+const authService = new auth_service_1.AuthService(jwtService, refreshTokenSessionsRepository, bcryptService, securityDevicesService, usersRepository);
 const refreshTokenGuard = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) {
@@ -20,13 +32,13 @@ const refreshTokenGuard = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }
     try {
         // Верифицируем refresh токен
-        const payload = yield jwt_adapter_1.jwtService.verifyRefreshToken(refreshToken);
+        const payload = yield jwtService.verifyRefreshToken(refreshToken);
         if (!payload) {
             res.sendStatus(401);
             return;
         }
         // Проверяем валидность сессии в БД
-        const sessionValidation = yield auth_service_1.authService.validateRefreshSession(payload.tokenId);
+        const sessionValidation = yield authService.validateRefreshSession(payload.tokenId);
         if (!sessionValidation.isValid) {
             res.sendStatus(401);
             return;

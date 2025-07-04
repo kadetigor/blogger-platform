@@ -1,21 +1,32 @@
 import { WithId } from 'mongodb';
-import { jwtService } from '../adapters/jwt.adapter';
-import { bcryptService } from '../adapters/bcrypt.adapter';
+import 'reflect-metadata';
+import { JwtService } from '../adapters/jwt.adapter';
+import { BcryptService } from '../adapters/bcrypt.adapter';
 import { HttpStatus } from '../../core/types/httpStatus';
 import { Result } from '../../core/result/result.type';
-import { usersRepository } from '../../users/repositories/usersRepository';
+import { UsersRepository } from '../../users/repositories/usersRepository';
 import { emailManager } from '../../email/managers/email.manager';
 import { v4 as uuid } from 'uuid';
 import { UserWithConfirmation } from '../../email/user.with.confirmation.type';
 import { RefreshTokenSession } from "../domain/refresh.token.session";
-import { refreshTokenSessionsRepository } from "../repositories/refresh.token.sessions.repository";
-import { add, addMilliseconds, addMinutes } from 'date-fns'
+import { RefreshTokenSessionsRepository } from "../repositories/refresh.token.sessions.repository";
+import { add } from 'date-fns'
 import { SETTINGS } from '../../core/settings/settings';
 import { SessionValidationResult } from '../types/refresh.token.types';
-import { securityDevicesService } from '../devices/security-devices.service';
+import { SecurityDevicesService } from '../devices/security-devices.service';
 import { repositoryNotFoundError } from '../../core/errors/repositoryNotFoundError';
+import { inject } from 'inversify';
 
-export const authService = {
+export class AuthService {
+
+  constructor(
+    @inject(JwtService) protected jwtService: JwtService,
+    @inject(RefreshTokenSessionsRepository) protected refreshTokenSessionsRepository: RefreshTokenSessionsRepository,
+    @inject(BcryptService) protected bcryptService: BcryptService,
+    @inject(SecurityDevicesService) protected securityDevicesService: SecurityDevicesService,
+    @inject(UsersRepository) protected usersRepository: UsersRepository,
+  ) {}
+
   async loginUser(
     loginOrEmail: string,
     password: string,
@@ -30,25 +41,25 @@ export const authService = {
       };
     
     const userId = result.data!._id.toString();
-    const accessToken = await jwtService.createToken(userId, result.data!.login);
+    const accessToken = await this.jwtService.createToken(userId, result.data!.login);
     
     const deviceId = uuid();
     const tokenId = await this.createRefreshSession(userId, deviceId);
     
-    const refreshToken = await jwtService.createRefreshToken(userId, tokenId, deviceId);
+    const refreshToken = await this.jwtService.createRefreshToken(userId, tokenId, deviceId);
 
     return {
       status: HttpStatus.Ok,
       data: { accessToken, refreshToken, userId, deviceId },
       extensions: []
     };
-  },
+  }
 
   async checkUserCredentials(
     loginOrEmail: string,
     password: string,
   ): Promise<Result<WithId<UserWithConfirmation> | null>> {
-    const user = await usersRepository.findByLoginOrEmail(loginOrEmail);
+    const user = await this.usersRepository.findByLoginOrEmail(loginOrEmail);
     if (!user) {
       return {
         status: HttpStatus.Unauthorized,
@@ -58,7 +69,7 @@ export const authService = {
       };
     }
 
-    const isPasswordCorrect = await bcryptService.checkPassword(password, user.passwordHash);
+    const isPasswordCorrect = await this.bcryptService.checkPassword(password, user.passwordHash);
     if (!isPasswordCorrect) {
       return {
         status: HttpStatus.Unauthorized,
@@ -73,7 +84,7 @@ export const authService = {
       data: user,
       extensions: [],
     };
-  },
+  }
 
   async registerUser(
     login: string,
@@ -81,8 +92,8 @@ export const authService = {
     password: string,
   ): Promise<Result<{ id: string } | null>> {
     // Check if user already exists
-    const existingUser = await usersRepository.findByLoginOrEmail(login) || 
-                        await usersRepository.findByLoginOrEmail(email);
+    const existingUser = await this.usersRepository.findByLoginOrEmail(login) || 
+                        await this.usersRepository.findByLoginOrEmail(email);
     
     if (existingUser) {
       const field = existingUser.login === login ? 'login' : 'email';
@@ -95,7 +106,7 @@ export const authService = {
     }
 
     // Hash password
-    const passwordHash = await bcryptService.generateHash(password);
+    const passwordHash = await this.bcryptService.generateHash(password);
     
     // Generate confirmation code
     const confirmationCode = uuid();
@@ -113,7 +124,7 @@ export const authService = {
     };
 
     // Save user
-    const userId = await usersRepository.create(user);
+    const userId = await this.usersRepository.create(user);
     
     if (!userId) {
       return {
@@ -136,11 +147,11 @@ export const authService = {
       data: { id: userId },
       extensions: [],
     };
-  },
+  }
 
   async confirmEmail(code: string): Promise<Result<null>> {
     try {
-      const user = await usersRepository.findByConfirmationCode(code);
+      const user = await this.usersRepository.findByConfirmationCode(code);
       
       // Check if already confirmed
       if (user!.emailConfirmation?.isConfirmed) {
@@ -153,7 +164,7 @@ export const authService = {
       }
 
       // Confirm email
-      const confirmed = await usersRepository.updateConfirmation(user!._id);
+      const confirmed = await this.usersRepository.updateConfirmation(user!._id);
       
       if (!confirmed) {
         return {
@@ -183,10 +194,10 @@ export const authService = {
       // Re-throw other errors
       throw error;
     }
-  },
+  }
 
   async resendConfirmationEmail(email: string): Promise<Result<null>> {
-    const user = await usersRepository.findByLoginOrEmail(email);
+    const user = await this.usersRepository.findByLoginOrEmail(email);
     
     if (!user) {
         return {
@@ -211,7 +222,7 @@ export const authService = {
     const newConfirmationCode = uuid();
     
     // Update user with new confirmation code
-    await usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
+    await this.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
     
     // Try to send email with new code
     try {
@@ -227,12 +238,12 @@ export const authService = {
         errorMessage: '',
         extensions: [],
     };
-  },
+  }
 
   async refreshTokens(oldRefreshToken: string): Promise<Result<{ accessToken: string, refreshToken: string } | null>> {
     try {
       // 1. Verify old refresh token
-      const payload = await jwtService.verifyRefreshToken(oldRefreshToken);
+      const payload = await this.jwtService.verifyRefreshToken(oldRefreshToken);
       if (!payload) {
         return {
           status: HttpStatus.Unauthorized,
@@ -260,12 +271,12 @@ export const authService = {
       const newTokenId = await this.createRefreshSession(payload.userId, payload.deviceId);
 
       // 5. Create new tokens
-      const user = await usersRepository.findByIdOrFail(payload.userId);
-      const accessToken = await jwtService.createToken(payload.userId, user.login);
-      const refreshToken = await jwtService.createRefreshToken(payload.userId, newTokenId, payload.deviceId);
+      const user = await this.usersRepository.findByIdOrFail(payload.userId);
+      const accessToken = await this.jwtService.createToken(payload.userId, user.login);
+      const refreshToken = await this.jwtService.createRefreshToken(payload.userId, newTokenId, payload.deviceId);
 
       // 6. Update device activity
-      await securityDevicesService.updateDeviceActivity(payload.deviceId);
+      await this.securityDevicesService.updateDeviceActivity(payload.deviceId);
 
       return {
         status: HttpStatus.Ok,
@@ -281,12 +292,12 @@ export const authService = {
         data: null,
       };
     }
-  },
+  }
 
   async logout(refreshToken: string): Promise<Result<null>> {
     try {
       // 1. Verify refresh token
-      const payload = await jwtService.verifyRefreshToken(refreshToken);
+      const payload = await this.jwtService.verifyRefreshToken(refreshToken);
       if (!payload) {
         return {
           status: HttpStatus.Unauthorized,
@@ -327,7 +338,7 @@ export const authService = {
         data: null,
       };
     }
-  },
+  }
 
   async createRefreshSession(userId: string, deviceId: string): Promise<string> {
     const tokenId = uuid();
@@ -340,12 +351,12 @@ export const authService = {
       expiresAt: add(new Date(), { seconds: SETTINGS.REFRESH_TIME as number })
     };
     
-    await refreshTokenSessionsRepository.createSession(session);
+    await this.refreshTokenSessionsRepository.createSession(session);
     return tokenId;
-  },
+  }
 
   async validateRefreshSession(tokenId: string): Promise<SessionValidationResult> {
-    const session = await refreshTokenSessionsRepository.findSessionByTokenId(tokenId);
+    const session = await this.refreshTokenSessionsRepository.findSessionByTokenId(tokenId);
     
     if (!session) {
       return { isValid: false, error: 'NOT_FOUND' };
@@ -360,32 +371,32 @@ export const authService = {
     }
     
     return { isValid: true };
-  },
+  }
 
   async invalidateRefreshSession(tokenId: string): Promise<boolean> {
-    return await refreshTokenSessionsRepository.invalidateSession(tokenId);
-  },
+    return await this.refreshTokenSessionsRepository.invalidateSession(tokenId);
+  }
 
   async extractDeviceIdFromToken(refreshToken: string): Promise<string | null> {
     try {
-      const payload = await jwtService.verifyRefreshToken(refreshToken);
+      const payload = await this.jwtService.verifyRefreshToken(refreshToken);
       return payload?.deviceId || null;
     } catch (error) {
       return null;
     }
-  },
+  }
 
   async isEmailAlreadyConfirmed(email: string): Promise<boolean> {
     try {
-      const user = await usersRepository.findByLoginOrEmail(email);
+      const user = await this.usersRepository.findByLoginOrEmail(email);
       return user?.emailConfirmation?.isConfirmed || false;
     } catch (error) {
       return false;
     }
-  },
+  }
 
   async sendPasswordRecoveryEmail(email: string): Promise<Result<null>> {
-    const user = await usersRepository.findByLoginOrEmail(email);
+    const user = await this.usersRepository.findByLoginOrEmail(email);
 
     if(!user) {
       return {
@@ -398,7 +409,7 @@ export const authService = {
 
     const newConfirmationCode = uuid();
 
-    await usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
+    await this.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
 
     try {
       const updatedUser = { ...user, emailConfirmation: { ...user.emailConfirmation, confirmationCode: newConfirmationCode } }
@@ -413,31 +424,34 @@ export const authService = {
         errorMessage: '',
         extensions: [],
     };
-  },
+  }
 
   async confirmPasswordRecovery(code: string, password: string): Promise<Result<null>> {
     try {
-      const user = await usersRepository.findByConfirmationCode(code)
+      const user = await this.usersRepository.findByConfirmationCode(code)
 
       if (!user) {
         return {
           status: HttpStatus.BadRequest,
-          errorMessage: 'Failed to find confirmation code',
-          extensions: [],
+          errorMessage: 'Invalid recovery code',
+          extensions: [{
+            message: 'Invalid recovery code',
+            field: 'recoveryCode'
+          }],
           data: null,
         };
       }
 
-      const newPasswordHash = await bcryptService.generateHash(password);
+      const newPasswordHash = await this.bcryptService.generateHash(password);
 
-      await usersRepository.updatePassword(user._id, newPasswordHash)
+      await this.usersRepository.updatePassword(user._id, newPasswordHash)
 
-      await usersRepository.clearRecoveryCode(user._id);
+      await this.usersRepository.clearRecoveryCode(user._id);
 
       if (!user) {
         return {
           status: HttpStatus.InternalServerError,
-          errorMessage: 'Failed to udpate password',
+          errorMessage: 'Failed to update password',
           extensions: [],
           data: null,
         };

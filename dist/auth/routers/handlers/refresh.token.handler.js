@@ -1,51 +1,49 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshTokenHandler = refreshTokenHandler;
-const auth_service_1 = require("../../application/auth.service");
-const httpStatus_1 = require("../../../core/types/httpStatus");
-const settings_1 = require("../../../core/settings/settings");
-const security_devices_service_1 = require("../../devices/security-devices.service");
-function refreshTokenHandler(req, res) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const refreshToken = req.cookies.refreshToken;
-            if (!refreshToken) {
-                res.status(httpStatus_1.HttpStatus.Unauthorized).json({
-                    errorsMessages: [{ field: 'refreshToken', message: 'Refresh token required' }]
-                });
-                return;
-            }
-            const deviceId = yield auth_service_1.authService.extractDeviceIdFromToken(refreshToken);
-            if (!deviceId) {
-                res.status(httpStatus_1.HttpStatus.Unauthorized).send();
-                return;
-            }
-            yield security_devices_service_1.securityDevicesService.updateDeviceActivity(deviceId);
-            const result = yield auth_service_1.authService.refreshTokens(refreshToken);
-            if (result.status !== httpStatus_1.HttpStatus.Ok) {
-                res.status(result.status).json({ errorsMessages: result.extensions });
-                return;
-            }
-            const { accessToken, refreshToken: newRefreshToken } = result.data;
-            res.cookie('refreshToken', newRefreshToken, {
-                maxAge: settings_1.SETTINGS.REFRESH_TIME * 1000,
-                httpOnly: true,
-                secure: true,
-                sameSite: 'strict'
+/* import { Request, Response } from "express";
+import { authService } from "../../application/auth.service";
+import { HttpStatus } from "../../../core/types/httpStatus";
+import { SETTINGS } from "../../../core/settings/settings";
+import { jwtService } from "../../adapters/jwt.adapter";
+import { securityDevicesService } from "../../devices/security-devices.service";
+
+export async function refreshTokenHandler(
+    req: Request,
+    res: Response,
+):Promise<void> {
+    try {
+        const refreshToken = req.cookies.refreshToken
+        if (!refreshToken) {
+            res.status(HttpStatus.Unauthorized).json({
+                errorsMessages: [{ field: 'refreshToken', message: 'Refresh token required' }]
             });
-            res.status(httpStatus_1.HttpStatus.Ok).send({ accessToken: accessToken });
+            return;
         }
-        catch (e) {
-            res.status(httpStatus_1.HttpStatus.InternalServerError);
+
+        const deviceId = await authService.extractDeviceIdFromToken(refreshToken);
+
+          if (!deviceId) {
+            res.status(HttpStatus.Unauthorized).send();
+            return
+          }
+        
+        await securityDevicesService.updateDeviceActivity(deviceId);
+        
+        const result = await authService.refreshTokens(refreshToken)
+        if (result.status !== HttpStatus.Ok) {
+            res.status(result.status).json({ errorsMessages: result.extensions });
+            return;
         }
-    });
-}
+
+        const { accessToken, refreshToken: newRefreshToken } = result.data!;
+
+        res.cookie('refreshToken', newRefreshToken, {
+            maxAge: (SETTINGS.REFRESH_TIME as number) * 1000,
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict'
+        });
+        res.status(HttpStatus.Ok).send({ accessToken: accessToken});
+    } catch (e: unknown) {
+        res.status(HttpStatus.InternalServerError);
+    }
+} */ 

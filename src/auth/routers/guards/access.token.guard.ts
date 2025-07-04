@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { jwtService } from '../../adapters/jwt.adapter';
+import { JwtService } from '../../adapters/jwt.adapter';
+
+const jwtService = new JwtService();
 
 export const accessTokenGuard = async (
   req: Request,

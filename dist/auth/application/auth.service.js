@@ -1,4 +1,16 @@
 "use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -9,7 +21,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.authService = void 0;
+exports.AuthService = void 0;
+require("reflect-metadata");
 const jwt_adapter_1 = require("../adapters/jwt.adapter");
 const bcrypt_adapter_1 = require("../adapters/bcrypt.adapter");
 const httpStatus_1 = require("../../core/types/httpStatus");
@@ -21,7 +34,15 @@ const date_fns_1 = require("date-fns");
 const settings_1 = require("../../core/settings/settings");
 const security_devices_service_1 = require("../devices/security-devices.service");
 const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
-exports.authService = {
+const inversify_1 = require("inversify");
+let AuthService = class AuthService {
+    constructor(jwtService, refreshTokenSessionsRepository, bcryptService, securityDevicesService, usersRepository) {
+        this.jwtService = jwtService;
+        this.refreshTokenSessionsRepository = refreshTokenSessionsRepository;
+        this.bcryptService = bcryptService;
+        this.securityDevicesService = securityDevicesService;
+        this.usersRepository = usersRepository;
+    }
     loginUser(loginOrEmail, password) {
         return __awaiter(this, void 0, void 0, function* () {
             const result = yield this.checkUserCredentials(loginOrEmail, password);
@@ -33,20 +54,20 @@ exports.authService = {
                     data: null,
                 };
             const userId = result.data._id.toString();
-            const accessToken = yield jwt_adapter_1.jwtService.createToken(userId, result.data.login);
+            const accessToken = yield this.jwtService.createToken(userId, result.data.login);
             const deviceId = (0, uuid_1.v4)();
             const tokenId = yield this.createRefreshSession(userId, deviceId);
-            const refreshToken = yield jwt_adapter_1.jwtService.createRefreshToken(userId, tokenId, deviceId);
+            const refreshToken = yield this.jwtService.createRefreshToken(userId, tokenId, deviceId);
             return {
                 status: httpStatus_1.HttpStatus.Ok,
                 data: { accessToken, refreshToken, userId, deviceId },
                 extensions: []
             };
         });
-    },
+    }
     checkUserCredentials(loginOrEmail, password) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield usersRepository_1.usersRepository.findByLoginOrEmail(loginOrEmail);
+            const user = yield this.usersRepository.findByLoginOrEmail(loginOrEmail);
             if (!user) {
                 return {
                     status: httpStatus_1.HttpStatus.Unauthorized,
@@ -55,7 +76,7 @@ exports.authService = {
                     data: null,
                 };
             }
-            const isPasswordCorrect = yield bcrypt_adapter_1.bcryptService.checkPassword(password, user.passwordHash);
+            const isPasswordCorrect = yield this.bcryptService.checkPassword(password, user.passwordHash);
             if (!isPasswordCorrect) {
                 return {
                     status: httpStatus_1.HttpStatus.Unauthorized,
@@ -70,12 +91,12 @@ exports.authService = {
                 extensions: [],
             };
         });
-    },
+    }
     registerUser(login, email, password) {
         return __awaiter(this, void 0, void 0, function* () {
             // Check if user already exists
-            const existingUser = (yield usersRepository_1.usersRepository.findByLoginOrEmail(login)) ||
-                (yield usersRepository_1.usersRepository.findByLoginOrEmail(email));
+            const existingUser = (yield this.usersRepository.findByLoginOrEmail(login)) ||
+                (yield this.usersRepository.findByLoginOrEmail(email));
             if (existingUser) {
                 const field = existingUser.login === login ? 'login' : 'email';
                 return {
@@ -86,7 +107,7 @@ exports.authService = {
                 };
             }
             // Hash password
-            const passwordHash = yield bcrypt_adapter_1.bcryptService.generateHash(password);
+            const passwordHash = yield this.bcryptService.generateHash(password);
             // Generate confirmation code
             const confirmationCode = (0, uuid_1.v4)();
             // Create user with confirmation info
@@ -101,7 +122,7 @@ exports.authService = {
                 },
             };
             // Save user
-            const userId = yield usersRepository_1.usersRepository.create(user);
+            const userId = yield this.usersRepository.create(user);
             if (!userId) {
                 return {
                     status: httpStatus_1.HttpStatus.InternalServerError,
@@ -123,12 +144,12 @@ exports.authService = {
                 extensions: [],
             };
         });
-    },
+    }
     confirmEmail(code) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
             try {
-                const user = yield usersRepository_1.usersRepository.findByConfirmationCode(code);
+                const user = yield this.usersRepository.findByConfirmationCode(code);
                 // Check if already confirmed
                 if ((_a = user.emailConfirmation) === null || _a === void 0 ? void 0 : _a.isConfirmed) {
                     return {
@@ -139,7 +160,7 @@ exports.authService = {
                     };
                 }
                 // Confirm email
-                const confirmed = yield usersRepository_1.usersRepository.updateConfirmation(user._id);
+                const confirmed = yield this.usersRepository.updateConfirmation(user._id);
                 if (!confirmed) {
                     return {
                         status: httpStatus_1.HttpStatus.InternalServerError,
@@ -168,11 +189,11 @@ exports.authService = {
                 throw error;
             }
         });
-    },
+    }
     resendConfirmationEmail(email) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const user = yield usersRepository_1.usersRepository.findByLoginOrEmail(email);
+            const user = yield this.usersRepository.findByLoginOrEmail(email);
             if (!user) {
                 return {
                     status: httpStatus_1.HttpStatus.BadRequest,
@@ -193,7 +214,7 @@ exports.authService = {
             // Generate new confirmation code
             const newConfirmationCode = (0, uuid_1.v4)();
             // Update user with new confirmation code
-            yield usersRepository_1.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
+            yield this.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
             // Try to send email with new code
             try {
                 const updatedUser = Object.assign(Object.assign({}, user), { emailConfirmation: Object.assign(Object.assign({}, user.emailConfirmation), { confirmationCode: newConfirmationCode }) });
@@ -209,12 +230,12 @@ exports.authService = {
                 extensions: [],
             };
         });
-    },
+    }
     refreshTokens(oldRefreshToken) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // 1. Verify old refresh token
-                const payload = yield jwt_adapter_1.jwtService.verifyRefreshToken(oldRefreshToken);
+                const payload = yield this.jwtService.verifyRefreshToken(oldRefreshToken);
                 if (!payload) {
                     return {
                         status: httpStatus_1.HttpStatus.Unauthorized,
@@ -238,11 +259,11 @@ exports.authService = {
                 // 4. Create new session with same deviceId
                 const newTokenId = yield this.createRefreshSession(payload.userId, payload.deviceId);
                 // 5. Create new tokens
-                const user = yield usersRepository_1.usersRepository.findByIdOrFail(payload.userId);
-                const accessToken = yield jwt_adapter_1.jwtService.createToken(payload.userId, user.login);
-                const refreshToken = yield jwt_adapter_1.jwtService.createRefreshToken(payload.userId, newTokenId, payload.deviceId);
+                const user = yield this.usersRepository.findByIdOrFail(payload.userId);
+                const accessToken = yield this.jwtService.createToken(payload.userId, user.login);
+                const refreshToken = yield this.jwtService.createRefreshToken(payload.userId, newTokenId, payload.deviceId);
                 // 6. Update device activity
-                yield security_devices_service_1.securityDevicesService.updateDeviceActivity(payload.deviceId);
+                yield this.securityDevicesService.updateDeviceActivity(payload.deviceId);
                 return {
                     status: httpStatus_1.HttpStatus.Ok,
                     data: { accessToken, refreshToken },
@@ -259,12 +280,12 @@ exports.authService = {
                 };
             }
         });
-    },
+    }
     logout(refreshToken) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 // 1. Verify refresh token
-                const payload = yield jwt_adapter_1.jwtService.verifyRefreshToken(refreshToken);
+                const payload = yield this.jwtService.verifyRefreshToken(refreshToken);
                 if (!payload) {
                     return {
                         status: httpStatus_1.HttpStatus.Unauthorized,
@@ -304,7 +325,7 @@ exports.authService = {
                 };
             }
         });
-    },
+    }
     createRefreshSession(userId, deviceId) {
         return __awaiter(this, void 0, void 0, function* () {
             const tokenId = (0, uuid_1.v4)();
@@ -316,13 +337,13 @@ exports.authService = {
                 createdAt: new Date(),
                 expiresAt: (0, date_fns_1.add)(new Date(), { seconds: settings_1.SETTINGS.REFRESH_TIME })
             };
-            yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.createSession(session);
+            yield this.refreshTokenSessionsRepository.createSession(session);
             return tokenId;
         });
-    },
+    }
     validateRefreshSession(tokenId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const session = yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.findSessionByTokenId(tokenId);
+            const session = yield this.refreshTokenSessionsRepository.findSessionByTokenId(tokenId);
             if (!session) {
                 return { isValid: false, error: 'NOT_FOUND' };
             }
@@ -334,38 +355,38 @@ exports.authService = {
             }
             return { isValid: true };
         });
-    },
+    }
     invalidateRefreshSession(tokenId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield refresh_token_sessions_repository_1.refreshTokenSessionsRepository.invalidateSession(tokenId);
+            return yield this.refreshTokenSessionsRepository.invalidateSession(tokenId);
         });
-    },
+    }
     extractDeviceIdFromToken(refreshToken) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const payload = yield jwt_adapter_1.jwtService.verifyRefreshToken(refreshToken);
+                const payload = yield this.jwtService.verifyRefreshToken(refreshToken);
                 return (payload === null || payload === void 0 ? void 0 : payload.deviceId) || null;
             }
             catch (error) {
                 return null;
             }
         });
-    },
+    }
     isEmailAlreadyConfirmed(email) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
             try {
-                const user = yield usersRepository_1.usersRepository.findByLoginOrEmail(email);
+                const user = yield this.usersRepository.findByLoginOrEmail(email);
                 return ((_a = user === null || user === void 0 ? void 0 : user.emailConfirmation) === null || _a === void 0 ? void 0 : _a.isConfirmed) || false;
             }
             catch (error) {
                 return false;
             }
         });
-    },
+    }
     sendPasswordRecoveryEmail(email) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield usersRepository_1.usersRepository.findByLoginOrEmail(email);
+            const user = yield this.usersRepository.findByLoginOrEmail(email);
             if (!user) {
                 return {
                     status: httpStatus_1.HttpStatus.NoContent,
@@ -375,7 +396,7 @@ exports.authService = {
                 };
             }
             const newConfirmationCode = (0, uuid_1.v4)();
-            yield usersRepository_1.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
+            yield this.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
             try {
                 const updatedUser = Object.assign(Object.assign({}, user), { emailConfirmation: Object.assign(Object.assign({}, user.emailConfirmation), { confirmationCode: newConfirmationCode }) });
                 yield email_manager_1.emailManager.sendPasswordRecoveryEmail(updatedUser);
@@ -390,26 +411,29 @@ exports.authService = {
                 extensions: [],
             };
         });
-    },
+    }
     confirmPasswordRecovery(code, password) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const user = yield usersRepository_1.usersRepository.findByConfirmationCode(code);
+                const user = yield this.usersRepository.findByConfirmationCode(code);
                 if (!user) {
                     return {
                         status: httpStatus_1.HttpStatus.BadRequest,
-                        errorMessage: 'Failed to find confirmation code',
-                        extensions: [],
+                        errorMessage: 'Invalid recovery code',
+                        extensions: [{
+                                message: 'Invalid recovery code',
+                                field: 'recoveryCode'
+                            }],
                         data: null,
                     };
                 }
-                const newPasswordHash = yield bcrypt_adapter_1.bcryptService.generateHash(password);
-                yield usersRepository_1.usersRepository.updatePassword(user._id, newPasswordHash);
-                yield usersRepository_1.usersRepository.clearRecoveryCode(user._id);
+                const newPasswordHash = yield this.bcryptService.generateHash(password);
+                yield this.usersRepository.updatePassword(user._id, newPasswordHash);
+                yield this.usersRepository.clearRecoveryCode(user._id);
                 if (!user) {
                     return {
                         status: httpStatus_1.HttpStatus.InternalServerError,
-                        errorMessage: 'Failed to udpate password',
+                        errorMessage: 'Failed to update password',
                         extensions: [],
                         data: null,
                     };
@@ -426,3 +450,17 @@ exports.authService = {
         });
     }
 };
+exports.AuthService = AuthService;
+exports.AuthService = AuthService = __decorate([
+    __param(0, (0, inversify_1.inject)(jwt_adapter_1.JwtService)),
+    __param(1, (0, inversify_1.inject)(refresh_token_sessions_repository_1.RefreshTokenSessionsRepository)),
+    __param(2, (0, inversify_1.inject)(bcrypt_adapter_1.BcryptService)),
+    __param(3, (0, inversify_1.inject)(security_devices_service_1.SecurityDevicesService)),
+    __param(4, (0, inversify_1.inject)(usersRepository_1.UsersRepository)),
+    __metadata("design:paramtypes", [jwt_adapter_1.JwtService,
+        refresh_token_sessions_repository_1.RefreshTokenSessionsRepository,
+        bcrypt_adapter_1.BcryptService,
+        security_devices_service_1.SecurityDevicesService,
+        usersRepository_1.UsersRepository])
+], AuthService);
+;

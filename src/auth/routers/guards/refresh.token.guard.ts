@@ -1,6 +1,27 @@
 import { Request, Response, NextFunction } from 'express';
-import { jwtService } from '../../adapters/jwt.adapter';
-import { authService } from '../../application/auth.service';
+import { JwtService } from '../../adapters/jwt.adapter';
+import { AuthService } from '../../application/auth.service';
+import { RefreshTokenSessionsRepository } from '../../repositories/refresh.token.sessions.repository';
+import { BcryptService } from '../../adapters/bcrypt.adapter';
+import { SecurityDevicesService } from '../../devices/security-devices.service';
+import { UsersRepository } from '../../../users/repositories/usersRepository';
+import { SecurityDeviceRepository } from '../../devices/security-device.repository';
+
+const jwtService = new JwtService();
+const refreshTokenSessionsRepository = new RefreshTokenSessionsRepository();
+const bcryptService = new BcryptService();
+const usersRepository = new UsersRepository();
+const securityDeviceRepository = new SecurityDeviceRepository();
+
+const securityDevicesService = new SecurityDevicesService(securityDeviceRepository);
+
+const authService = new AuthService(
+  jwtService,
+  refreshTokenSessionsRepository,
+  bcryptService,
+  securityDevicesService,
+  usersRepository
+)
 
 export const refreshTokenGuard = async (
   req: Request,

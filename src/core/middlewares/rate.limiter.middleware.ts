@@ -36,7 +36,28 @@ export function createRateLimitMiddleware(maxAttempts: number, windowMs: number)
             record = undefined;
         }
 
-        // Set up response interceptor to count attempts
+        // Check if we should block this request BEFORE processing
+        // We count the attempt first for password-recovery endpoint
+        if (req.path === '/password-recovery' || req.path === '/new-password') {
+            // For password-recovery and new-password, count the attempt immediately
+            if (!record) {
+                record = {
+                    count: 1,
+                    firstAttemptTime: now
+                };
+                attempts.set(key, record);
+            } else {
+                record.count++;
+            }
+
+            // Check if limit exceeded
+            if (record.count > maxAttempts) {
+                res.status(429).send();
+                return;
+            }
+        }
+
+        // Set up response interceptor to count attempts for other endpoints
         const originalSend = res.send;
         const originalJson = res.json;
         const originalSendStatus = res.sendStatus;
@@ -46,6 +67,11 @@ export function createRateLimitMiddleware(maxAttempts: number, windowMs: number)
         const handleResponse = () => {
             if (responseHandled) return;
             responseHandled = true;
+
+            // Skip if already counted (password-recovery endpoints)
+            if (req.path === '/password-recovery' || req.path === '/new-password') {
+                return;
+            }
 
             // Determine if we should count this attempt
             const statusCode = res.statusCode;
@@ -67,9 +93,8 @@ export function createRateLimitMiddleware(maxAttempts: number, windowMs: number)
             }
         };
 
-        // Check if we should block this request
-        // We block if there's an existing record AND it has reached the limit
-        if (record && record.count >= maxAttempts) {
+        // Check if we should block this request (for non-password-recovery endpoints)
+        if (req.path !== '/password-recovery' && req.path !== '/new-password' && record && record.count >= maxAttempts) {
             res.status(429).send();
             return;
         }
@@ -86,16 +111,19 @@ export function createRateLimitMiddleware(maxAttempts: number, windowMs: number)
         };
 
         res.sendStatus = function(code: number) {
-            res.statusCode = code;
             handleResponse();
             return originalSendStatus.call(this, code);
         };
 
-        res.end = function(...args: any[]) {
-            handleResponse();
-            // @ts-ignore - Express end() has multiple overloads
-            return originalEnd.apply(this, args);
+        const wrapResponseMethod = (originalMethod: Function) => {
+            return function(this: Response, ...args: any[]) {
+                handleResponse();
+                return originalMethod.apply(this, args);
+            };
         };
+
+        res.end = wrapResponseMethod(originalEnd);
+
 
         next();
     };

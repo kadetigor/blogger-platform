@@ -18,10 +18,12 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-validator": "^7.2.1",
+    "inversify": "7.0.0-alpha.5",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.15.0",
     "nodemailer": "^7.0.3",
     "pnpm": "^10.11.0",
+    "reflect-metadata": "^0.2.2",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

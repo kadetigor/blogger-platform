@@ -1,25 +1,26 @@
 import { Router } from "express";
 import { refreshTokenGuard } from "../../routers/guards/refresh.token.guard";
-import { getDevicesHandler } from "./handlers/get.devices.handler";
-import { deleteDeviceHandler } from "./handlers/delete.device.handler";
-import { deleteAllOtherDevicesHandler } from "./handlers/delete.all.other.devices.handler";
+import { container } from "../../../composition-root";
+import { ScurityDevicesController } from "./security-devices.controller";
+
+const securityDevicesController = container.get(ScurityDevicesController)
 
 export const devicesRouter = Router()
 
 devicesRouter.get(
     '/',
     refreshTokenGuard,
-    getDevicesHandler
+    securityDevicesController.getDevicesHandler.bind(securityDevicesController)//getDevicesHandler
 )
 
 devicesRouter.delete(
     '/',
     refreshTokenGuard,
-    deleteAllOtherDevicesHandler
+    securityDevicesController.deleteAllOtherDevicesHandler.bind(securityDevicesController)//deleteAllOtherDevicesHandler
 )
 
 devicesRouter.delete(
     '/:id',
     refreshTokenGuard,
-    deleteDeviceHandler
+    securityDevicesController.deleteDeviceHandler.bind(securityDevicesController)//deleteDeviceHandler
 )

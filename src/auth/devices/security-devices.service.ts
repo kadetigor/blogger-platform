@@ -9,20 +9,26 @@
   - [X] Create `updateDeviceActivity(deviceId: string)` function
   - [X] Create `validateDeviceOwnership(userId: string, deviceId: string)` function
 */
-
+import 'reflect-metadata';
 import { SecurityDevice } from "./security-device";
 import { SETTINGS } from "../../core/settings/settings";
 import { v4 as uuid } from 'uuid';
 import { add } from 'date-fns';
-import { securityDeviceRepository } from "./security-device.repository";
+import { SecurityDeviceRepository } from "./security-device.repository";
 import { WithId } from "mongodb";
-import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
+import { inject, injectable } from "inversify";
 
-export const securityDevicesService = {
+@injectable()
+export class SecurityDevicesService {
+
+    constructor(
+        @inject(SecurityDeviceRepository) protected securityDeviceRepository: SecurityDeviceRepository,
+      ) {}
+
   async createDevice(userId: string, ip: string, header: string): Promise<void> {
     const deviceId = uuid()
     await this.createDeviceWithId(userId, deviceId, ip, header)
-  },
+  }
 
   async createDeviceWithId(userId: string, deviceId: string, ip: string, header: string): Promise<void> {
     const userAgent = await this.parseUserAgent(header)
@@ -35,8 +41,8 @@ export const securityDevicesService = {
         expiresAt: add(new Date(), { seconds: SETTINGS.REFRESH_TIME as number })
     } as SecurityDevice
 
-    await securityDeviceRepository.create(device)
-  },
+    await this.securityDeviceRepository.create(device)
+  }
 
   async parseUserAgent(userAgent: string | undefined): Promise<string> {
     // Return default if no user agent
@@ -78,15 +84,15 @@ export const securityDevicesService = {
 
     // Default fallback
     return deviceType ? "Mobile Browser" : "Unknown Browser";
-  },
+  }
 
   async getAllUserDevices(userId: string): Promise<WithId<SecurityDevice>[] | undefined> {
     try {
-        return await securityDeviceRepository.findDevicesByUserId(userId)
+        return await this.securityDeviceRepository.findDevicesByUserId(userId)
     } catch (e:unknown){
         console.log("Get all users' devices faild:", e);
     }
-  },
+  }
 
   async deleteDevice(userId: string, deviceId: string): Promise<void | boolean> {
     const deviceOwnership = await this.validateDeviceOwnership(userId, deviceId)
@@ -95,32 +101,32 @@ export const securityDevicesService = {
         return false
     }
     try {
-        await securityDeviceRepository.deleteByDeviceId(deviceId)
+        await this.securityDeviceRepository.deleteByDeviceId(deviceId)
         return
     } catch (e: unknown) {
         console.log('Device delition faild:', e);
     }
-  },
+  }
 
   async deleteAllOtherDevices(userId: string, currentDeviceId: string): Promise<void> {
     try {
-        await securityDeviceRepository.deleteAllExceptOne(userId, currentDeviceId)
+        await this.securityDeviceRepository.deleteAllExceptOne(userId, currentDeviceId)
         return
     } catch (e: unknown) {
         console.log('Device delition faild:', e);
     }
-  },
+  }
 
   async updateDeviceActivity(deviceId: string): Promise<boolean | undefined> {
     try {
-        return await securityDeviceRepository.updateLastActiveDate(deviceId, new Date())
+        return await this.securityDeviceRepository.updateLastActiveDate(deviceId, new Date())
     } catch (e: unknown) {
         console.log('Device delition faild:', e);
     }
-  },
+  }
 
   async validateDeviceOwnership(userId: string, deviceId: string): Promise<boolean> {
-    const device = await securityDeviceRepository.findByDeviceId(deviceId);
+    const device = await this.securityDeviceRepository.findByDeviceId(deviceId);
     if (!device) {
         return false; // Device not found
     }
