@@ -1,20 +1,21 @@
 import { RefreshTokenSession } from "../domain/refresh.token.session";
-import { refreshTokenSessionCollection } from "../../db/mongoDb";
 import 'reflect-metadata';
 import { injectable } from "inversify";
+import { RefreshTokenSessionDocument, RefreshTokenSessionModel } from "../domain/refresh.token.session.schema";
 
 @injectable()
 export class RefreshTokenSessionsRepository {
-    async createSession(session: RefreshTokenSession): Promise<void> {
-        await refreshTokenSessionCollection.insertOne(session);
+    async createSession(newSession: RefreshTokenSession): Promise<void> {
+        const session = new RefreshTokenSessionModel(newSession)
+        await session.save();
     }
 
-    async findSessionByTokenId(tokenId: string): Promise<RefreshTokenSession | null> {
-        return await refreshTokenSessionCollection.findOne({ tokenId });
+    async findSessionByTokenId(tokenId: string): Promise<RefreshTokenSessionDocument | null> {
+        return await RefreshTokenSessionModel.findOne({ "tokenId": tokenId });
     }
 
     async invalidateSession(tokenId: string): Promise<boolean> {
-        const result = await refreshTokenSessionCollection.updateOne(
+        const result = await RefreshTokenSessionModel.updateOne(
             { tokenId },
             { $set: { isRevoked: true } }
         );
@@ -22,19 +23,19 @@ export class RefreshTokenSessionsRepository {
     }
 
     async deleteExpiredSessions(): Promise<void> {
-        await refreshTokenSessionCollection.deleteMany({
+        await RefreshTokenSessionModel.deleteMany({
             expiresAt: { $lt: new Date() }
         });
     }
 
     // Add these new methods for device-related operations
     async deleteByDeviceId(deviceId: string): Promise<boolean> {
-        const result = await refreshTokenSessionCollection.deleteMany({ deviceId });
+        const result = await RefreshTokenSessionModel.deleteMany({ deviceId });
         return result.deletedCount > 0;
     }
 
     async deleteAllUserSessionsExceptOne(userId: string, deviceIdToKeep: string): Promise<boolean> {
-        const result = await refreshTokenSessionCollection.deleteMany({
+        const result = await RefreshTokenSessionModel.deleteMany({
             userId,
             deviceId: { $ne: deviceIdToKeep }
         });
@@ -42,6 +43,6 @@ export class RefreshTokenSessionsRepository {
     }
 
     async findSessionsByUserId(userId: string): Promise<RefreshTokenSession[]> {
-        return await refreshTokenSessionCollection.find({ userId }).toArray();
+        return await RefreshTokenSessionModel.find({ userId }).lean();
     }
 };

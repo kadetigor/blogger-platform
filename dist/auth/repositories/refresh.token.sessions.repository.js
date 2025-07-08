@@ -16,29 +16,30 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RefreshTokenSessionsRepository = void 0;
-const mongoDb_1 = require("../../db/mongoDb");
 require("reflect-metadata");
 const inversify_1 = require("inversify");
+const refresh_token_session_schema_1 = require("../domain/refresh.token.session.schema");
 let RefreshTokenSessionsRepository = class RefreshTokenSessionsRepository {
-    createSession(session) {
+    createSession(newSession) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield mongoDb_1.refreshTokenSessionCollection.insertOne(session);
+            const session = new refresh_token_session_schema_1.RefreshTokenSessionModel(newSession);
+            yield session.save();
         });
     }
     findSessionByTokenId(tokenId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield mongoDb_1.refreshTokenSessionCollection.findOne({ tokenId });
+            return yield refresh_token_session_schema_1.RefreshTokenSessionModel.findOne({ "tokenId": tokenId });
         });
     }
     invalidateSession(tokenId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield mongoDb_1.refreshTokenSessionCollection.updateOne({ tokenId }, { $set: { isRevoked: true } });
+            const result = yield refresh_token_session_schema_1.RefreshTokenSessionModel.updateOne({ tokenId }, { $set: { isRevoked: true } });
             return result.modifiedCount > 0;
         });
     }
     deleteExpiredSessions() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield mongoDb_1.refreshTokenSessionCollection.deleteMany({
+            yield refresh_token_session_schema_1.RefreshTokenSessionModel.deleteMany({
                 expiresAt: { $lt: new Date() }
             });
         });
@@ -46,13 +47,13 @@ let RefreshTokenSessionsRepository = class RefreshTokenSessionsRepository {
     // Add these new methods for device-related operations
     deleteByDeviceId(deviceId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield mongoDb_1.refreshTokenSessionCollection.deleteMany({ deviceId });
+            const result = yield refresh_token_session_schema_1.RefreshTokenSessionModel.deleteMany({ deviceId });
             return result.deletedCount > 0;
         });
     }
     deleteAllUserSessionsExceptOne(userId, deviceIdToKeep) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield mongoDb_1.refreshTokenSessionCollection.deleteMany({
+            const result = yield refresh_token_session_schema_1.RefreshTokenSessionModel.deleteMany({
                 userId,
                 deviceId: { $ne: deviceIdToKeep }
             });
@@ -61,7 +62,7 @@ let RefreshTokenSessionsRepository = class RefreshTokenSessionsRepository {
     }
     findSessionsByUserId(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield mongoDb_1.refreshTokenSessionCollection.find({ userId }).toArray();
+            return yield refresh_token_session_schema_1.RefreshTokenSessionModel.find({ userId }).lean();
         });
     }
 };

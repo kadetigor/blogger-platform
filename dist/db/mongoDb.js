@@ -8,36 +8,38 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.securityDevicesCollection = exports.refreshTokenSessionCollection = exports.commentCollection = exports.userCollection = exports.blogCollection = exports.postCollection = exports.client = void 0;
 exports.runDB = runDB;
 exports.stopDb = stopDb;
-const mongodb_1 = require("mongodb");
 const settings_1 = require("../core/settings/settings");
-const POSTS_COLLECTION_NAME = 'posts';
+const mongoose_1 = __importDefault(require("mongoose"));
+/* const POSTS_COLLECTION_NAME = 'posts';
 const BLOGS_COLLECTION_NAME = 'blogs';
 const USER_COLLECTION_NAME = 'users';
 const COMMENT_COLLECTION_NAME = 'comments';
 const REFRESH_TOKEN_SESSIONS_COLLECTION_NAME = 'refreshTokenSessions';
 const SECURITY_DEVICES_COLLECTION_NAME = 'securityDevices';
+
+export let client: MongoClient;
+export let postCollection: Collection<Post>
+export let blogCollection: Collection<Blog>
+export let userCollection: Collection<User>
+export let commentCollection: Collection<Comment>
+export let refreshTokenSessionCollection: Collection<RefreshTokenSession>;
+export let securityDevicesCollection: Collection<SecurityDevice>; */
 //Connecting to the Database
 function runDB(url) {
     return __awaiter(this, void 0, void 0, function* () {
-        exports.client = new mongodb_1.MongoClient(url);
-        const db = exports.client.db(settings_1.SETTINGS.DB_NAME);
-        exports.postCollection = db.collection(POSTS_COLLECTION_NAME);
-        exports.blogCollection = db.collection(BLOGS_COLLECTION_NAME);
-        exports.userCollection = db.collection(USER_COLLECTION_NAME);
-        exports.commentCollection = db.collection(COMMENT_COLLECTION_NAME);
-        exports.refreshTokenSessionCollection = db.collection(REFRESH_TOKEN_SESSIONS_COLLECTION_NAME);
-        exports.securityDevicesCollection = db.collection(SECURITY_DEVICES_COLLECTION_NAME);
         try {
-            yield exports.client.connect();
-            yield db.command({ ping: 1 });
-            console.log("✅ Connected to the database");
+            yield mongoose_1.default.connect(url, {
+                dbName: settings_1.SETTINGS.DB_NAME
+            });
+            console.log("✅ Connected to the database with Mongoose");
         }
         catch (e) {
-            yield exports.client.close();
             throw new Error(`❌ Database not connected: ${e}`);
         }
     });
@@ -45,9 +47,6 @@ function runDB(url) {
 // for tests
 function stopDb() {
     return __awaiter(this, void 0, void 0, function* () {
-        if (!exports.client) {
-            throw new Error(`❌ No active client`);
-        }
-        yield exports.client.close();
+        yield mongoose_1.default.connection.close();
     });
 }

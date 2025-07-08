@@ -1,42 +1,43 @@
 import { ObjectId, WithId } from "mongodb";
 import { SecurityDevice } from "./security-device";
-import { securityDevicesCollection } from "../../db/mongoDb";
 import 'reflect-metadata';
 import { injectable } from "inversify";
+import { SecurityDeviceDocument, SecurityDeviceModel } from "./security.device.schema";
 
 @injectable()
 export class SecurityDeviceRepository {
-    async create(device: SecurityDevice): Promise<void> {
-        await securityDevicesCollection.insertOne(device);
+    async create(newDevice: SecurityDevice): Promise<void> {
+        const device = new SecurityDeviceModel(newDevice);
+        await device.save();
     }
 
     async findByDeviceId(deviceId: string): Promise<WithId<SecurityDevice> | null> {
         try {
-            return await securityDevicesCollection.findOne({ deviceId });
+            return await SecurityDeviceModel.findOne({ "deviceId" : deviceId });
         } catch (error) {
             console.error('Error finding device by deviceId:', error);
             return null;
         }
     }
-    async findDevicesByUserId(userId: string): Promise<WithId<SecurityDevice>[]> {
-        return await securityDevicesCollection.find({ userId }).toArray();
+    async findDevicesByUserId(userId: string): Promise<SecurityDeviceDocument[]> {
+        return await SecurityDeviceModel.find({ "userId" : userId }).lean();
     }
 
     async updateLastActiveDate(deviceId: string, lastActiveDate: Date): Promise<boolean> {
-        const result = await securityDevicesCollection.updateOne(
+        const result = await SecurityDeviceModel.updateOne(
             { deviceId },
-            { $set: { lastActiveDate } }
+            { $set: { lastActiveDate: lastActiveDate } }
         );
         return result.modifiedCount > 0;
     }
 
     async deleteByDeviceId(deviceId: string): Promise<boolean> {
-        const result = await securityDevicesCollection.deleteOne({ deviceId });
+        const result = await SecurityDeviceModel.deleteOne({ "deviceId": deviceId });
         return result.deletedCount > 0;
     }
 
     async deleteAllExceptOne(userId: string, deviceIdToKeep: string): Promise<boolean> {
-        const result = await securityDevicesCollection.deleteMany({
+        const result = await SecurityDeviceModel.deleteMany({
             userId,
             deviceId: { $ne: deviceIdToKeep }
         });
@@ -44,7 +45,7 @@ export class SecurityDeviceRepository {
     }
 
     async deleteAllByUserId(userId: string): Promise<boolean> {
-        const result = await securityDevicesCollection.deleteMany({ userId });
+        const result = await SecurityDeviceModel.deleteMany({ "userId": userId });
         return result.deletedCount > 0;
     }
 };

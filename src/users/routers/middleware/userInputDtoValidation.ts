@@ -1,5 +1,5 @@
 import { body } from 'express-validator';
-import { userCollection } from '../../../db/mongoDb';
+import { UserModel } from '../../domain/user.schema';
 
 const loginValidation = body('login')
     .exists().withMessage('Login is required')
@@ -7,7 +7,7 @@ const loginValidation = body('login')
     .trim().isLength({ min: 3, max: 10}).withMessage('Length of the Login should be no less then 3 characters and no more then 10 characters')
     .matches(/^[a-zA-Z0-9_-]*$/).withMessage('Login must contain only characters and numbers')
     .custom(async (login) => {
-        const existing = await userCollection.findOne({ 
+        const existing = await UserModel.countDocuments({ 
             $or: [{ login }, { email: login }] 
         });
         if (existing) {
@@ -26,7 +26,7 @@ const emailValidation = body('email')
     .isString().withMessage('Email should be a string')
     .matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage('Email must be a valid email format')
     .custom(async (email) => {
-        const existing = await userCollection.findOne({ 
+        const existing = await UserModel.countDocuments({ 
             $or: [{ email }, { login: email }] 
         });
         if (existing) {

@@ -1,59 +1,69 @@
-import { Filter, ObjectId, WithId } from "mongodb";
+import { FilterQuery } from "mongoose";
 import { blogQueryInput } from "../routers/input/blogQueryInput";
-import { Blog } from "../domain/blog";
-import { blogCollection } from "../../db/mongoDb";
+import { BlogModel, BlogDocument } from "../domain/blog.schema";
 import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
 
 export const blogsQueryRepository = {
 
   async findMany(
     queryDto: blogQueryInput,
-  ): Promise<{ items: WithId<Blog>[]; totalCount: number }> {
+  ): Promise<{ items: BlogDocument[]; totalCount: number }> {
     const {
       pageNumber,
       pageSize,
       sortBy,
       sortDirection,
       searchNameTerm
-    } = queryDto
+    } = queryDto;
 
     const skip = (pageNumber - 1) * pageSize;
-    const filter: Filter<Blog> = {};
+    const filter: FilterQuery<BlogDocument> = {};
+    
     if (searchNameTerm && searchNameTerm.trim() !== "") {
       filter.name = {
-        // case-insensitive “contains”
+        // case-insensitive "contains"
         $regex: searchNameTerm,
         $options: "i",
       };
     }
 
-    const items = await blogCollection
-      .find(filter)
-      .sort({ [sortBy]: sortDirection })
-      .skip(skip)
-      .limit(pageSize)
-      .toArray();
-
-    const totalCount = await blogCollection.countDocuments(filter);
+    // Execute both queries in parallel for better performance
+    const [items, totalCount] = await Promise.all([
+      BlogModel
+        .find(filter)
+        .sort({ [sortBy]: sortDirection })
+        .skip(skip)
+        .limit(pageSize)
+        .lean() // Use lean() for better performance when you don't need Mongoose document methods
+        .exec(),
+      BlogModel.countDocuments(filter).exec()
+    ]);
 
     return { items, totalCount };
   },
 
-  async findByIdOrFail(id: string): Promise<WithId<Blog>> {
-    const res = await blogCollection.findOne({ _id: new ObjectId(id) });
-    if (!res) {
-      throw new repositoryNotFoundError('Blog does not exist')
+  async findByIdOrFail(id: string): Promise<BlogDocument> {
+    const blog = await BlogModel.findById(id).exec();
+    
+    if (!blog) {
+      throw new repositoryNotFoundError('Blog does not exist');
     }
-    return res;
+    
+    return blog;
   },
 
   async getBlogName(id: string): Promise<string> {
-    const blogResult = await blogCollection.findOne({_id: new ObjectId(id)});
+    // Use select() to only fetch the name field for better performance
+    const blog = await BlogModel
+      .findById(id)
+      .select('name')
+      .lean()
+      .exec();
 
-    if(!blogResult) {
-        throw new Error('No blog with this id')
+    if (!blog) {
+      throw new Error('No blog with this id');
     }
 
-    return blogResult.name;
+    return blog.name;
   }
 };

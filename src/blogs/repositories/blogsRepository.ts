@@ -1,55 +1,43 @@
-import { Blog } from "../domain/blog";
-import { blogCollection } from "../../db/mongoDb";
-import { ObjectId, WithId } from "mongodb";
-import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
-import { blogAttributes } from "../application/dtos/blogAttributes";
+import { BlogModel, BlogDocument } from '../domain/blog.schema';
+import { repositoryNotFoundError } from '../../core/errors/repositoryNotFoundError';
+import { blogAttributes } from '../application/dtos/blogAttributes';
+import { Blog } from '../domain/blog';
 
 export const blogsRepository = {
-
-  async findByIdOrFail(id: string): Promise<WithId<Blog>> {
-    const res = await blogCollection.findOne({ _id: new ObjectId(id) });
-    if (!res) {
-      throw new repositoryNotFoundError('Blog does not exist')
+  async findByIdOrFail(id: string): Promise<BlogDocument> {
+    const blog = await BlogModel.findById(id);
+    if (!blog) {
+      throw new repositoryNotFoundError('Blog does not exist');
     }
-    return res;
+    return blog;
   },
 
   async create(newBlog: Blog): Promise<string> {
-    const insertResult = await blogCollection.insertOne(newBlog);
-
-    return insertResult.insertedId.toString();
+    const blog = new BlogModel(newBlog);
+    const savedBlog = await blog.save();
+    return savedBlog._id.toString();
   },
 
   async update(id: string, dto: blogAttributes): Promise<void> {
-    const updateResult = await blogCollection.updateOne(
+    const result = await BlogModel.findByIdAndUpdate(
+      id,
       {
-        _id: new ObjectId(id),
+        name: dto.name,
+        description: dto.description,
+        websiteUrl: dto.websiteUrl
       },
-      {
-        $set: {
-          name: dto.name,
-          description: dto.description,
-          websiteUrl: dto.websiteUrl,
-        },
-      },
+      { runValidators: true }
     );
 
-    if (updateResult.matchedCount < 1) {
-      throw new repositoryNotFoundError('Blog does not Exist')
+    if (!result) {
+      throw new repositoryNotFoundError('Blog does not exist');
     }
-
-    return;
   },
 
   async delete(id: string): Promise<void> {
-    const deleteResult = await blogCollection.deleteOne({
-      _id: new ObjectId(id),
-    });
-
-    if (deleteResult.deletedCount < 1) {
-      throw new repositoryNotFoundError('Blog does not exist')
+    const result = await BlogModel.findByIdAndDelete(id);
+    if (!result) {
+      throw new repositoryNotFoundError('Blog does not exist');
     }
-
-    return;
-  },
+  }
 };

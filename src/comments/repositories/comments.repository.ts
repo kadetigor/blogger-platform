@@ -1,31 +1,28 @@
-import { ObjectId, WithId } from "mongodb";
 import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
-import { commentCollection } from "../../db/mongoDb";
 import { commentUpdateDto } from "../application/dtos/comment.update.dto";
 import { Comment } from '../domain/comment';
+import { CommentDocument, CommentModel } from "../domain/comment.schema";
 
 export const commentsRepository = {
 
-  async findByIdOrFail(id: string): Promise<WithId<Comment>> {
-    const res = await commentCollection.findOne({ _id: new ObjectId(id) });
+  async findByIdOrFail(id: string): Promise<CommentDocument> {
+    const result = await CommentModel.findById(id);
 
-    if (!res) {
+    if (!result) {
       throw new repositoryNotFoundError('Comment does not exist')
     }
-    return res;
+    return result;
   },
 
   async create(newComment: Comment): Promise<string> {
-    const insertResult = await commentCollection.insertOne(newComment);
-
-    return insertResult.insertedId.toString();
+    const comment = new CommentModel(newComment);
+    const savedComment = await comment.save();
+    return savedComment._id.toString()
   },
 
   async update(id: string, dto: commentUpdateDto): Promise<void> {
-    const updateResult = await commentCollection.updateOne(
-      {
-        _id: new ObjectId(id),
-      },
+    const result = await CommentModel.findByIdAndUpdate(
+      id,
       {
         $set: {
           content: dto.content,
@@ -33,7 +30,7 @@ export const commentsRepository = {
       },
     );
 
-    if (updateResult.matchedCount < 1) {
+    if (!result) {
       throw new repositoryNotFoundError('Comment does not exist')
     }
 
@@ -41,11 +38,9 @@ export const commentsRepository = {
   },
 
   async delete(id: string): Promise<void> {
-    const deleteResult = await commentCollection.deleteOne({
-      _id: new ObjectId(id),
-    });
+    const result = await CommentModel.findByIdAndDelete(id)
 
-    if (deleteResult.deletedCount < 1) {
+    if (!result) {
       throw new repositoryNotFoundError('Comment does not exist')
     }
 

@@ -5,6 +5,7 @@ import { userAttributes } from "./dtos/userAttributes";
 import { UserWithConfirmation } from "../../email/user.with.confirmation.type";
 import { v4 as uuid } from 'uuid';
 import { inject, injectable } from "inversify";
+import { UserDocument } from "../domain/user.schema";
 
 @injectable()
 export class UsersService {

@@ -1,56 +1,45 @@
 import { Post } from "../domain/post";
 import { postAttributes } from '../application/dtos/postAttributes';
-import { blogsRepository } from '../../blogs/repositories/blogsRepository';
-import { postCollection } from "../../db/mongoDb";
-import { ObjectId, WithId } from "mongodb";
 import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
-import { postQueryInput } from "../routers/input/postQueryInput";
+import { PostDocument, PostModel } from "../domain/post.schema";
 
 export const postsRepository = {
 
-  async findByIdOrFail(id: string): Promise<WithId<Post>> {
-    const res = await postCollection.findOne({ _id: new ObjectId(id) });
-
-    if (!res) {
+  async findByIdOrFail(id: string): Promise<PostDocument> {
+    const post = await PostModel.findById(id);
+    if (!post) {
       throw new repositoryNotFoundError('Post does not exist')
     }
-    return res;
+    return post;
   },
 
   async create(newPost: Post): Promise<string> {
-    const insertResult = await postCollection.insertOne(newPost);
-
-    return insertResult.insertedId.toString();
+    const post = new PostModel(newPost);
+    const savedPost = await post.save() as PostDocument;
+    return savedPost._id.toString();
   },
 
   async update(id: string, dto: postAttributes): Promise<void> {
-    const updateResult = await postCollection.updateOne(
+    const result = await PostModel.findByIdAndUpdate(
+      id,
       {
-        _id: new ObjectId(id),
+        title: dto.title,
+        shortDescription: dto.shortDescription,
+        content: dto.content,
+        blogId: dto.blogId,
       },
-      {
-        $set: {
-          title: dto.title,
-          shortDescription: dto.shortDescription,
-          content: dto.content,
-          blogId: dto.blogId,
-        },
-      },
+      { runValidators: true }
     );
 
-    if (updateResult.matchedCount < 1) {
+    if (!result) {
       throw new repositoryNotFoundError('Post does not exist')
     }
-
     return;
   },
 
   async delete(id: string): Promise<void> {
-    const deleteResult = await postCollection.deleteOne({
-      _id: new ObjectId(id),
-    });
-
-    if (deleteResult.deletedCount < 1) {
+    const result = await PostModel.findByIdAndDelete(id)
+    if (!result) {
       throw new repositoryNotFoundError('Post does not exist')
     }
 

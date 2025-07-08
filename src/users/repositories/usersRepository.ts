@@ -1,51 +1,43 @@
-import { ObjectId, WithId } from "mongodb";
 import 'reflect-metadata';
-import { userCollection } from "../../db/mongoDb";
 import { userAttributes } from "../application/dtos/userAttributes";
-import { User } from "../domain/user";
 import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
-import { UserWithConfirmation } from "../../email/user.with.confirmation.type";
 import { injectable } from "inversify";
+import { UserDocument, UserModel } from "../domain/user.schema";
+import { User } from '../domain/user';
+import { UserWithConfirmation } from '../../email/user.with.confirmation.type';
 
 @injectable()
 export class UsersRepository {
-    async findByIdOrFail(id: string): Promise<WithId<User>> {
-        const res = await userCollection.findOne({ _id: new ObjectId(id) });
+    async findByIdOrFail(id: string): Promise<UserDocument> {
+        const result = await UserModel.findById(id);
 
-        if (!res) {
+        if (!result) {
             throw new repositoryNotFoundError('User does not exist')
         }
-        return res;
+        return result;
     }
 
-    async findByConfirmationCode(emailConfirmationCode: string): Promise<WithId<UserWithConfirmation>  | null > {
-        const user = await userCollection.findOne<WithId<UserWithConfirmation>>({
-            "emailConfirmation.confirmationCode": emailConfirmationCode
-        });
-
-        return user;
+    async findByConfirmationCode(emailConfirmationCode: string): Promise<UserDocument  | null > {
+        return await UserModel.findByConfirmationCode(emailConfirmationCode);
     }
         
     async create(newUser: User | UserWithConfirmation): Promise<string> {
-        const insertResult = await userCollection.insertOne(newUser as any);
-        return insertResult.insertedId.toString();
+        const user = new UserModel(newUser);
+        const savedUser = await user.save();
+        return savedUser._id.toString();
     }
 
     async update(id: string, dto: userAttributes): Promise<void> {
-        const updateResult = await userCollection.updateOne(
+        const result = await UserModel.findByIdAndUpdate(
+            id,
             {
-                _id: new ObjectId(id),
-            },
-            {
-                $set: {
-                    login: dto.login,
-                    password: dto.password,
-                    email: dto.email,
-                },
+                login: dto.login,
+                password: dto.password,
+                email: dto.email,
             },
         );
 
-        if (updateResult.matchedCount < 1) {
+        if (!result) {
             throw new repositoryNotFoundError('User does not exist')
         }
 
@@ -53,55 +45,48 @@ export class UsersRepository {
     }
 
     async delete(id: string): Promise<void> {
-        const deleteResult = await userCollection.deleteOne({
-            _id: new ObjectId(id),
-        });
+        const result = await UserModel.findByIdAndDelete(id);
 
-        if (deleteResult.deletedCount < 1) {
+        if (!result) {
             throw new repositoryNotFoundError('User does not exist')
         }
     }
 
     async findByLoginOrEmail(
         loginOrEmail: string,
-    ): Promise<WithId<UserWithConfirmation> | null> {
-        return userCollection.findOne<WithId<UserWithConfirmation>>({
-            $or: [{ email: loginOrEmail }, { login: loginOrEmail }],
-        });
+    ): Promise<UserDocument | null> {
+        return UserModel.findByLoginOrEmail(loginOrEmail);
     }
 
-    async updateConfirmation(
-        _id: ObjectId,
-    ): Promise<boolean> {
-        const result = await userCollection
-            .updateOne({_id}, {$set: {'emailConfirmation.isConfirmed': true}});
-        return result.modifiedCount === 1;
+    async updateConfirmation(id: string): Promise<boolean> {
+        const result = await UserModel.findByIdAndUpdate(
+            id,
+            { $set: { 'emailConfirmation.isConfirmed': true } }
+        );
+        return !!result;
     }
 
-    async updateConfirmationCode(
-        _id: ObjectId,
-        newConfirmationCode: string
-    ): Promise<boolean> {
-        const result = await userCollection.updateOne(
-            { _id },
+    async updateConfirmationCode(id: string, newConfirmationCode: string): Promise<boolean> {
+        const result = await UserModel.findByIdAndUpdate(
+            id,
             { $set: { 'emailConfirmation.confirmationCode': newConfirmationCode } }
         );
-        return result.modifiedCount === 1;
+        return !!result;
     }
 
-    async updatePassword(_id: ObjectId, passwordHash: string): Promise<boolean> {
-        const result = await userCollection.updateOne(
-            { _id },
-            { $set: { 'passwordHash': passwordHash }}
+    async updatePassword(id: string, passwordHash: string): Promise<boolean> {
+        const result = await UserModel.findByIdAndUpdate(
+            id,
+            { $set: { passwordHash } }
         );
-        return result.modifiedCount === 1;
+        return !!result;
     }
 
-    async clearRecoveryCode(_id: ObjectId): Promise<boolean> {
-        const result = await userCollection.updateOne(
-            { _id },
-            { $set: { 'emailConfirmation.confirmationCode': '' }}
+    async clearRecoveryCode(id: string): Promise<boolean> {
+        const result = await UserModel.findByIdAndUpdate(
+            id,
+            { $set: { 'emailConfirmation.confirmationCode': '' } }
         );
-        return result.modifiedCount === 1;
+        return !!result;
     }
 }

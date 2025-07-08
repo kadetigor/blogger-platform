@@ -16,19 +16,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SecurityDeviceRepository = void 0;
-const mongoDb_1 = require("../../db/mongoDb");
 require("reflect-metadata");
 const inversify_1 = require("inversify");
+const security_device_schema_1 = require("./security.device.schema");
 let SecurityDeviceRepository = class SecurityDeviceRepository {
-    create(device) {
+    create(newDevice) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield mongoDb_1.securityDevicesCollection.insertOne(device);
+            const device = new security_device_schema_1.SecurityDeviceModel(newDevice);
+            yield device.save();
         });
     }
     findByDeviceId(deviceId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                return yield mongoDb_1.securityDevicesCollection.findOne({ deviceId });
+                return yield security_device_schema_1.SecurityDeviceModel.findOne({ "deviceId": deviceId });
             }
             catch (error) {
                 console.error('Error finding device by deviceId:', error);
@@ -38,24 +39,24 @@ let SecurityDeviceRepository = class SecurityDeviceRepository {
     }
     findDevicesByUserId(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield mongoDb_1.securityDevicesCollection.find({ userId }).toArray();
+            return yield security_device_schema_1.SecurityDeviceModel.find({ "userId": userId }).lean();
         });
     }
     updateLastActiveDate(deviceId, lastActiveDate) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield mongoDb_1.securityDevicesCollection.updateOne({ deviceId }, { $set: { lastActiveDate } });
+            const result = yield security_device_schema_1.SecurityDeviceModel.updateOne({ deviceId }, { $set: { lastActiveDate: lastActiveDate } });
             return result.modifiedCount > 0;
         });
     }
     deleteByDeviceId(deviceId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield mongoDb_1.securityDevicesCollection.deleteOne({ deviceId });
+            const result = yield security_device_schema_1.SecurityDeviceModel.deleteOne({ "deviceId": deviceId });
             return result.deletedCount > 0;
         });
     }
     deleteAllExceptOne(userId, deviceIdToKeep) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield mongoDb_1.securityDevicesCollection.deleteMany({
+            const result = yield security_device_schema_1.SecurityDeviceModel.deleteMany({
                 userId,
                 deviceId: { $ne: deviceIdToKeep }
             });
@@ -64,7 +65,7 @@ let SecurityDeviceRepository = class SecurityDeviceRepository {
     }
     deleteAllByUserId(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield mongoDb_1.securityDevicesCollection.deleteMany({ userId });
+            const result = yield security_device_schema_1.SecurityDeviceModel.deleteMany({ "userId": userId });
             return result.deletedCount > 0;
         });
     }

@@ -11,14 +11,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userInputDtoValidation = exports.passwordValidation = void 0;
 const express_validator_1 = require("express-validator");
-const mongoDb_1 = require("../../../db/mongoDb");
+const user_schema_1 = require("../../domain/user.schema");
 const loginValidation = (0, express_validator_1.body)('login')
     .exists().withMessage('Login is required')
     .isString().withMessage('Login should be a string')
     .trim().isLength({ min: 3, max: 10 }).withMessage('Length of the Login should be no less then 3 characters and no more then 10 characters')
     .matches(/^[a-zA-Z0-9_-]*$/).withMessage('Login must contain only characters and numbers')
     .custom((login) => __awaiter(void 0, void 0, void 0, function* () {
-    const existing = yield mongoDb_1.userCollection.findOne({
+    const existing = yield user_schema_1.UserModel.countDocuments({
         $or: [{ login }, { email: login }]
     });
     if (existing) {
@@ -35,7 +35,7 @@ const emailValidation = (0, express_validator_1.body)('email')
     .isString().withMessage('Email should be a string')
     .matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/).withMessage('Email must be a valid email format')
     .custom((email) => __awaiter(void 0, void 0, void 0, function* () {
-    const existing = yield mongoDb_1.userCollection.findOne({
+    const existing = yield user_schema_1.UserModel.countDocuments({
         $or: [{ email }, { login: email }]
     });
     if (existing) {

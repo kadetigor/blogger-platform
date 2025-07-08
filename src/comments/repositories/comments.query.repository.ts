@@ -1,14 +1,12 @@
-import { Comment } from "../domain/comment";
-import { commentCollection } from "../../db/mongoDb";
-import { ObjectId, WithId } from "mongodb";
 import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
 import { commentQueryInput } from "../routers/input/comment.query.input";
+import { CommentDocument, CommentModel } from "../domain/comment.schema";
 
 export const commentsQueryRepository = {
 
   async findMany(
     queryDto: commentQueryInput,
-  ): Promise<{ items: WithId<Comment>[]; totalCount: number }> {
+  ): Promise<{ items: CommentDocument[]; totalCount: number }> {
     const {
       pageNumber,
       pageSize,
@@ -19,14 +17,16 @@ export const commentsQueryRepository = {
     const skip = (pageNumber - 1) * pageSize;
     const filter: any = {};
 
-    const items = await commentCollection
+    const [items, totalCount] = await Promise.all([
+    CommentModel
       .find(filter)
       .sort({ [sortBy]: sortDirection })
       .skip(skip)
       .limit(pageSize)
-      .toArray();
-
-    const totalCount = await commentCollection.countDocuments(filter);
+      .lean()
+      .exec(),
+    CommentModel.countDocuments(filter).exec()
+    ]);
 
     return { items, totalCount };
   },
@@ -34,7 +34,8 @@ export const commentsQueryRepository = {
   async findCommentsByPost(
     queryDto: commentQueryInput,
     postId: string,
-  ): Promise<{ items: WithId<Comment>[]; totalCount: number }> {
+  ): Promise<{ items: CommentDocument[]; totalCount: number }> {
+
     const {
       pageNumber,
       pageSize,
@@ -43,25 +44,28 @@ export const commentsQueryRepository = {
     } = queryDto;
 
     const filter = { postId: postId };
+
     const skip = (pageNumber - 1) * pageSize;
+
     const [ items, totalCount ] = await Promise.all([
-      commentCollection
+      CommentModel
         .find(filter)
         .sort({ [sortBy]: sortDirection })
         .skip(skip)
         .limit(pageSize)
-        .toArray(),
-      commentCollection.countDocuments(filter),
+        .lean()
+        .exec(),
+      CommentModel.countDocuments(filter).exec(),
     ]);
     return { items, totalCount };
   },
 
-  async findByIdOrFail(id: string): Promise<WithId<Comment>> {
-    const res = await commentCollection.findOne({ _id: new ObjectId(id) });
+  async findByIdOrFail(id: string): Promise<CommentDocument> {
+    const result = await CommentModel.findById(id).exec();
 
-    if (!res) {
+    if (!result) {
       throw new repositoryNotFoundError('Comment does not exist')
     }
-    return res;
+    return result;
   }
 };

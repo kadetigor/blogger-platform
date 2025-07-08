@@ -10,22 +10,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.commentsQueryRepository = void 0;
-const mongoDb_1 = require("../../db/mongoDb");
-const mongodb_1 = require("mongodb");
 const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
+const comment_schema_1 = require("../domain/comment.schema");
 exports.commentsQueryRepository = {
     findMany(queryDto) {
         return __awaiter(this, void 0, void 0, function* () {
             const { pageNumber, pageSize, sortBy, sortDirection, } = queryDto;
             const skip = (pageNumber - 1) * pageSize;
             const filter = {};
-            const items = yield mongoDb_1.commentCollection
-                .find(filter)
-                .sort({ [sortBy]: sortDirection })
-                .skip(skip)
-                .limit(pageSize)
-                .toArray();
-            const totalCount = yield mongoDb_1.commentCollection.countDocuments(filter);
+            const [items, totalCount] = yield Promise.all([
+                comment_schema_1.CommentModel
+                    .find(filter)
+                    .sort({ [sortBy]: sortDirection })
+                    .skip(skip)
+                    .limit(pageSize)
+                    .lean()
+                    .exec(),
+                comment_schema_1.CommentModel.countDocuments(filter).exec()
+            ]);
             return { items, totalCount };
         });
     },
@@ -35,24 +37,25 @@ exports.commentsQueryRepository = {
             const filter = { postId: postId };
             const skip = (pageNumber - 1) * pageSize;
             const [items, totalCount] = yield Promise.all([
-                mongoDb_1.commentCollection
+                comment_schema_1.CommentModel
                     .find(filter)
                     .sort({ [sortBy]: sortDirection })
                     .skip(skip)
                     .limit(pageSize)
-                    .toArray(),
-                mongoDb_1.commentCollection.countDocuments(filter),
+                    .lean()
+                    .exec(),
+                comment_schema_1.CommentModel.countDocuments(filter).exec(),
             ]);
             return { items, totalCount };
         });
     },
     findByIdOrFail(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const res = yield mongoDb_1.commentCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
-            if (!res) {
+            const result = yield comment_schema_1.CommentModel.findById(id).exec();
+            if (!result) {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('Comment does not exist');
             }
-            return res;
+            return result;
         });
     }
 };

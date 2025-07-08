@@ -10,8 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.blogsQueryRepository = void 0;
-const mongodb_1 = require("mongodb");
-const mongoDb_1 = require("../../db/mongoDb");
+const blog_schema_1 = require("../domain/blog.schema");
 const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 exports.blogsQueryRepository = {
     findMany(queryDto) {
@@ -21,37 +20,46 @@ exports.blogsQueryRepository = {
             const filter = {};
             if (searchNameTerm && searchNameTerm.trim() !== "") {
                 filter.name = {
-                    // case-insensitive “contains”
+                    // case-insensitive "contains"
                     $regex: searchNameTerm,
                     $options: "i",
                 };
             }
-            const items = yield mongoDb_1.blogCollection
-                .find(filter)
-                .sort({ [sortBy]: sortDirection })
-                .skip(skip)
-                .limit(pageSize)
-                .toArray();
-            const totalCount = yield mongoDb_1.blogCollection.countDocuments(filter);
+            // Execute both queries in parallel for better performance
+            const [items, totalCount] = yield Promise.all([
+                blog_schema_1.BlogModel
+                    .find(filter)
+                    .sort({ [sortBy]: sortDirection })
+                    .skip(skip)
+                    .limit(pageSize)
+                    .lean() // Use lean() for better performance when you don't need Mongoose document methods
+                    .exec(),
+                blog_schema_1.BlogModel.countDocuments(filter).exec()
+            ]);
             return { items, totalCount };
         });
     },
     findByIdOrFail(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const res = yield mongoDb_1.blogCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
-            if (!res) {
+            const blog = yield blog_schema_1.BlogModel.findById(id).exec();
+            if (!blog) {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('Blog does not exist');
             }
-            return res;
+            return blog;
         });
     },
     getBlogName(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const blogResult = yield mongoDb_1.blogCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
-            if (!blogResult) {
+            // Use select() to only fetch the name field for better performance
+            const blog = yield blog_schema_1.BlogModel
+                .findById(id)
+                .select('name')
+                .lean()
+                .exec();
+            if (!blog) {
                 throw new Error('No blog with this id');
             }
-            return blogResult.name;
+            return blog.name;
         });
     }
 };

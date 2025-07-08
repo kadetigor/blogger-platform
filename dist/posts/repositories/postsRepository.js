@@ -10,38 +10,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.postsRepository = void 0;
-const mongoDb_1 = require("../../db/mongoDb");
-const mongodb_1 = require("mongodb");
 const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
+const post_schema_1 = require("../domain/post.schema");
 exports.postsRepository = {
     findByIdOrFail(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const res = yield mongoDb_1.postCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
-            if (!res) {
+            const post = yield post_schema_1.PostModel.findById(id);
+            if (!post) {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('Post does not exist');
             }
-            return res;
+            return post;
         });
     },
     create(newPost) {
         return __awaiter(this, void 0, void 0, function* () {
-            const insertResult = yield mongoDb_1.postCollection.insertOne(newPost);
-            return insertResult.insertedId.toString();
+            const post = new post_schema_1.PostModel(newPost);
+            const savedPost = yield post.save();
+            return savedPost._id.toString();
         });
     },
     update(id, dto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const updateResult = yield mongoDb_1.postCollection.updateOne({
-                _id: new mongodb_1.ObjectId(id),
-            }, {
-                $set: {
-                    title: dto.title,
-                    shortDescription: dto.shortDescription,
-                    content: dto.content,
-                    blogId: dto.blogId,
-                },
-            });
-            if (updateResult.matchedCount < 1) {
+            const result = yield post_schema_1.PostModel.findByIdAndUpdate(id, {
+                title: dto.title,
+                shortDescription: dto.shortDescription,
+                content: dto.content,
+                blogId: dto.blogId,
+            }, { runValidators: true });
+            if (!result) {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('Post does not exist');
             }
             return;
@@ -49,10 +45,8 @@ exports.postsRepository = {
     },
     delete(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const deleteResult = yield mongoDb_1.postCollection.deleteOne({
-                _id: new mongodb_1.ObjectId(id),
-            });
-            if (deleteResult.deletedCount < 1) {
+            const result = yield post_schema_1.PostModel.findByIdAndDelete(id);
+            if (!result) {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('Post does not exist');
             }
             return;

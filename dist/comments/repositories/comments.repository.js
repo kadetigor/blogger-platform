@@ -10,35 +10,33 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.commentsRepository = void 0;
-const mongodb_1 = require("mongodb");
 const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
-const mongoDb_1 = require("../../db/mongoDb");
+const comment_schema_1 = require("../domain/comment.schema");
 exports.commentsRepository = {
     findByIdOrFail(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const res = yield mongoDb_1.commentCollection.findOne({ _id: new mongodb_1.ObjectId(id) });
-            if (!res) {
+            const result = yield comment_schema_1.CommentModel.findById(id);
+            if (!result) {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('Comment does not exist');
             }
-            return res;
+            return result;
         });
     },
     create(newComment) {
         return __awaiter(this, void 0, void 0, function* () {
-            const insertResult = yield mongoDb_1.commentCollection.insertOne(newComment);
-            return insertResult.insertedId.toString();
+            const comment = new comment_schema_1.CommentModel(newComment);
+            const savedComment = yield comment.save();
+            return savedComment._id.toString();
         });
     },
     update(id, dto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const updateResult = yield mongoDb_1.commentCollection.updateOne({
-                _id: new mongodb_1.ObjectId(id),
-            }, {
+            const result = yield comment_schema_1.CommentModel.findByIdAndUpdate(id, {
                 $set: {
                     content: dto.content,
                 },
             });
-            if (updateResult.matchedCount < 1) {
+            if (!result) {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('Comment does not exist');
             }
             return;
@@ -46,10 +44,8 @@ exports.commentsRepository = {
     },
     delete(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const deleteResult = yield mongoDb_1.commentCollection.deleteOne({
-                _id: new mongodb_1.ObjectId(id),
-            });
-            if (deleteResult.deletedCount < 1) {
+            const result = yield comment_schema_1.CommentModel.findByIdAndDelete(id);
+            if (!result) {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('Comment does not exist');
             }
             return;

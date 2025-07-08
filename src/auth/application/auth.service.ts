@@ -164,7 +164,7 @@ export class AuthService {
       }
 
       // Confirm email
-      const confirmed = await this.usersRepository.updateConfirmation(user!._id);
+      const confirmed = await this.usersRepository.updateConfirmation(user!.id);
       
       if (!confirmed) {
         return {
@@ -222,7 +222,7 @@ export class AuthService {
     const newConfirmationCode = uuid();
     
     // Update user with new confirmation code
-    await this.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
+    await this.usersRepository.updateConfirmationCode(user.id, newConfirmationCode);
     
     // Try to send email with new code
     try {
@@ -409,7 +409,7 @@ export class AuthService {
 
     const newConfirmationCode = uuid();
 
-    await this.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
+    await this.usersRepository.updateConfirmationCode(user.id, newConfirmationCode);
 
     try {
       const updatedUser = { ...user, emailConfirmation: { ...user.emailConfirmation, confirmationCode: newConfirmationCode } }
@@ -444,9 +444,9 @@ export class AuthService {
 
       const newPasswordHash = await this.bcryptService.generateHash(password);
 
-      await this.usersRepository.updatePassword(user._id, newPasswordHash)
+      await this.usersRepository.updatePassword(user.id, newPasswordHash)
 
-      await this.usersRepository.clearRecoveryCode(user._id);
+      await this.usersRepository.clearRecoveryCode(user.id);
 
       if (!user) {
         return {
