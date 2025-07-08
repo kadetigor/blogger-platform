@@ -12,10 +12,12 @@ import { postSortField } from './input/postSortField';
 import { paginationAndSortingValidation } from '../../core/middlewares/validation/queryPaginationSortingValidationMiddleware';
 import { accessTokenGuard } from '../../auth/routers/guards/access.token.guard';
 import { contentValidation } from '../../comments/routers/validation/comment.input.dto.validation';
-import { createCommentHandler } from '../../comments/routers/handlers/create.comment.handler';
-import { getCommentListHandler } from '../../comments/routers/handlers/get.comment.list.handler';
 import { validatePostExistsMiddleware } from './validation/post.exists.validation';
 import { commentSortField } from '../../comments/routers/input/comment.sort.field';
+import { container } from '../../composition-root';
+import { CommentsController } from '../../comments/routers/comments.controller';
+
+const commentsController = container.get(CommentsController)
 
 export const postsRouter = Router({})
 
@@ -56,12 +58,12 @@ postsRouter
   )
   .post(
     '/:id/comments',
-    accessTokenGuard,
+    superAdminGuardMiddleware,
     idValidationMiddleware,
     validatePostExistsMiddleware,
     contentValidation,
     inputValidationResultMiddleware,
-    createCommentHandler
+    commentsController.createCommentHandler.bind(commentsController)//createCommentHandler
   )
   .get(
     '/:id/comments',
@@ -69,5 +71,5 @@ postsRouter
     validatePostExistsMiddleware,
     paginationAndSortingValidation(commentSortField),
     inputValidationResultMiddleware,
-    getCommentListHandler
+    commentsController.getCommentListHandler.bind(commentsController)//getCommentListHandler
   )

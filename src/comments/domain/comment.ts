@@ -1,3 +1,10 @@
+
+export enum myStatus {
+    None = "None",
+    Like = "Like",
+    Dislike = "Dislike",
+}
+
 export type Comment = {
     content: string;
     commentatorInfo: {
@@ -6,4 +13,9 @@ export type Comment = {
     },
     postId: string;
     createdAt: Date;
+    likesInfo: {
+        likesCount: number,
+        dislikesCount: number,
+        myStatus: myStatus
+    } 
 }

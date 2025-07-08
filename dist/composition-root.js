@@ -15,6 +15,10 @@ const jwt_adapter_1 = require("./auth/adapters/jwt.adapter");
 const auth_service_1 = require("./auth/application/auth.service");
 const auth_controller_1 = require("./auth/routers/auth.controller");
 const security_devices_controller_1 = require("./auth/devices/routers/security-devices.controller");
+const comments_repository_1 = require("./comments/repositories/comments.repository");
+const comments_query_repository_1 = require("./comments/repositories/comments.query.repository");
+const comments_service_1 = require("./comments/application/comments.service");
+const comments_controller_1 = require("./comments/routers/comments.controller");
 exports.container = new inversify_1.Container();
 // Users
 exports.container.bind(usersRepository_1.UsersRepository).toSelf();
@@ -41,7 +45,7 @@ exports.container.bind(jwt_adapter_1.JwtService).toSelf();
 exports.container.bind(auth_service_1.AuthService).toSelf();
 exports.container.bind(security_devices_controller_1.ScurityDevicesController).toSelf();
 // Comments
-/* container.bind(CommentsRepository).toSelf();
-container.bind(CommentsQueryRepository).toSelf();
-container.bind(CommentsService).toSelf();
-container.bind(CommentsController).toSelf(); */ 
+exports.container.bind(comments_repository_1.CommentsRepository).toSelf();
+exports.container.bind(comments_query_repository_1.commentsQueryRepository).toSelf();
+exports.container.bind(comments_service_1.CommentsService).toSelf();
+exports.container.bind(comments_controller_1.CommentsController).toSelf();

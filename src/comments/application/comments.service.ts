@@ -1,9 +1,15 @@
-import { commentsRepository } from "../repositories/comments.repository";
-import { Comment } from "../domain/comment"
+import { CommentsRepository } from "../repositories/comments.repository";
+import { Comment, myStatus } from "../domain/comment"
 import { commentAttributes } from "./dtos/comment.attributes";
 import { commentUpdateDto } from "./dtos/comment.update.dto";
+import { inject, injectable } from "inversify";
 
-export const commentsService = {
+@injectable()
+export class CommentsService {
+
+  constructor(
+    @inject(CommentsRepository) protected commentsRepository: CommentsRepository,
+  ) {}
 
   async create(dto: commentAttributes): Promise<string> {
 
@@ -15,17 +21,26 @@ export const commentsService = {
       },
       postId: dto.postId,
       createdAt: new Date(),
+      likesInfo: {
+        likesCount: 0,
+        dislikesCount: 0,
+        myStatus: myStatus.None
+      } 
     };
-    return commentsRepository.create(newComment);
-  },
+    return this.commentsRepository.create(newComment);
+  }
 
   async update(id: string, dto: commentUpdateDto): Promise<void> {
-    await commentsRepository.update(id, dto)
+    await this.commentsRepository.update(id, dto)
     return;
-  },
+  }
 
   async delete(id: string): Promise<void> {
-    await commentsRepository.delete(id);
+    await this.commentsRepository.delete(id);
     return;
-  },
+  }
+
+  async updateLikeInfo(id: string, status: string): Promise<void> {
+    await this.commentsRepository.updateLikeInfo(id, status)
+  }
 }

@@ -1,8 +1,10 @@
 import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
 import { commentQueryInput } from "../routers/input/comment.query.input";
 import { CommentDocument, CommentModel } from "../domain/comment.schema";
+import { injectable } from "inversify";
 
-export const commentsQueryRepository = {
+@injectable()
+export class commentsQueryRepository {
 
   async findMany(
     queryDto: commentQueryInput,
@@ -29,7 +31,7 @@ export const commentsQueryRepository = {
     ]);
 
     return { items, totalCount };
-  },
+  }
 
   async findCommentsByPost(
     queryDto: commentQueryInput,
@@ -58,7 +60,7 @@ export const commentsQueryRepository = {
       CommentModel.countDocuments(filter).exec(),
     ]);
     return { items, totalCount };
-  },
+  }
 
   async findByIdOrFail(id: string): Promise<CommentDocument> {
     const result = await CommentModel.findById(id).exec();
