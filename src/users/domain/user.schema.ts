@@ -8,7 +8,7 @@ export interface UserDocument extends Document<Types.ObjectId> {
   passwordHash: string;
   createdAt: Date;
   // Optional confirmation fields
-  emailConfirmation?: {
+  emailConfirmation: {
     confirmationCode: string;
     isConfirmed: boolean;
   };
