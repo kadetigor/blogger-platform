@@ -160,7 +160,7 @@ let AuthService = class AuthService {
                     };
                 }
                 // Confirm email
-                const confirmed = yield this.usersRepository.updateConfirmation(user._id);
+                const confirmed = yield this.usersRepository.updateConfirmation(user.id);
                 if (!confirmed) {
                     return {
                         status: httpStatus_1.HttpStatus.InternalServerError,
@@ -214,7 +214,7 @@ let AuthService = class AuthService {
             // Generate new confirmation code
             const newConfirmationCode = (0, uuid_1.v4)();
             // Update user with new confirmation code
-            yield this.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
+            yield this.usersRepository.updateConfirmationCode(user.id, newConfirmationCode);
             // Try to send email with new code
             try {
                 const updatedUser = Object.assign(Object.assign({}, user), { emailConfirmation: Object.assign(Object.assign({}, user.emailConfirmation), { confirmationCode: newConfirmationCode }) });
@@ -396,7 +396,7 @@ let AuthService = class AuthService {
                 };
             }
             const newConfirmationCode = (0, uuid_1.v4)();
-            yield this.usersRepository.updateConfirmationCode(user._id, newConfirmationCode);
+            yield this.usersRepository.updateConfirmationCode(user.id, newConfirmationCode);
             try {
                 const updatedUser = Object.assign(Object.assign({}, user), { emailConfirmation: Object.assign(Object.assign({}, user.emailConfirmation), { confirmationCode: newConfirmationCode }) });
                 yield email_manager_1.emailManager.sendPasswordRecoveryEmail(updatedUser);
@@ -428,8 +428,8 @@ let AuthService = class AuthService {
                     };
                 }
                 const newPasswordHash = yield this.bcryptService.generateHash(password);
-                yield this.usersRepository.updatePassword(user._id, newPasswordHash);
-                yield this.usersRepository.clearRecoveryCode(user._id);
+                yield this.usersRepository.updatePassword(user.id, newPasswordHash);
+                yield this.usersRepository.clearRecoveryCode(user.id);
                 if (!user) {
                     return {
                         status: httpStatus_1.HttpStatus.InternalServerError,
