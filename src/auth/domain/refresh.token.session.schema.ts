@@ -11,7 +11,7 @@ const refreshTokenSessionSchema = new Schema<RefreshTokenSessionDocument>({
     deviceId: {type : String, required: true},  // Add this field to link sessions to devices
     isRevoked: {type: Boolean, required: true},
     createdAt: {type : Date, default: Date.now },
-    expiresAt: {tyep: Date, required: true },
+    expiresAt: {type: Date, required: true },
 })
 
 // refreshTokenSessionSchema.index({ userId: 1})

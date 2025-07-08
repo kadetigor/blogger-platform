@@ -8,7 +8,7 @@ const refreshTokenSessionSchema = new mongoose_1.Schema({
     deviceId: { type: String, required: true }, // Add this field to link sessions to devices
     isRevoked: { type: Boolean, required: true },
     createdAt: { type: Date, default: Date.now },
-    expiresAt: { tyep: Date, required: true },
+    expiresAt: { type: Date, required: true },
 });
 // refreshTokenSessionSchema.index({ userId: 1})
 exports.RefreshTokenSessionModel = (0, mongoose_1.model)('RefreshTokenSession', refreshTokenSessionSchema);
