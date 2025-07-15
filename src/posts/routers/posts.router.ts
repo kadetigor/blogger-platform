@@ -78,11 +78,11 @@ postsRouter
     commentsController.getCommentListHandler.bind(commentsController)//getCommentListHandler
   )
   .put(
-      '/:postId/like-status',
-      accessTokenGuard,
-      postIdValidationMiddleware,
-      validatePostExistsMiddleware,
-      likeQueryValidation,
-      inputValidationResultMiddleware,
-      postsController.updateLikeHandler.bind(postsController)
-  )
+    '/:postId/like-status',
+    accessTokenGuard,
+    postIdValidationMiddleware,
+    likeQueryValidation,
+    inputValidationResultMiddleware,
+    validatePostExistsMiddleware,
+    postsController.updateLikeHandler.bind(postsController)
+)

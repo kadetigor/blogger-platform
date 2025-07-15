@@ -93,6 +93,7 @@ export class PostLikeRepository {
             // Final projection
             {
                 $project: {
+                    _id: 0,
                     addedAt: '$createdAt',
                     userId: '$userId',
                     login: { $ifNull: ['$user.login', 'Unknown'] }
