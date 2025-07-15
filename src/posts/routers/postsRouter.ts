@@ -58,7 +58,7 @@ postsRouter
   )
   .post(
     '/:id/comments',
-    superAdminGuardMiddleware,
+    accessTokenGuard,
     idValidationMiddleware,
     validatePostExistsMiddleware,
     contentValidation,
