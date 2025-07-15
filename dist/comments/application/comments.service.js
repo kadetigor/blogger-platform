@@ -24,7 +24,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommentsService = void 0;
 // src/comments/application/comments.service.ts
 const comments_repository_1 = require("../repositories/comments.repository");
-const comment_1 = require("../domain/comment");
 const inversify_1 = require("inversify");
 const comment_likes_repository_1 = require("../repositories/comment.likes.repository");
 let CommentsService = class CommentsService {
@@ -41,12 +40,7 @@ let CommentsService = class CommentsService {
                     userLogin: dto.userLogin,
                 },
                 postId: dto.postId,
-                createdAt: new Date(),
-                likesInfo: {
-                    likesCount: 0,
-                    dislikesCount: 0,
-                    myStatus: comment_1.myStatus.None
-                }
+                createdAt: new Date()
             };
             return this.commentsRepository.create(newComment);
         });

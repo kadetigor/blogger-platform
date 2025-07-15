@@ -1,4 +1,4 @@
-
+// src/comments/domain/comment.ts
 export enum myStatus {
     None = "None",
     Like = "Like",
@@ -13,9 +13,4 @@ export type Comment = {
     },
     postId: string;
     createdAt: Date;
-    likesInfo: {
-        likesCount: number,
-        dislikesCount: number,
-        myStatus: myStatus
-    } 
 }

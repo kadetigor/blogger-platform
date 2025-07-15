@@ -23,12 +23,7 @@ export class CommentsService {
         userLogin: dto.userLogin,
       },
       postId: dto.postId,
-      createdAt: new Date(),
-      likesInfo: {
-        likesCount: 0,
-        dislikesCount: 0,
-        myStatus: myStatus.None
-      } 
+      createdAt: new Date()
     };
     return this.commentsRepository.create(newComment);
   }

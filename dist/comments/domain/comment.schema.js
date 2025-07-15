@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommentModel = void 0;
+// src/comments/domain/comment.schema.ts
 const mongoose_1 = require("mongoose");
-const comment_1 = require("./comment");
 const commentSchema = new mongoose_1.Schema({
     content: { type: String, required: true },
     commentatorInfo: {
@@ -10,11 +10,6 @@ const commentSchema = new mongoose_1.Schema({
         userLogin: { type: String, required: true }
     },
     postId: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now },
-    likesInfo: {
-        likesCount: { type: Number, required: true },
-        dislikesCount: { type: Number, required: true },
-        myStatus: { type: String, enum: Object.values(comment_1.myStatus), default: comment_1.myStatus.None, required: true }
-    }
+    createdAt: { type: Date, default: Date.now }
 });
 exports.CommentModel = (0, mongoose_1.model)('Comment', commentSchema);
