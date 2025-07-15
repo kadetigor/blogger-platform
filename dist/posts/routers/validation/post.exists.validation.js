@@ -17,7 +17,8 @@ const postsQueryRepository = new posts_query_repository_1.PostsQueryRepository()
 function validatePostExistsMiddleware(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const postId = req.params.id;
+            // Handle both :id and :postId parameters
+            const postId = req.params.id || req.params.postId;
             if (!postId) {
                 res.status(httpStatus_1.HttpStatus.BadRequest).json((0, input_validtion_result_middleware_1.createErrorMessages)([
                     {

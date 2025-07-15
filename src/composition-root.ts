@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { Container } from "inversify";
+import { Container, ContainerModule } from "inversify";
 import { UsersRepository } from './users/repositories/usersRepository';
 import { UsersService } from './users/application/usersService';
 import { UsersQueryRepository } from './users/repositories/usersQueryRepository';
@@ -25,6 +25,7 @@ import { BlogsRepository } from './blogs/repositories/blogs.repository';
 import { BlogsQueryRepository } from './blogs/repositories/blogs.query-repository';
 import { BlogsService } from './blogs/application/blogs.service';
 import { BlogsController } from './blogs/routers/blogs.controller';
+import { PostLikeRepository } from './posts/repositories/post.likes.repository';
 
 export const container = new Container();
 
@@ -45,6 +46,7 @@ container.bind(PostsRepository).toSelf();
 container.bind(PostsQueryRepository).toSelf();
 container.bind(PostsService).toSelf();
 container.bind(PostsController).toSelf();
+container.bind(PostLikeRepository).toSelf();
 
 // Auth
 container.bind(AuthController).toSelf();

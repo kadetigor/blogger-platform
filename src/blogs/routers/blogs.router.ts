@@ -11,6 +11,7 @@ import { blogPostInputDtoValidation } from '../../posts/routers/validation/blogP
 import { BlogsController } from './blogs.controller';
 import { container } from '../../composition-root';
 import { PostsController } from '../../posts/routers/posts.controller';
+import { optionalAccessTokenGuard } from '../../auth/routers/guards/optional.access.token.guard';
 
 const blogsController = container.get(BlogsController)
 const postsController = container.get(PostsController)
@@ -58,6 +59,7 @@ blogsRouter
   )
   .get(
     '/:id/posts',
+    optionalAccessTokenGuard,
     idValidationMiddleware,
     paginationAndSortingValidation(postSortField),
     inputValidationResultMiddleware,

@@ -94,11 +94,44 @@ export class PostsController {
     
         const { items, totalCount } = await this.postsQueryRepository.findMany(queryInput)
         
-        const postsListOutput = mapToPostListPaginatedOutput(items, {
-          pageNumber: queryInput.pageNumber,
+        // Get user id from auth token if available
+        const userId = req.user?.id;
+        
+        // Get extended likes info for all posts
+        const extendedLikesInfoMap = new Map<string, any>();
+        await Promise.all(
+          items.map(async (post) => {
+            const likesInfo = await this.postLikesRepository.getExtendedLikesInfo(post._id.toString(), userId);
+            extendedLikesInfoMap.set(post._id.toString(), likesInfo);
+          })
+        );
+        
+        const postsListOutput = {
+          page: queryInput.pageNumber,
           pageSize: queryInput.pageSize,
-          totalCount,
-        });
+          pagesCount: Math.ceil(totalCount / queryInput.pageSize),
+          totalCount: totalCount,
+          items: items.map((post) => {
+            const extendedLikesInfo = extendedLikesInfoMap.get(post._id.toString()) || {
+              likesCount: 0,
+              dislikesCount: 0,
+              myStatus: 'None' as const,
+              newestLikes: []
+            };
+            
+            return {
+              id: post._id.toString(),
+              title: post.title,
+              shortDescription: post.shortDescription,
+              content: post.content,
+              blogId: post.blogId,
+              blogName: post.blogName,
+              createdAt: post.createdAt,
+              extendedLikesInfo
+            };
+          })
+        };
+        
         res.send(postsListOutput);
     
       } catch (e: unknown) {
@@ -125,7 +158,7 @@ export class PostsController {
       res: Response,
     ) {
       try {
-        const commentId = req.params.commentId;
+        const postId = req.params.postId;
         const status = req.body.likeStatus;
         const user = req.user;
 
@@ -134,7 +167,7 @@ export class PostsController {
             return;
         }
         
-        await this.postsService.updateLikeInfo(commentId, user.id, status);
+        await this.postsService.updateLikeInfo(postId, user.id, status);
         res.sendStatus(HttpStatus.NoContent);
       } catch (e: unknown) {
         errorsHandler(e, res);

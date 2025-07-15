@@ -31,7 +31,6 @@ const map_to_post_view_model_1 = require("./mappers/map.to.post.view-model");
 const httpStatus_1 = require("../../core/types/httpStatus");
 const errorsHandler_1 = require("../../core/errors/errorsHandler");
 const setDefaultSortAndPagination_1 = require("../../core/helpers/setDefaultSortAndPagination");
-const map_to_post_list_paginated_output_1 = require("../../blogs/routers/mappers/map.to.post.list.paginated.output");
 let PostsController = class PostsController {
     constructor(postsRepository, postsQueryRepository, postsService, postLikesRepository) {
         this.postsRepository = postsRepository;
@@ -89,6 +88,7 @@ let PostsController = class PostsController {
     }
     getPostListHandler(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             try {
                 const baseQueryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(req.query);
                 const queryInput = {
@@ -98,11 +98,38 @@ let PostsController = class PostsController {
                     sortDirection: baseQueryInput.sortDirection
                 };
                 const { items, totalCount } = yield this.postsQueryRepository.findMany(queryInput);
-                const postsListOutput = (0, map_to_post_list_paginated_output_1.mapToPostListPaginatedOutput)(items, {
-                    pageNumber: queryInput.pageNumber,
+                // Get user id from auth token if available
+                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                // Get extended likes info for all posts
+                const extendedLikesInfoMap = new Map();
+                yield Promise.all(items.map((post) => __awaiter(this, void 0, void 0, function* () {
+                    const likesInfo = yield this.postLikesRepository.getExtendedLikesInfo(post._id.toString(), userId);
+                    extendedLikesInfoMap.set(post._id.toString(), likesInfo);
+                })));
+                const postsListOutput = {
+                    page: queryInput.pageNumber,
                     pageSize: queryInput.pageSize,
-                    totalCount,
-                });
+                    pagesCount: Math.ceil(totalCount / queryInput.pageSize),
+                    totalCount: totalCount,
+                    items: items.map((post) => {
+                        const extendedLikesInfo = extendedLikesInfoMap.get(post._id.toString()) || {
+                            likesCount: 0,
+                            dislikesCount: 0,
+                            myStatus: 'None',
+                            newestLikes: []
+                        };
+                        return {
+                            id: post._id.toString(),
+                            title: post.title,
+                            shortDescription: post.shortDescription,
+                            content: post.content,
+                            blogId: post.blogId,
+                            blogName: post.blogName,
+                            createdAt: post.createdAt,
+                            extendedLikesInfo
+                        };
+                    })
+                };
                 res.send(postsListOutput);
             }
             catch (e) {
@@ -126,14 +153,14 @@ let PostsController = class PostsController {
     updateLikeHandler(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const commentId = req.params.commentId;
+                const postId = req.params.postId;
                 const status = req.body.likeStatus;
                 const user = req.user;
                 if (!user) {
                     res.sendStatus(httpStatus_1.HttpStatus.Unauthorized);
                     return;
                 }
-                yield this.postsService.updateLikeInfo(commentId, user.id, status);
+                yield this.postsService.updateLikeInfo(postId, user.id, status);
                 res.sendStatus(httpStatus_1.HttpStatus.NoContent);
             }
             catch (e) {

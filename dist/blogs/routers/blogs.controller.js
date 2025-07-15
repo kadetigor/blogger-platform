@@ -33,13 +33,14 @@ const queryPaginationSortingValidationMiddleware_1 = require("../../core/middlew
 const map_to_blog_list_paginated_output_1 = require("./mappers/map.to.blog.list.paginated.output");
 const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 const posts_query_repository_1 = require("../../posts/repositories/posts.query-repository");
-const map_to_post_list_paginated_output_1 = require("./mappers/map.to.post.list.paginated.output");
+const post_likes_repository_1 = require("../../posts/repositories/post.likes.repository");
 let BlogsController = class BlogsController {
-    constructor(blogsRepository, blogsQueryRepository, blogsService, postsQueryRepository) {
+    constructor(blogsRepository, blogsQueryRepository, blogsService, postsQueryRepository, postLikesRepository) {
         this.blogsRepository = blogsRepository;
         this.blogsQueryRepository = blogsQueryRepository;
         this.blogsService = blogsService;
         this.postsQueryRepository = postsQueryRepository;
+        this.postLikesRepository = postLikesRepository;
     }
     createBlogHandler(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -104,6 +105,7 @@ let BlogsController = class BlogsController {
     }
     getBlogPostsListHandler(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             try {
                 const blogId = req.params.id;
                 const blog = yield this.blogsQueryRepository.findByIdOrFail(blogId);
@@ -117,11 +119,38 @@ let BlogsController = class BlogsController {
                     sortDirection: req.query.sortDirection || queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.sortDirection
                 };
                 const { items, totalCount } = yield this.postsQueryRepository.findPostsbyBlog(queryInput, blogId);
-                const postListOutput = (0, map_to_post_list_paginated_output_1.mapToPostListPaginatedOutput)(items, {
-                    pageNumber: queryInput.pageNumber,
+                // Get user id from auth token if available
+                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                // Get extended likes info for all posts
+                const extendedLikesInfoMap = new Map();
+                yield Promise.all(items.map((post) => __awaiter(this, void 0, void 0, function* () {
+                    const likesInfo = yield this.postLikesRepository.getExtendedLikesInfo(post._id.toString(), userId);
+                    extendedLikesInfoMap.set(post._id.toString(), likesInfo);
+                })));
+                const postListOutput = {
+                    page: queryInput.pageNumber,
                     pageSize: queryInput.pageSize,
-                    totalCount,
-                });
+                    pagesCount: Math.ceil(totalCount / queryInput.pageSize),
+                    totalCount: totalCount,
+                    items: items.map((post) => {
+                        const extendedLikesInfo = extendedLikesInfoMap.get(post._id.toString()) || {
+                            likesCount: 0,
+                            dislikesCount: 0,
+                            myStatus: 'None',
+                            newestLikes: []
+                        };
+                        return {
+                            id: post._id.toString(),
+                            title: post.title,
+                            shortDescription: post.shortDescription,
+                            content: post.content,
+                            blogId: post.blogId,
+                            blogName: post.blogName,
+                            createdAt: post.createdAt,
+                            extendedLikesInfo
+                        };
+                    })
+                };
                 res.send(postListOutput);
             }
             catch (e) {
@@ -149,8 +178,10 @@ exports.BlogsController = BlogsController = __decorate([
     __param(1, (0, inversify_1.inject)(blogs_query_repository_1.BlogsQueryRepository)),
     __param(2, (0, inversify_1.inject)(blogs_service_1.BlogsService)),
     __param(3, (0, inversify_1.inject)(posts_query_repository_1.PostsQueryRepository)),
+    __param(4, (0, inversify_1.inject)(post_likes_repository_1.PostLikeRepository)),
     __metadata("design:paramtypes", [blogs_repository_1.BlogsRepository,
         blogs_query_repository_1.BlogsQueryRepository,
         blogs_service_1.BlogsService,
-        posts_query_repository_1.PostsQueryRepository])
+        posts_query_repository_1.PostsQueryRepository,
+        post_likes_repository_1.PostLikeRepository])
 ], BlogsController);

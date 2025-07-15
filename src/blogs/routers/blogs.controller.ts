@@ -18,6 +18,7 @@ import { postSortField } from "../../posts/routers/input/postSortField";
 import { PostsQueryRepository } from "../../posts/repositories/posts.query-repository";
 import { mapToPostListPaginatedOutput } from "./mappers/map.to.post.list.paginated.output";
 import { blogUpdateInput } from "./input/blog.update-input";
+import { PostLikeRepository } from "../../posts/repositories/post.likes.repository";
 
 @injectable()
 export class BlogsController {
@@ -26,6 +27,7 @@ export class BlogsController {
         @inject(BlogsQueryRepository) protected blogsQueryRepository: BlogsQueryRepository,
         @inject(BlogsService) protected blogsService: BlogsService,
         @inject(PostsQueryRepository) protected postsQueryRepository: PostsQueryRepository,
+        @inject(PostLikeRepository) protected postLikesRepository: PostLikeRepository,
     ) {}
 
     async createBlogHandler(
@@ -127,11 +129,44 @@ export class BlogsController {
             blogId,
             );
 
-            const postListOutput = mapToPostListPaginatedOutput(items, {
-            pageNumber: queryInput.pageNumber,
-            pageSize: queryInput.pageSize,
-            totalCount,
-            });
+            // Get user id from auth token if available
+            const userId = req.user?.id;
+            
+            // Get extended likes info for all posts
+            const extendedLikesInfoMap = new Map<string, any>();
+            await Promise.all(
+              items.map(async (post) => {
+                const likesInfo = await this.postLikesRepository.getExtendedLikesInfo(post._id.toString(), userId);
+                extendedLikesInfoMap.set(post._id.toString(), likesInfo);
+              })
+            );
+
+            const postListOutput = {
+              page: queryInput.pageNumber,
+              pageSize: queryInput.pageSize,
+              pagesCount: Math.ceil(totalCount / queryInput.pageSize),
+              totalCount: totalCount,
+              items: items.map((post) => {
+                const extendedLikesInfo = extendedLikesInfoMap.get(post._id.toString()) || {
+                  likesCount: 0,
+                  dislikesCount: 0,
+                  myStatus: 'None' as const,
+                  newestLikes: []
+                };
+                
+                return {
+                  id: post._id.toString(),
+                  title: post.title,
+                  shortDescription: post.shortDescription,
+                  content: post.content,
+                  blogId: post.blogId,
+                  blogName: post.blogName,
+                  createdAt: post.createdAt,
+                  extendedLikesInfo
+                };
+              })
+            };
+            
             res.send(postListOutput);
         } catch (e: unknown) {
             errorsHandler(e, res);

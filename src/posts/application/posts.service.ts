@@ -38,7 +38,7 @@ export class PostsService {
     return;
   }
 
-  async updateLikeInfo(postId: string, userId: string, status: "Like" | "Dislike"):Promise<void> {
+  async updateLikeInfo(postId: string, userId: string, status: "Like" | "Dislike" | "None"):Promise<void> {
     await this.postsRepository.findByIdOrFail(postId);
 
     await this.postsLikeRepository.setLikeStatus(postId, userId, status);

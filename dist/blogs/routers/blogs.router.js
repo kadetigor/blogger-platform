@@ -14,6 +14,7 @@ const blogPostInputDtoValidation_1 = require("../../posts/routers/validation/blo
 const blogs_controller_1 = require("./blogs.controller");
 const composition_root_1 = require("../../composition-root");
 const posts_controller_1 = require("../../posts/routers/posts.controller");
+const optional_access_token_guard_1 = require("../../auth/routers/guards/optional.access.token.guard");
 const blogsController = composition_root_1.container.get(blogs_controller_1.BlogsController);
 const postsController = composition_root_1.container.get(posts_controller_1.PostsController);
 exports.blogsRouter = (0, express_1.Router)();
@@ -28,7 +29,7 @@ exports.blogsRouter
 )
     .delete('/:id', basic_guard_middleware_1.superAdminGuardMiddleware, params_id_validation_middleware_1.idValidationMiddleware, input_validtion_result_middleware_1.inputValidationResultMiddleware, blogsController.deleteBlogHandler.bind(blogsController) //deleteBlogHandler
 )
-    .get('/:id/posts', params_id_validation_middleware_1.idValidationMiddleware, (0, queryPaginationSortingValidationMiddleware_1.paginationAndSortingValidation)(postSortField_1.postSortField), input_validtion_result_middleware_1.inputValidationResultMiddleware, blogsController.getBlogPostsListHandler.bind(blogsController) //getBlogPostsListHandler
+    .get('/:id/posts', optional_access_token_guard_1.optionalAccessTokenGuard, params_id_validation_middleware_1.idValidationMiddleware, (0, queryPaginationSortingValidationMiddleware_1.paginationAndSortingValidation)(postSortField_1.postSortField), input_validtion_result_middleware_1.inputValidationResultMiddleware, blogsController.getBlogPostsListHandler.bind(blogsController) //getBlogPostsListHandler
 )
     .post('/:id/posts', basic_guard_middleware_1.superAdminGuardMiddleware, params_id_validation_middleware_1.idValidationMiddleware, blogPostInputDtoValidation_1.blogPostInputDtoValidation, validateBlogExistsMiddleware_1.validateBlogExistsMiddleware, input_validtion_result_middleware_1.inputValidationResultMiddleware, postsController.createPostHandler.bind(postsController) //createPostHandler
 );

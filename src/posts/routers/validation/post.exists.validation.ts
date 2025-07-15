@@ -11,7 +11,8 @@ export async function validatePostExistsMiddleware(
   next: NextFunction
 ) {
   try {
-    const postId = req.params.id;
+    // Handle both :id and :postId parameters
+    const postId = req.params.id || req.params.postId;
     
     if (!postId) {
       res.status(HttpStatus.BadRequest).json(

@@ -28,6 +28,7 @@ const blogs_repository_1 = require("./blogs/repositories/blogs.repository");
 const blogs_query_repository_1 = require("./blogs/repositories/blogs.query-repository");
 const blogs_service_1 = require("./blogs/application/blogs.service");
 const blogs_controller_1 = require("./blogs/routers/blogs.controller");
+const post_likes_repository_1 = require("./posts/repositories/post.likes.repository");
 exports.container = new inversify_1.Container();
 // Users
 exports.container.bind(usersRepository_1.UsersRepository).toSelf();
@@ -44,6 +45,7 @@ exports.container.bind(posts_repository_1.PostsRepository).toSelf();
 exports.container.bind(posts_query_repository_1.PostsQueryRepository).toSelf();
 exports.container.bind(posts_service_1.PostsService).toSelf();
 exports.container.bind(posts_controller_1.PostsController).toSelf();
+exports.container.bind(post_likes_repository_1.PostLikeRepository).toSelf();
 // Auth
 exports.container.bind(auth_controller_1.AuthController).toSelf();
 exports.container.bind(bcrypt_adapter_1.BcryptService).toSelf();

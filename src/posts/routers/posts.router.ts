@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import { postInputDtoValidation } from "./validation/postInputDtoValidationMiddleware";
 import { idValidationMiddleware } from "../../core/middlewares/validation/params-id.validation-middleware";
+import { postIdValidationMiddleware } from "./validation/post.id.validation-middleware";
 import { inputValidationResultMiddleware } from "../../core/middlewares/validation/input-validtion-result.middleware";
 import { superAdminGuardMiddleware } from "../../auth/routers/guards/basic.guard.middleware";
 import { postSortField } from './input/postSortField';
@@ -24,12 +25,14 @@ export const postsRouter = Router({})
 postsRouter
   .get(
     '/',
+    optionalAccessTokenGuard,
     paginationAndSortingValidation(postSortField),
     inputValidationResultMiddleware,
     postsController.getPostListHandler.bind(postsController)//getPostListHandler
   )
   .get(
     '/:id',
+    optionalAccessTokenGuard,
     idValidationMiddleware,
     inputValidationResultMiddleware,
     postsController.getPostHandler.bind(postsController)//getPostHandler
@@ -74,11 +77,10 @@ postsRouter
     inputValidationResultMiddleware,
     commentsController.getCommentListHandler.bind(commentsController)//getCommentListHandler
   )
-
   .put(
       '/:postId/like-status',
       accessTokenGuard,
-      idValidationMiddleware,
+      postIdValidationMiddleware,
       validatePostExistsMiddleware,
       likeQueryValidation,
       inputValidationResultMiddleware,
