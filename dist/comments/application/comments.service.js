@@ -22,12 +22,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommentsService = void 0;
+// src/comments/application/comments.service.ts
 const comments_repository_1 = require("../repositories/comments.repository");
 const comment_1 = require("../domain/comment");
 const inversify_1 = require("inversify");
+const comment_likes_repository_1 = require("../repositories/comment.likes.repository");
 let CommentsService = class CommentsService {
-    constructor(commentsRepository) {
+    constructor(commentsRepository, commentLikesRepository) {
         this.commentsRepository = commentsRepository;
+        this.commentLikesRepository = commentLikesRepository;
     }
     create(dto) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -60,9 +63,12 @@ let CommentsService = class CommentsService {
             return;
         });
     }
-    updateLikeInfo(id, status) {
+    updateLikeInfo(commentId, userId, status) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.commentsRepository.updateLikeInfo(id, status);
+            // First check if comment exists
+            yield this.commentsRepository.findByIdOrFail(commentId);
+            // Then update the like status
+            yield this.commentLikesRepository.setLikeStatus(commentId, userId, status);
         });
     }
 };
@@ -70,5 +76,7 @@ exports.CommentsService = CommentsService;
 exports.CommentsService = CommentsService = __decorate([
     (0, inversify_1.injectable)(),
     __param(0, (0, inversify_1.inject)(comments_repository_1.CommentsRepository)),
-    __metadata("design:paramtypes", [comments_repository_1.CommentsRepository])
+    __param(1, (0, inversify_1.inject)(comment_likes_repository_1.CommentLikesRepository)),
+    __metadata("design:paramtypes", [comments_repository_1.CommentsRepository,
+        comment_likes_repository_1.CommentLikesRepository])
 ], CommentsService);

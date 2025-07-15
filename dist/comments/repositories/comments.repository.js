@@ -58,21 +58,6 @@ let CommentsRepository = class CommentsRepository {
             return;
         });
     }
-    updateLikeInfo(id, status) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const result = yield comment_schema_1.CommentModel.findByIdAndUpdate(id, {
-                $set: {
-                    likesInfo: {
-                        myStatus: status
-                    },
-                },
-            });
-            if (!result) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('Comment does not exist');
-            }
-            return;
-        });
-    }
 };
 exports.CommentsRepository = CommentsRepository;
 exports.CommentsRepository = CommentsRepository = __decorate([

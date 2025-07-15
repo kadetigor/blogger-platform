@@ -16,6 +16,7 @@ import { CommentsRepository } from './comments/repositories/comments.repository'
 import { commentsQueryRepository } from './comments/repositories/comments.query.repository';
 import { CommentsService } from './comments/application/comments.service';
 import { CommentsController } from './comments/routers/comments.controller';
+import { CommentLikesRepository } from './comments/repositories/comment.likes.repository';
 
 export const container = new Container();
 
@@ -52,3 +53,4 @@ container.bind(CommentsRepository).toSelf();
 container.bind(commentsQueryRepository).toSelf();
 container.bind(CommentsService).toSelf();
 container.bind(CommentsController).toSelf();
+container.bind(CommentLikesRepository).toSelf();

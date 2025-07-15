@@ -3,7 +3,11 @@ import { Comment } from '../../domain/comment';
 import { resourceType } from "../../../core/types/resourceType";
 import { commentOutput } from "../output/comment.output";
 
-export function mapToPostOutput(comment: WithId<Comment>): commentOutput {
+export function mapToCommentOutput(comment: WithId<Comment>, likesInfo: {
+  likesCount: number;
+  dislikesCount: number;
+  myStatus: "None" | "Like" | "Dislike";
+}): commentOutput {
   return {
     data: {
       type: resourceType.Comments,
@@ -14,7 +18,8 @@ export function mapToPostOutput(comment: WithId<Comment>): commentOutput {
             userId: comment.commentatorInfo.userId,
             userLogin: comment.commentatorInfo.userLogin
         },
-        createdAt: comment.createdAt
+        createdAt: comment.createdAt,
+        likesInfo: likesInfo
       },
     },
   };

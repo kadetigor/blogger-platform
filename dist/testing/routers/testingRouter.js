@@ -15,12 +15,20 @@ const blog_schema_1 = require("../../blogs/domain/blog.schema");
 const httpStatus_1 = require("../../core/types/httpStatus");
 const post_schema_1 = require("../../posts/domain/post.schema");
 const user_schema_1 = require("../../users/domain/user.schema");
+const comment_schema_1 = require("../../comments/domain/comment.schema");
+const comment_like_schema_1 = require("../../comments/domain/comment.like.schema");
+const refresh_token_session_schema_1 = require("../../auth/domain/refresh.token.session.schema");
+const security_device_schema_1 = require("../../auth/devices/security.device.schema");
 exports.testingRouter = (0, express_1.Router)({});
 exports.testingRouter.delete('/all-data', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield Promise.all([
         post_schema_1.PostModel.deleteMany({}),
         blog_schema_1.BlogModel.deleteMany({}),
-        user_schema_1.UserModel.deleteMany({})
+        user_schema_1.UserModel.deleteMany({}),
+        comment_schema_1.CommentModel.deleteMany({}),
+        comment_like_schema_1.CommentLikeModel.deleteMany({}),
+        refresh_token_session_schema_1.RefreshTokenSessionModel.deleteMany({}),
+        security_device_schema_1.SecurityDeviceModel.deleteMany({})
     ]);
     res.sendStatus(httpStatus_1.HttpStatus.NoContent);
 }));

@@ -14,6 +14,7 @@ const deletePostHandler_1 = require("./handlers/deletePostHandler");
 const postSortField_1 = require("./input/postSortField");
 const queryPaginationSortingValidationMiddleware_1 = require("../../core/middlewares/validation/queryPaginationSortingValidationMiddleware");
 const access_token_guard_1 = require("../../auth/routers/guards/access.token.guard");
+const optional_access_token_guard_1 = require("../../auth/routers/guards/optional.access.token.guard");
 const comment_input_dto_validation_1 = require("../../comments/routers/validation/comment.input.dto.validation");
 const post_exists_validation_1 = require("./validation/post.exists.validation");
 const comment_sort_field_1 = require("../../comments/routers/input/comment.sort.field");
@@ -29,5 +30,5 @@ exports.postsRouter
     .delete('/:id', basic_guard_middleware_1.superAdminGuardMiddleware, params_id_validation_middleware_1.idValidationMiddleware, input_validtion_result_middleware_1.inputValidationResultMiddleware, deletePostHandler_1.deletePostHandler)
     .post('/:id/comments', access_token_guard_1.accessTokenGuard, params_id_validation_middleware_1.idValidationMiddleware, post_exists_validation_1.validatePostExistsMiddleware, comment_input_dto_validation_1.contentValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, commentsController.createCommentHandler.bind(commentsController) //createCommentHandler
 )
-    .get('/:id/comments', params_id_validation_middleware_1.idValidationMiddleware, post_exists_validation_1.validatePostExistsMiddleware, (0, queryPaginationSortingValidationMiddleware_1.paginationAndSortingValidation)(comment_sort_field_1.commentSortField), input_validtion_result_middleware_1.inputValidationResultMiddleware, commentsController.getCommentListHandler.bind(commentsController) //getCommentListHandler
+    .get('/:id/comments', optional_access_token_guard_1.optionalAccessTokenGuard, params_id_validation_middleware_1.idValidationMiddleware, post_exists_validation_1.validatePostExistsMiddleware, (0, queryPaginationSortingValidationMiddleware_1.paginationAndSortingValidation)(comment_sort_field_1.commentSortField), input_validtion_result_middleware_1.inputValidationResultMiddleware, commentsController.getCommentListHandler.bind(commentsController) //getCommentListHandler
 );

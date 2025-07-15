@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mapToCommentViewModel = mapToCommentViewModel;
-function mapToCommentViewModel(comment) {
+function mapToCommentViewModel(comment, likesInfo) {
     return {
         id: comment._id.toString(),
         content: comment.content,
@@ -10,5 +10,6 @@ function mapToCommentViewModel(comment) {
             userLogin: comment.commentatorInfo.userLogin
         },
         createdAt: comment.createdAt,
+        likesInfo: likesInfo
     };
 }

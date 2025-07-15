@@ -1,3 +1,4 @@
+// src/comments/routers/comments.controller.ts
 import { inject, injectable } from "inversify";
 import { Request, Response } from 'express';
 import { CommentsService } from '../application/comments.service';
@@ -11,6 +12,7 @@ import { commentQueryInput } from "./input/comment.query.input";
 import { commentSortField } from "./input/comment.sort.field";
 import { sortDirection } from "../../core/types/sortDirection";
 import { mapToCommentListPaginatedOutput } from "./mappers/map.to.comment.list.paginated.output";
+import { CommentLikesRepository } from "../repositories/comment.likes.repository";
 
 
 @injectable()
@@ -19,7 +21,8 @@ export class CommentsController {
     constructor(
         @inject(CommentsService) protected commentsService: CommentsService,
         @inject(CommentsRepository) protected commentsRepository: CommentsRepository,
-        @inject(commentsQueryRepository) protected commentsQueryRepository: commentsQueryRepository
+        @inject(commentsQueryRepository) protected commentsQueryRepository: commentsQueryRepository,
+        @inject(CommentLikesRepository) protected commentLikesRepository: CommentLikesRepository
     ) {}
 
     async createCommentHandler(
@@ -44,7 +47,11 @@ export class CommentsController {
             });
 
             const createdComment = await this.commentsRepository.findByIdOrFail(createdCommentId);
-            const commentViewModel = mapToCommentViewModel(createdComment);
+            
+            // Get likes info for the new comment (will be 0 likes, 0 dislikes, None status)
+            const likesInfo = await this.commentLikesRepository.getLikesInfo(createdCommentId, user.id);
+            
+            const commentViewModel = mapToCommentViewModel(createdComment, likesInfo);
 
             res.status(HttpStatus.Created).send(commentViewModel);
         } catch (e: unknown) {
@@ -84,7 +91,14 @@ export class CommentsController {
         try {
             const id = req.params.id;
             const comment = await this.commentsQueryRepository.findByIdOrFail(id);
-            const commentViewModel = mapToCommentViewModel(comment);
+            
+            // Get user id from auth token if available
+            const userId = req.user?.id;
+            
+            // Get likes info
+            const likesInfo = await this.commentLikesRepository.getLikesInfo(id, userId);
+            
+            const commentViewModel = mapToCommentViewModel(comment, likesInfo);
             res.status(HttpStatus.Ok).send(commentViewModel);
 
         } catch (e: unknown) {
@@ -109,7 +123,19 @@ export class CommentsController {
     
         const { items, totalCount } = await this.commentsQueryRepository.findCommentsByPost(queryInput, postId)
         
-        const commentsListOutput = mapToCommentListPaginatedOutput(items, {
+        // Get user id from auth token if available
+        const userId = req.user?.id;
+        
+        // Get likes info for all comments
+        const likesInfoMap = new Map<string, { likesCount: number; dislikesCount: number; myStatus: "None" | "Like" | "Dislike" }>();
+        await Promise.all(
+          items.map(async (comment) => {
+            const likesInfo = await this.commentLikesRepository.getLikesInfo(comment._id.toString(), userId);
+            likesInfoMap.set(comment._id.toString(), likesInfo);
+          })
+        );
+        
+        const commentsListOutput = mapToCommentListPaginatedOutput(items, likesInfoMap, {
           pageNumber: queryInput.pageNumber,
           pageSize: queryInput.pageSize,
           totalCount,
@@ -155,17 +181,17 @@ export class CommentsController {
       res: Response,
     ) {
       try {
-
         const commentId = req.params.commentId;
-        const status = req.body.myStatus;
+        const status = req.body.likeStatus;
         const user = req.user;
 
         if (!user) {
             res.sendStatus(HttpStatus.Unauthorized);
             return;
-            }
+        }
         
-        await this.commentsService.updateLikeInfo(commentId, status)
+        await this.commentsService.updateLikeInfo(commentId, user.id, status);
+        res.sendStatus(HttpStatus.NoContent);
       } catch (e: unknown) {
         errorsHandler(e, res);
       }

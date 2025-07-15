@@ -1,3 +1,4 @@
+// src/comments/routers/comments.router.ts
 import { Router } from 'express';
 import { idValidationMiddleware } from '../../core/middlewares/validation/params-id.validation-middleware';
 import { inputValidationResultMiddleware } from '../../core/middlewares/validation/input-validtion-result.middleware';
@@ -7,12 +8,13 @@ import { commentIdValidationMiddleware } from './validation/comment.id.validatio
 import { container } from '../../composition-root';
 import { CommentsController } from './comments.controller';
 import { body } from 'express-validator';
+import { optionalAccessTokenGuard } from '../../auth/routers/guards/optional.access.token.guard';
 
 const commentsController = container.get(CommentsController)
 
 const likeQueryValidation = body('likeStatus')
     .exists()
-    .withMessage('likeStatus is Requiered')
+    .withMessage('likeStatus is Required')
     .isString()
     .withMessage('likeStatus must be a String')
     .isIn(['None', 'Like', 'Dislike'])
@@ -23,6 +25,7 @@ export const commentsRouter = Router({})
 commentsRouter
     .get(
         '/:id',
+        optionalAccessTokenGuard,
         idValidationMiddleware,
         inputValidationResultMiddleware,
         commentsController.getCommentHandler.bind(commentsController) //getCommentHandler,
@@ -43,8 +46,9 @@ commentsRouter
         commentsController.updateCommentHandler.bind(commentsController)//updateCommentHandler
     )
     .put(
-        '/commentId/like-status',
+        '/:commentId/like-status',
         accessTokenGuard,
+        commentIdValidationMiddleware,
         likeQueryValidation,
         inputValidationResultMiddleware,
         commentsController.updateLikeHandler.bind(commentsController)

@@ -19,6 +19,7 @@ const comments_repository_1 = require("./comments/repositories/comments.reposito
 const comments_query_repository_1 = require("./comments/repositories/comments.query.repository");
 const comments_service_1 = require("./comments/application/comments.service");
 const comments_controller_1 = require("./comments/routers/comments.controller");
+const comment_likes_repository_1 = require("./comments/repositories/comment.likes.repository");
 exports.container = new inversify_1.Container();
 // Users
 exports.container.bind(usersRepository_1.UsersRepository).toSelf();
@@ -49,3 +50,4 @@ exports.container.bind(comments_repository_1.CommentsRepository).toSelf();
 exports.container.bind(comments_query_repository_1.commentsQueryRepository).toSelf();
 exports.container.bind(comments_service_1.CommentsService).toSelf();
 exports.container.bind(comments_controller_1.CommentsController).toSelf();
+exports.container.bind(comment_likes_repository_1.CommentLikesRepository).toSelf();

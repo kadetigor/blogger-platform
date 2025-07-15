@@ -1,14 +1,17 @@
+// src/comments/application/comments.service.ts
 import { CommentsRepository } from "../repositories/comments.repository";
 import { Comment, myStatus } from "../domain/comment"
 import { commentAttributes } from "./dtos/comment.attributes";
 import { commentUpdateDto } from "./dtos/comment.update.dto";
 import { inject, injectable } from "inversify";
+import { CommentLikesRepository } from "../repositories/comment.likes.repository";
 
 @injectable()
 export class CommentsService {
 
   constructor(
     @inject(CommentsRepository) protected commentsRepository: CommentsRepository,
+    @inject(CommentLikesRepository) protected commentLikesRepository: CommentLikesRepository,
   ) {}
 
   async create(dto: commentAttributes): Promise<string> {
@@ -40,7 +43,11 @@ export class CommentsService {
     return;
   }
 
-  async updateLikeInfo(id: string, status: string): Promise<void> {
-    await this.commentsRepository.updateLikeInfo(id, status)
+  async updateLikeInfo(commentId: string, userId: string, status: "Like" | "Dislike" | "None"): Promise<void> {
+    // First check if comment exists
+    await this.commentsRepository.findByIdOrFail(commentId);
+    
+    // Then update the like status
+    await this.commentLikesRepository.setLikeStatus(commentId, userId, status);
   }
 }

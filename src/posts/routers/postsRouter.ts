@@ -11,6 +11,7 @@ import { deletePostHandler } from "./handlers/deletePostHandler";
 import { postSortField } from './input/postSortField';
 import { paginationAndSortingValidation } from '../../core/middlewares/validation/queryPaginationSortingValidationMiddleware';
 import { accessTokenGuard } from '../../auth/routers/guards/access.token.guard';
+import { optionalAccessTokenGuard } from '../../auth/routers/guards/optional.access.token.guard';
 import { contentValidation } from '../../comments/routers/validation/comment.input.dto.validation';
 import { validatePostExistsMiddleware } from './validation/post.exists.validation';
 import { commentSortField } from '../../comments/routers/input/comment.sort.field';
@@ -67,6 +68,7 @@ postsRouter
   )
   .get(
     '/:id/comments',
+    optionalAccessTokenGuard,
     idValidationMiddleware,
     validatePostExistsMiddleware,
     paginationAndSortingValidation(commentSortField),

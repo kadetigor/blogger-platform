@@ -2,7 +2,11 @@ import { WithId } from 'mongodb';
 import { Comment } from '../../domain/comment';
 import { commentViewModel } from '../../types/comment.view.model';
 
-export function mapToCommentViewModel(comment: WithId<Comment>): commentViewModel {
+export function mapToCommentViewModel(comment: WithId<Comment>, likesInfo: {
+  likesCount: number;
+  dislikesCount: number;
+  myStatus: "None" | "Like" | "Dislike";
+}): commentViewModel {
   return {
     id: comment._id.toString(),
     content: comment.content,
@@ -11,5 +15,6 @@ export function mapToCommentViewModel(comment: WithId<Comment>): commentViewMode
       userLogin: comment.commentatorInfo.userLogin
     },
     createdAt: comment.createdAt,
+    likesInfo: likesInfo
   };
 }

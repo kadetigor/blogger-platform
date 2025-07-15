@@ -49,23 +49,4 @@ export class CommentsRepository {
 
     return;
   }
-
-  async updateLikeInfo(id: string, status: string): Promise<void> {
-    const result = await CommentModel.findByIdAndUpdate(
-      id,
-      {
-        $set: {
-          likesInfo: {
-            myStatus: status
-          },
-        },
-      },
-    );
-
-    if (!result) {
-      throw new repositoryNotFoundError('Comment does not exist')
-    }
-
-    return;
-  }
 };

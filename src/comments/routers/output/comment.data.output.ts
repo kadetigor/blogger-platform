@@ -10,6 +10,11 @@ export type commentDataOutput = {
             userId: string,
             userLogin: string,
         },
-        createdAt: Date
+        createdAt: Date,
+        likesInfo: {
+            likesCount: number;
+            dislikesCount: number;
+            myStatus: "None" | "Like" | "Dislike";
+        }
     }
 }

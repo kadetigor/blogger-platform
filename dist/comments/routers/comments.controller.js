@@ -22,6 +22,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CommentsController = void 0;
+// src/comments/routers/comments.controller.ts
 const inversify_1 = require("inversify");
 const comments_service_1 = require("../application/comments.service");
 const comments_repository_1 = require("../repositories/comments.repository");
@@ -31,11 +32,13 @@ const errorsHandler_1 = require("../../core/errors/errorsHandler");
 const comments_query_repository_1 = require("../repositories/comments.query.repository");
 const setDefaultSortAndPagination_1 = require("../../core/helpers/setDefaultSortAndPagination");
 const map_to_comment_list_paginated_output_1 = require("./mappers/map.to.comment.list.paginated.output");
+const comment_likes_repository_1 = require("../repositories/comment.likes.repository");
 let CommentsController = class CommentsController {
-    constructor(commentsService, commentsRepository, commentsQueryRepository) {
+    constructor(commentsService, commentsRepository, commentsQueryRepository, commentLikesRepository) {
         this.commentsService = commentsService;
         this.commentsRepository = commentsRepository;
         this.commentsQueryRepository = commentsQueryRepository;
+        this.commentLikesRepository = commentLikesRepository;
     }
     createCommentHandler(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -54,7 +57,9 @@ let CommentsController = class CommentsController {
                     postId
                 });
                 const createdComment = yield this.commentsRepository.findByIdOrFail(createdCommentId);
-                const commentViewModel = (0, map_to_comment_view_model_1.mapToCommentViewModel)(createdComment);
+                // Get likes info for the new comment (will be 0 likes, 0 dislikes, None status)
+                const likesInfo = yield this.commentLikesRepository.getLikesInfo(createdCommentId, user.id);
+                const commentViewModel = (0, map_to_comment_view_model_1.mapToCommentViewModel)(createdComment, likesInfo);
                 res.status(httpStatus_1.HttpStatus.Created).send(commentViewModel);
             }
             catch (e) {
@@ -87,10 +92,15 @@ let CommentsController = class CommentsController {
     }
     getCommentHandler(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             try {
                 const id = req.params.id;
                 const comment = yield this.commentsQueryRepository.findByIdOrFail(id);
-                const commentViewModel = (0, map_to_comment_view_model_1.mapToCommentViewModel)(comment);
+                // Get user id from auth token if available
+                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                // Get likes info
+                const likesInfo = yield this.commentLikesRepository.getLikesInfo(id, userId);
+                const commentViewModel = (0, map_to_comment_view_model_1.mapToCommentViewModel)(comment, likesInfo);
                 res.status(httpStatus_1.HttpStatus.Ok).send(commentViewModel);
             }
             catch (e) {
@@ -100,6 +110,7 @@ let CommentsController = class CommentsController {
     }
     getCommentListHandler(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             try {
                 const postId = req.params.id; // Get postId from URL params
                 const baseQueryInput = (0, setDefaultSortAndPagination_1.setDefaultSortAndPaginationIfNotExist)(req.query);
@@ -110,7 +121,15 @@ let CommentsController = class CommentsController {
                     sortDirection: baseQueryInput.sortDirection
                 };
                 const { items, totalCount } = yield this.commentsQueryRepository.findCommentsByPost(queryInput, postId);
-                const commentsListOutput = (0, map_to_comment_list_paginated_output_1.mapToCommentListPaginatedOutput)(items, {
+                // Get user id from auth token if available
+                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                // Get likes info for all comments
+                const likesInfoMap = new Map();
+                yield Promise.all(items.map((comment) => __awaiter(this, void 0, void 0, function* () {
+                    const likesInfo = yield this.commentLikesRepository.getLikesInfo(comment._id.toString(), userId);
+                    likesInfoMap.set(comment._id.toString(), likesInfo);
+                })));
+                const commentsListOutput = (0, map_to_comment_list_paginated_output_1.mapToCommentListPaginatedOutput)(items, likesInfoMap, {
                     pageNumber: queryInput.pageNumber,
                     pageSize: queryInput.pageSize,
                     totalCount,
@@ -150,13 +169,14 @@ let CommentsController = class CommentsController {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const commentId = req.params.commentId;
-                const status = req.body.myStatus;
+                const status = req.body.likeStatus;
                 const user = req.user;
                 if (!user) {
                     res.sendStatus(httpStatus_1.HttpStatus.Unauthorized);
                     return;
                 }
-                yield this.commentsService.updateLikeInfo(commentId, status);
+                yield this.commentsService.updateLikeInfo(commentId, user.id, status);
+                res.sendStatus(httpStatus_1.HttpStatus.NoContent);
             }
             catch (e) {
                 (0, errorsHandler_1.errorsHandler)(e, res);
@@ -170,7 +190,9 @@ exports.CommentsController = CommentsController = __decorate([
     __param(0, (0, inversify_1.inject)(comments_service_1.CommentsService)),
     __param(1, (0, inversify_1.inject)(comments_repository_1.CommentsRepository)),
     __param(2, (0, inversify_1.inject)(comments_query_repository_1.commentsQueryRepository)),
+    __param(3, (0, inversify_1.inject)(comment_likes_repository_1.CommentLikesRepository)),
     __metadata("design:paramtypes", [comments_service_1.CommentsService,
         comments_repository_1.CommentsRepository,
-        comments_query_repository_1.commentsQueryRepository])
+        comments_query_repository_1.commentsQueryRepository,
+        comment_likes_repository_1.CommentLikesRepository])
 ], CommentsController);

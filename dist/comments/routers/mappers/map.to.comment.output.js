@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mapToPostOutput = mapToPostOutput;
+exports.mapToCommentOutput = mapToCommentOutput;
 const resourceType_1 = require("../../../core/types/resourceType");
-function mapToPostOutput(comment) {
+function mapToCommentOutput(comment, likesInfo) {
     return {
         data: {
             type: resourceType_1.resourceType.Comments,
@@ -13,7 +13,8 @@ function mapToPostOutput(comment) {
                     userId: comment.commentatorInfo.userId,
                     userLogin: comment.commentatorInfo.userLogin
                 },
-                createdAt: comment.createdAt
+                createdAt: comment.createdAt,
+                likesInfo: likesInfo
             },
         },
     };
