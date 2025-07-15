@@ -1,6 +1,6 @@
 import { WithId } from 'mongodb';
 import { Blog } from '../../domain/blog';
-import { blogDataOutput } from '../output/blogDataOutput';
+import { blogDataOutput } from '../output/blog.data-output';
 
 export function mapToBlogOutput(blog: WithId<Blog>): blogDataOutput {
   return {

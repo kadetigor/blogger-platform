@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.setupApp = void 0;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const blogsRouter_1 = require("./blogs/routers/blogsRouter");
+const blogs_router_1 = require("./blogs/routers/blogs.router");
 const posts_router_1 = require("./posts/routers/posts.router");
 const testingRouter_1 = require("./testing/routers/testingRouter");
 const paths_1 = require("./core/paths/paths");
@@ -39,7 +39,7 @@ const setupApp = (app) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(200).send('Hello my blogger-platform');
     });
     app.use(paths_1.POSTS_PATH, posts_router_1.postsRouter);
-    app.use(paths_1.BLOGS_PATH, blogsRouter_1.blogsRouter);
+    app.use(paths_1.BLOGS_PATH, blogs_router_1.blogsRouter);
     app.use(paths_1.USERS_PATH, usersRouter_1.usersRouter);
     app.use(paths_1.TESTING_PATH, testingRouter_1.testingRouter);
     app.use(paths_1.AUTH_PATH, auth_router_1.authRouter);

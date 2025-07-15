@@ -31,7 +31,7 @@ const mapToPostViewModel_1 = require("./mappers/mapToPostViewModel");
 const httpStatus_1 = require("../../core/types/httpStatus");
 const errorsHandler_1 = require("../../core/errors/errorsHandler");
 const setDefaultSortAndPagination_1 = require("../../core/helpers/setDefaultSortAndPagination");
-const mapToPostListPaginatedOutput_1 = require("../../blogs/routers/mappers/mapToPostListPaginatedOutput");
+const map_to_post_list_paginated_output_1 = require("../../blogs/routers/mappers/map.to.post.list.paginated.output");
 let PostsController = class PostsController {
     constructor(postsRepository, postsQueryRepository, postsService, postsLikeRepository) {
         this.postsRepository = postsRepository;
@@ -89,7 +89,7 @@ let PostsController = class PostsController {
                     sortDirection: baseQueryInput.sortDirection
                 };
                 const { items, totalCount } = yield this.postsQueryRepository.findMany(queryInput);
-                const postsListOutput = (0, mapToPostListPaginatedOutput_1.mapToPostListPaginatedOutput)(items, {
+                const postsListOutput = (0, map_to_post_list_paginated_output_1.mapToPostListPaginatedOutput)(items, {
                     pageNumber: queryInput.pageNumber,
                     pageSize: queryInput.pageSize,
                     totalCount,

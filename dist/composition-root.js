@@ -24,6 +24,10 @@ const posts_repository_1 = require("./posts/repositories/posts.repository");
 const posts_query_repository_1 = require("./posts/repositories/posts.query-repository");
 const posts_service_1 = require("./posts/application/posts.service");
 const posts_controller_1 = require("./posts/routers/posts.controller");
+const blogs_repository_1 = require("./blogs/repositories/blogs.repository");
+const blogs_query_repository_1 = require("./blogs/repositories/blogs.query-repository");
+const blogs_service_1 = require("./blogs/application/blogs.service");
+const blogs_controller_1 = require("./blogs/routers/blogs.controller");
 exports.container = new inversify_1.Container();
 // Users
 exports.container.bind(usersRepository_1.UsersRepository).toSelf();
@@ -31,10 +35,10 @@ exports.container.bind(usersService_1.UsersService).toSelf();
 exports.container.bind(usersQueryRepository_1.UsersQueryRepository).toSelf();
 exports.container.bind(users_controller_1.UsersController).toSelf();
 // Blogs
-/* container.bind(BlogsRepository).toSelf();
-container.bind(BlogsQueryRepository).toSelf();
-container.bind(BlogsService).toSelf();
-container.bind(BlogsController).toSelf(); */
+exports.container.bind(blogs_repository_1.BlogsRepository).toSelf();
+exports.container.bind(blogs_query_repository_1.BlogsQueryRepository).toSelf();
+exports.container.bind(blogs_service_1.BlogsService).toSelf();
+exports.container.bind(blogs_controller_1.BlogsController).toSelf();
 // Posts
 exports.container.bind(posts_repository_1.PostsRepository).toSelf();
 exports.container.bind(posts_query_repository_1.PostsQueryRepository).toSelf();

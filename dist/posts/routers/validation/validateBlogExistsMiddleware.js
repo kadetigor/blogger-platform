@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateBlogExistsMiddleware = validateBlogExistsMiddleware;
 const httpStatus_1 = require("../../../core/types/httpStatus");
 const input_validtion_result_middleware_1 = require("../../../core/middlewares/validation/input-validtion-result.middleware");
-const blogsQueryRepository_1 = require("../../../blogs/repositories/blogsQueryRepository");
+const blogs_query_repository_1 = require("../../../blogs/repositories/blogs.query-repository");
 function validateBlogExistsMiddleware(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -27,7 +27,7 @@ function validateBlogExistsMiddleware(req, res, next) {
                 return;
             }
             // Check if blog exists
-            const blog = yield blogsQueryRepository_1.blogsQueryRepository.findByIdOrFail(blogId);
+            const blog = yield blogs_query_repository_1.blogsQueryRepository.findByIdOrFail(blogId);
             // If blogId came from URL params, add it to the body for the service
             if (req.params.id && !req.body.blogId) {
                 req.body.blogId = req.params.id;

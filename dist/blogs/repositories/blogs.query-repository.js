@@ -15,11 +15,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.blogsQueryRepository = void 0;
+exports.BlogsQueryRepository = void 0;
 const blog_schema_1 = require("../domain/blog.schema");
 const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 const inversify_1 = require("inversify");
-let blogsQueryRepository = class blogsQueryRepository {
+let BlogsQueryRepository = class BlogsQueryRepository {
     findMany(queryDto) {
         return __awaiter(this, void 0, void 0, function* () {
             const { pageNumber, pageSize, sortBy, sortDirection, searchNameTerm } = queryDto;
@@ -70,8 +70,8 @@ let blogsQueryRepository = class blogsQueryRepository {
         });
     }
 };
-exports.blogsQueryRepository = blogsQueryRepository;
-exports.blogsQueryRepository = blogsQueryRepository = __decorate([
+exports.BlogsQueryRepository = BlogsQueryRepository;
+exports.BlogsQueryRepository = BlogsQueryRepository = __decorate([
     (0, inversify_1.injectable)()
-], blogsQueryRepository);
+], BlogsQueryRepository);
 ;

@@ -11,7 +11,7 @@ import { setDefaultSortAndPaginationIfNotExist } from "../../core/helpers/setDef
 import { postQueryInput } from "./input/postQueryInput";
 import { postSortField } from "./input/postSortField";
 import { sortDirection } from "../../core/types/sortDirection";
-import { mapToPostListPaginatedOutput } from "../../blogs/routers/mappers/mapToPostListPaginatedOutput";
+import { mapToPostListPaginatedOutput } from "../../blogs/routers/mappers/map.to.post.list.paginated.output";
 import { postUpdateInput } from "./input/postUpdateInput";
 
 

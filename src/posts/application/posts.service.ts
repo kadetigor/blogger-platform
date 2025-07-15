@@ -1,7 +1,7 @@
 import { PostsRepository } from "../repositories/posts.repository";
 import { Post } from "../domain/post";
 import { postAttributes } from "./dtos/post.attributes";
-import { blogsRepository } from "../../blogs/repositories/blogsRepository";
+import { BlogsRepository } from "../../blogs/repositories/blogs.repository";
 import { inject, injectable } from "inversify";
 import { PostLikeRepository } from "../repositories/post.likes.repository";
 
@@ -11,12 +11,12 @@ export class PostsService {
   constructor(
     @inject(PostsRepository) protected postsRepository: PostsRepository,
     @inject(PostLikeRepository) protected postsLikeRepository: PostLikeRepository,
-    //@inject(BlogsReposito)
+    @inject(BlogsRepository) protected blogsRepository: BlogsRepository,
   ) {}
 
   async create(dto: postAttributes): Promise<string> {
 
-    const blog = await blogsRepository.findByIdOrFail(dto.blogId);
+    const blog = await this.blogsRepository.findByIdOrFail(dto.blogId);
     const newPost: Post = {
       title: dto.title,
       shortDescription: dto.shortDescription,

@@ -21,51 +21,41 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PostsService = void 0;
-const posts_repository_1 = require("../repositories/posts.repository");
-const blogs_repository_1 = require("../../blogs/repositories/blogs.repository");
+exports.BlogsService = void 0;
+const blogs_repository_1 = require("../repositories/blogs.repository");
 const inversify_1 = require("inversify");
-const post_likes_repository_1 = require("../repositories/post.likes.repository");
-let PostsService = class PostsService {
-    constructor(postsRepository, postsLikeRepository, blogsRepository) {
-        this.postsRepository = postsRepository;
-        this.postsLikeRepository = postsLikeRepository;
+let BlogsService = class BlogsService {
+    constructor(blogsRepository) {
         this.blogsRepository = blogsRepository;
     }
     create(dto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const blog = yield this.blogsRepository.findByIdOrFail(dto.blogId);
-            const newPost = {
-                title: dto.title,
-                shortDescription: dto.shortDescription,
-                content: dto.content,
-                blogId: dto.blogId,
-                blogName: blog.name,
+            const newBlog = {
+                name: dto.name,
+                description: dto.description,
+                websiteUrl: dto.websiteUrl,
                 createdAt: new Date(),
+                isMembership: false
             };
-            return this.postsRepository.create(newPost);
+            return this.blogsRepository.create(newBlog);
         });
     }
     update(id, dto) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.postsRepository.update(id, dto);
+            yield this.blogsRepository.update(id, dto);
             return;
         });
     }
     delete(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.postsRepository.delete(id);
+            yield this.blogsRepository.delete(id);
             return;
         });
     }
 };
-exports.PostsService = PostsService;
-exports.PostsService = PostsService = __decorate([
+exports.BlogsService = BlogsService;
+exports.BlogsService = BlogsService = __decorate([
     (0, inversify_1.injectable)(),
-    __param(0, (0, inversify_1.inject)(posts_repository_1.PostsRepository)),
-    __param(1, (0, inversify_1.inject)(post_likes_repository_1.PostLikeRepository)),
-    __param(2, (0, inversify_1.inject)(blogs_repository_1.BlogsRepository)),
-    __metadata("design:paramtypes", [posts_repository_1.PostsRepository,
-        post_likes_repository_1.PostLikeRepository,
-        blogs_repository_1.BlogsRepository])
-], PostsService);
+    __param(0, (0, inversify_1.inject)(blogs_repository_1.BlogsRepository)),
+    __metadata("design:paramtypes", [blogs_repository_1.BlogsRepository])
+], BlogsService);

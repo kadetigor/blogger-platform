@@ -1,4 +1,4 @@
-import { blogViewModel } from "../../types/blogViewModel";
+import { blogViewModel } from "../../types/blog.view-model";
 
 export type blogListPaginatedOutput = {
   pagesCount: number;

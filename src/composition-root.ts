@@ -21,6 +21,10 @@ import { PostsRepository } from './posts/repositories/posts.repository';
 import { PostsQueryRepository } from './posts/repositories/posts.query-repository';
 import { PostsService } from './posts/application/posts.service';
 import { PostsController } from './posts/routers/posts.controller';
+import { BlogsRepository } from './blogs/repositories/blogs.repository';
+import { BlogsQueryRepository } from './blogs/repositories/blogs.query-repository';
+import { BlogsService } from './blogs/application/blogs.service';
+import { BlogsController } from './blogs/routers/blogs.controller';
 
 export const container = new Container();
 
@@ -31,10 +35,10 @@ container.bind(UsersQueryRepository).toSelf();
 container.bind(UsersController).toSelf();
 
 // Blogs
-/* container.bind(BlogsRepository).toSelf();
+container.bind(BlogsRepository).toSelf();
 container.bind(BlogsQueryRepository).toSelf();
 container.bind(BlogsService).toSelf();
-container.bind(BlogsController).toSelf(); */
+container.bind(BlogsController).toSelf();
 
 // Posts
 container.bind(PostsRepository).toSelf();

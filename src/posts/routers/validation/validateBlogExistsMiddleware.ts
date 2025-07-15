@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
-import { blogsRepository } from '../../../blogs/repositories/blogsRepository';
+import { blogsRepository } from '../../../blogs/repositories/blogs.repository';
 import { HttpStatus } from '../../../core/types/httpStatus';
 import { createErrorMessages } from '../../../core/middlewares/validation/input-validtion-result.middleware';
-import { blogsQueryRepository } from '../../../blogs/repositories/blogsQueryRepository';
+import { blogsQueryRepository } from '../../../blogs/repositories/blogs.query-repository';
 
 export async function validateBlogExistsMiddleware(
   req: Request,

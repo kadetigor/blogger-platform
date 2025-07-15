@@ -1,9 +1,11 @@
 import { FilterQuery } from "mongoose";
-import { blogQueryInput } from "../routers/input/blogQueryInput";
+import { blogQueryInput } from "../routers/input/blog.query-input";
 import { BlogModel, BlogDocument } from "../domain/blog.schema";
 import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
+import { injectable } from "inversify";
 
-export const blogsQueryRepository = {
+@injectable()
+export class BlogsQueryRepository {
 
   async findMany(
     queryDto: blogQueryInput,
@@ -40,7 +42,7 @@ export const blogsQueryRepository = {
     ]);
 
     return { items, totalCount };
-  },
+  }
 
   async findByIdOrFail(id: string): Promise<BlogDocument> {
     const blog = await BlogModel.findById(id).exec();
@@ -50,7 +52,7 @@ export const blogsQueryRepository = {
     }
     
     return blog;
-  },
+  }
 
   async getBlogName(id: string): Promise<string> {
     // Use select() to only fetch the name field for better performance

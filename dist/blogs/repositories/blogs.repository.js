@@ -15,63 +15,50 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.blogsQueryRepository = void 0;
+exports.BlogsRepository = void 0;
 const blog_schema_1 = require("../domain/blog.schema");
 const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 const inversify_1 = require("inversify");
-let blogsQueryRepository = class blogsQueryRepository {
-    findMany(queryDto) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const { pageNumber, pageSize, sortBy, sortDirection, searchNameTerm } = queryDto;
-            const skip = (pageNumber - 1) * pageSize;
-            const filter = {};
-            if (searchNameTerm && searchNameTerm.trim() !== "") {
-                filter.name = {
-                    // case-insensitive "contains"
-                    $regex: searchNameTerm,
-                    $options: "i",
-                };
-            }
-            // Execute both queries in parallel for better performance
-            const [items, totalCount] = yield Promise.all([
-                blog_schema_1.BlogModel
-                    .find(filter)
-                    .sort({ [sortBy]: sortDirection })
-                    .skip(skip)
-                    .limit(pageSize)
-                    .lean() // Use lean() for better performance when you don't need Mongoose document methods
-                    .exec(),
-                blog_schema_1.BlogModel.countDocuments(filter).exec()
-            ]);
-            return { items, totalCount };
-        });
-    }
+let BlogsRepository = class BlogsRepository {
     findByIdOrFail(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const blog = yield blog_schema_1.BlogModel.findById(id).exec();
+            const blog = yield blog_schema_1.BlogModel.findById(id);
             if (!blog) {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('Blog does not exist');
             }
             return blog;
         });
     }
-    getBlogName(id) {
+    create(newBlog) {
         return __awaiter(this, void 0, void 0, function* () {
-            // Use select() to only fetch the name field for better performance
-            const blog = yield blog_schema_1.BlogModel
-                .findById(id)
-                .select('name')
-                .lean()
-                .exec();
-            if (!blog) {
-                throw new Error('No blog with this id');
+            const blog = new blog_schema_1.BlogModel(newBlog);
+            const savedBlog = yield blog.save();
+            return savedBlog._id.toString();
+        });
+    }
+    update(id, dto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield blog_schema_1.BlogModel.findByIdAndUpdate(id, {
+                name: dto.name,
+                description: dto.description,
+                websiteUrl: dto.websiteUrl
+            }, { runValidators: true });
+            if (!result) {
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('Blog does not exist');
             }
-            return blog.name;
+        });
+    }
+    delete(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = yield blog_schema_1.BlogModel.findByIdAndDelete(id);
+            if (!result) {
+                throw new repositoryNotFoundError_1.repositoryNotFoundError('Blog does not exist');
+            }
         });
     }
 };
-exports.blogsQueryRepository = blogsQueryRepository;
-exports.blogsQueryRepository = blogsQueryRepository = __decorate([
+exports.BlogsRepository = BlogsRepository;
+exports.BlogsRepository = BlogsRepository = __decorate([
     (0, inversify_1.injectable)()
-], blogsQueryRepository);
+], BlogsRepository);
 ;
