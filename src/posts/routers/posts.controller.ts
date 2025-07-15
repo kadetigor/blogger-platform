@@ -3,7 +3,7 @@ import { PostsRepository } from "../repositories/posts.repository";
 import { PostsService } from "../application/posts.service";
 import { PostLikeRepository } from "../repositories/post.likes.repository";
 import { PostsQueryRepository } from "../repositories/posts.query-repository";
-import { mapToPostViewModel } from "./mappers/mapToPostViewModel";
+import { mapToPostViewModel } from "./mappers/map.to.post.view-model";
 import { Request, Response } from "express";
 import { HttpStatus } from "../../core/types/httpStatus";
 import { errorsHandler } from "../../core/errors/errorsHandler";
@@ -22,7 +22,7 @@ export class PostsController {
         @inject(PostsRepository) protected postsRepository: PostsRepository,
         @inject(PostsQueryRepository) protected postsQueryRepository: PostsQueryRepository,
         @inject(PostsService) protected postsService: PostsService,
-        @inject(PostLikeRepository) protected postsLikeRepository: PostLikeRepository,
+        @inject(PostLikeRepository) protected postLikesRepository: PostLikeRepository,
     ) {}
 
     async createPostHandler(
@@ -36,7 +36,15 @@ export class PostsController {
             
             const createdPostId = await this.postsService.create({...req.body, blogId});
             const createdPost = await this.postsRepository.findByIdOrFail(createdPostId);
-            const postViewModel = mapToPostViewModel(createdPost);
+
+            const extendedLikesInfo = {
+              likesCount: 0,
+              dislikesCount: 0,
+              myStatus: 'None' as const,
+              newestLikes: []
+            };
+
+            const postViewModel = mapToPostViewModel(createdPost, extendedLikesInfo);
 
             res.status(HttpStatus.Created).send(postViewModel);
         } catch (e: unknown) {
@@ -58,7 +66,11 @@ export class PostsController {
       try {
         const id = req.params.id;
         const post = await this.postsQueryRepository.findByIdOrFail(id);
-        const postViewModel = mapToPostViewModel(post);
+        const userId = req.user?.id;
+
+        const extendedLikesInfo = await this.postLikesRepository.getExtendedLikesInfo(id, userId);
+
+        const postViewModel = mapToPostViewModel(post, extendedLikesInfo);
         res.status(HttpStatus.Ok).send(postViewModel);
     
       } catch (e: unknown) {
@@ -106,5 +118,26 @@ export class PostsController {
         } catch (e: unknown) {
             errorsHandler(e, res);
         }
+    }
+
+    async updateLikeHandler(
+      req: Request,
+      res: Response,
+    ) {
+      try {
+        const commentId = req.params.commentId;
+        const status = req.body.likeStatus;
+        const user = req.user;
+
+        if (!user) {
+            res.sendStatus(HttpStatus.Unauthorized);
+            return;
+        }
+        
+        await this.postsService.updateLikeInfo(commentId, user.id, status);
+        res.sendStatus(HttpStatus.NoContent);
+      } catch (e: unknown) {
+        errorsHandler(e, res);
+      }
     }
 }

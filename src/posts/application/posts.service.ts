@@ -37,4 +37,10 @@ export class PostsService {
     await this.postsRepository.delete(id);
     return;
   }
+
+  async updateLikeInfo(postId: string, userId: string, status: "Like" | "Dislike"):Promise<void> {
+    await this.postsRepository.findByIdOrFail(postId);
+
+    await this.postsLikeRepository.setLikeStatus(postId, userId, status);
+  }
 }

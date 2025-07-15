@@ -19,10 +19,12 @@ const comment_schema_1 = require("../../comments/domain/comment.schema");
 const comment_like_schema_1 = require("../../comments/domain/comment.like.schema");
 const refresh_token_session_schema_1 = require("../../auth/domain/refresh.token.session.schema");
 const security_device_schema_1 = require("../../auth/devices/security.device.schema");
+const post_like_schema_1 = require("../../posts/domain/post.like.schema");
 exports.testingRouter = (0, express_1.Router)({});
 exports.testingRouter.delete('/all-data', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield Promise.all([
         post_schema_1.PostModel.deleteMany({}),
+        post_like_schema_1.PostLikeModel.deleteMany({}),
         blog_schema_1.BlogModel.deleteMany({}),
         user_schema_1.UserModel.deleteMany({}),
         comment_schema_1.CommentModel.deleteMany({}),

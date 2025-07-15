@@ -27,17 +27,17 @@ const posts_repository_1 = require("../repositories/posts.repository");
 const posts_service_1 = require("../application/posts.service");
 const post_likes_repository_1 = require("../repositories/post.likes.repository");
 const posts_query_repository_1 = require("../repositories/posts.query-repository");
-const mapToPostViewModel_1 = require("./mappers/mapToPostViewModel");
+const map_to_post_view_model_1 = require("./mappers/map.to.post.view-model");
 const httpStatus_1 = require("../../core/types/httpStatus");
 const errorsHandler_1 = require("../../core/errors/errorsHandler");
 const setDefaultSortAndPagination_1 = require("../../core/helpers/setDefaultSortAndPagination");
 const map_to_post_list_paginated_output_1 = require("../../blogs/routers/mappers/map.to.post.list.paginated.output");
 let PostsController = class PostsController {
-    constructor(postsRepository, postsQueryRepository, postsService, postsLikeRepository) {
+    constructor(postsRepository, postsQueryRepository, postsService, postLikesRepository) {
         this.postsRepository = postsRepository;
         this.postsQueryRepository = postsQueryRepository;
         this.postsService = postsService;
-        this.postsLikeRepository = postsLikeRepository;
+        this.postLikesRepository = postLikesRepository;
     }
     createPostHandler(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -45,7 +45,13 @@ let PostsController = class PostsController {
             try {
                 const createdPostId = yield this.postsService.create(Object.assign(Object.assign({}, req.body), { blogId }));
                 const createdPost = yield this.postsRepository.findByIdOrFail(createdPostId);
-                const postViewModel = (0, mapToPostViewModel_1.mapToPostViewModel)(createdPost);
+                const extendedLikesInfo = {
+                    likesCount: 0,
+                    dislikesCount: 0,
+                    myStatus: 'None',
+                    newestLikes: []
+                };
+                const postViewModel = (0, map_to_post_view_model_1.mapToPostViewModel)(createdPost, extendedLikesInfo);
                 res.status(httpStatus_1.HttpStatus.Created).send(postViewModel);
             }
             catch (e) {
@@ -67,10 +73,13 @@ let PostsController = class PostsController {
     }
     getPostHandler(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             try {
                 const id = req.params.id;
                 const post = yield this.postsQueryRepository.findByIdOrFail(id);
-                const postViewModel = (0, mapToPostViewModel_1.mapToPostViewModel)(post);
+                const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+                const extendedLikesInfo = yield this.postLikesRepository.getExtendedLikesInfo(id, userId);
+                const postViewModel = (0, map_to_post_view_model_1.mapToPostViewModel)(post, extendedLikesInfo);
                 res.status(httpStatus_1.HttpStatus.Ok).send(postViewModel);
             }
             catch (e) {
@@ -107,6 +116,24 @@ let PostsController = class PostsController {
             try {
                 const id = req.params.id;
                 yield this.postsService.update(id, req.body);
+                res.sendStatus(httpStatus_1.HttpStatus.NoContent);
+            }
+            catch (e) {
+                (0, errorsHandler_1.errorsHandler)(e, res);
+            }
+        });
+    }
+    updateLikeHandler(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const commentId = req.params.commentId;
+                const status = req.body.likeStatus;
+                const user = req.user;
+                if (!user) {
+                    res.sendStatus(httpStatus_1.HttpStatus.Unauthorized);
+                    return;
+                }
+                yield this.postsService.updateLikeInfo(commentId, user.id, status);
                 res.sendStatus(httpStatus_1.HttpStatus.NoContent);
             }
             catch (e) {

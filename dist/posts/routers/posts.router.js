@@ -16,6 +16,7 @@ const comment_sort_field_1 = require("../../comments/routers/input/comment.sort.
 const composition_root_1 = require("../../composition-root");
 const comments_controller_1 = require("../../comments/routers/comments.controller");
 const posts_controller_1 = require("./posts.controller");
+const like_query_validation_middleware_1 = require("../../core/middlewares/validation/like.query-validation.middleware");
 const postsController = composition_root_1.container.get(posts_controller_1.PostsController);
 const commentsController = composition_root_1.container.get(comments_controller_1.CommentsController);
 exports.postsRouter = (0, express_1.Router)({});
@@ -33,4 +34,5 @@ exports.postsRouter
     .post('/:id/comments', access_token_guard_1.accessTokenGuard, params_id_validation_middleware_1.idValidationMiddleware, post_exists_validation_1.validatePostExistsMiddleware, comment_input_dto_validation_1.contentValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, commentsController.createCommentHandler.bind(commentsController) //createCommentHandler
 )
     .get('/:id/comments', optional_access_token_guard_1.optionalAccessTokenGuard, params_id_validation_middleware_1.idValidationMiddleware, post_exists_validation_1.validatePostExistsMiddleware, (0, queryPaginationSortingValidationMiddleware_1.paginationAndSortingValidation)(comment_sort_field_1.commentSortField), input_validtion_result_middleware_1.inputValidationResultMiddleware, commentsController.getCommentListHandler.bind(commentsController) //getCommentListHandler
-);
+)
+    .put('/:postId/like-status', access_token_guard_1.accessTokenGuard, params_id_validation_middleware_1.idValidationMiddleware, post_exists_validation_1.validatePostExistsMiddleware, like_query_validation_middleware_1.likeQueryValidation, input_validtion_result_middleware_1.inputValidationResultMiddleware, postsController.updateLikeHandler.bind(postsController));

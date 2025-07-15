@@ -58,6 +58,12 @@ let PostsService = class PostsService {
             return;
         });
     }
+    updateLikeInfo(postId, userId, status) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.postsRepository.findByIdOrFail(postId);
+            yield this.postsLikeRepository.setLikeStatus(postId, userId, status);
+        });
+    }
 };
 exports.PostsService = PostsService;
 exports.PostsService = PostsService = __decorate([

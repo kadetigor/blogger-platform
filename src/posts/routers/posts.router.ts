@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { body } from 'express-validator';
 import { postInputDtoValidation } from "./validation/postInputDtoValidationMiddleware";
 import { idValidationMiddleware } from "../../core/middlewares/validation/params-id.validation-middleware";
 import { inputValidationResultMiddleware } from "../../core/middlewares/validation/input-validtion-result.middleware";
@@ -13,6 +14,7 @@ import { commentSortField } from '../../comments/routers/input/comment.sort.fiel
 import { container } from '../../composition-root';
 import { CommentsController } from '../../comments/routers/comments.controller';
 import { PostsController } from './posts.controller';
+import { likeQueryValidation } from '../../core/middlewares/validation/like.query-validation.middleware';
 
 const postsController = container.get(PostsController)
 const commentsController = container.get(CommentsController)
@@ -71,4 +73,14 @@ postsRouter
     paginationAndSortingValidation(commentSortField),
     inputValidationResultMiddleware,
     commentsController.getCommentListHandler.bind(commentsController)//getCommentListHandler
+  )
+
+  .put(
+      '/:postId/like-status',
+      accessTokenGuard,
+      idValidationMiddleware,
+      validatePostExistsMiddleware,
+      likeQueryValidation,
+      inputValidationResultMiddleware,
+      postsController.updateLikeHandler.bind(postsController)
   )

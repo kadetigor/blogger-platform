@@ -9,16 +9,9 @@ import { container } from '../../composition-root';
 import { CommentsController } from './comments.controller';
 import { body } from 'express-validator';
 import { optionalAccessTokenGuard } from '../../auth/routers/guards/optional.access.token.guard';
+import { likeQueryValidation } from '../../core/middlewares/validation/like.query-validation.middleware';
 
 const commentsController = container.get(CommentsController)
-
-const likeQueryValidation = body('likeStatus')
-    .exists()
-    .withMessage('likeStatus is Required')
-    .isString()
-    .withMessage('likeStatus must be a String')
-    .isIn(['None', 'Like', 'Dislike'])
-    .withMessage('likeStatus contains invalid value')
 
 export const commentsRouter = Router({})
 

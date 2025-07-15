@@ -13,6 +13,7 @@ exports.validatePostExistsMiddleware = validatePostExistsMiddleware;
 const httpStatus_1 = require("../../../core/types/httpStatus");
 const input_validtion_result_middleware_1 = require("../../../core/middlewares/validation/input-validtion-result.middleware");
 const posts_query_repository_1 = require("../../repositories/posts.query-repository");
+const postsQueryRepository = new posts_query_repository_1.PostsQueryRepository();
 function validatePostExistsMiddleware(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -27,7 +28,7 @@ function validatePostExistsMiddleware(req, res, next) {
                 return;
             }
             // Check if post exists
-            yield posts_query_repository_1.postsQueryRepository.findByIdOrFail(postId);
+            yield postsQueryRepository.findByIdOrFail(postId);
             next();
         }
         catch (error) {

@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { HttpStatus } from '../../../core/types/httpStatus';
 import { createErrorMessages } from '../../../core/middlewares/validation/input-validtion-result.middleware';
-import { postsQueryRepository } from '../../repositories/posts.query-repository';
+import { PostsQueryRepository } from '../../repositories/posts.query-repository';
+
+const postsQueryRepository = new PostsQueryRepository();
 
 export async function validatePostExistsMiddleware(
   req: Request,
