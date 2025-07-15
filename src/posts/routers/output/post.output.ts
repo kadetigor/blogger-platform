@@ -1,4 +1,4 @@
-import { postDataOutput } from "./postDataOutput"
+import { postDataOutput } from "./post.data-output"
 
 export type postOutput = {
   data: postDataOutput;

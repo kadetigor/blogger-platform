@@ -5,6 +5,12 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -15,53 +21,48 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PostsRepository = void 0;
-const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
-const post_schema_1 = require("../domain/post.schema");
+exports.PostsService = void 0;
+const posts_repository_1 = require("../repositories/posts.repository");
+const blogsRepository_1 = require("../../blogs/repositories/blogsRepository");
 const inversify_1 = require("inversify");
-let PostsRepository = class PostsRepository {
-    findByIdOrFail(id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const post = yield post_schema_1.PostModel.findById(id);
-            if (!post) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('Post does not exist');
-            }
-            return post;
-        });
+const post_likes_repository_1 = require("../repositories/post.likes.repository");
+let PostsService = class PostsService {
+    constructor(postsRepository, postsLikeRepository) {
+        this.postsRepository = postsRepository;
+        this.postsLikeRepository = postsLikeRepository;
     }
-    create(newPost) {
+    create(dto) {
         return __awaiter(this, void 0, void 0, function* () {
-            const post = new post_schema_1.PostModel(newPost);
-            const savedPost = yield post.save();
-            return savedPost._id.toString();
-        });
-    }
-    update(id, dto) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const result = yield post_schema_1.PostModel.findByIdAndUpdate(id, {
+            const blog = yield blogsRepository_1.blogsRepository.findByIdOrFail(dto.blogId);
+            const newPost = {
                 title: dto.title,
                 shortDescription: dto.shortDescription,
                 content: dto.content,
                 blogId: dto.blogId,
-            }, { runValidators: true });
-            if (!result) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('Post does not exist');
-            }
+                blogName: blog.name,
+                createdAt: new Date(),
+            };
+            return this.postsRepository.create(newPost);
+        });
+    }
+    update(id, dto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.postsRepository.update(id, dto);
             return;
         });
     }
     delete(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = yield post_schema_1.PostModel.findByIdAndDelete(id);
-            if (!result) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('Post does not exist');
-            }
+            yield this.postsRepository.delete(id);
             return;
         });
     }
 };
-exports.PostsRepository = PostsRepository;
-exports.PostsRepository = PostsRepository = __decorate([
-    (0, inversify_1.injectable)()
-], PostsRepository);
-;
+exports.PostsService = PostsService;
+exports.PostsService = PostsService = __decorate([
+    (0, inversify_1.injectable)(),
+    __param(0, (0, inversify_1.inject)(posts_repository_1.PostsRepository)),
+    __param(1, (0, inversify_1.inject)(post_likes_repository_1.PostLikeRepository)),
+    __metadata("design:paramtypes", [posts_repository_1.PostsRepository,
+        post_likes_repository_1.PostLikeRepository])
+], PostsService);

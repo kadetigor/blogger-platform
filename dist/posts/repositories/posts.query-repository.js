@@ -15,53 +15,59 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PostsRepository = void 0;
+exports.PostsQueryRepository = void 0;
 const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 const post_schema_1 = require("../domain/post.schema");
 const inversify_1 = require("inversify");
-let PostsRepository = class PostsRepository {
+let PostsQueryRepository = class PostsQueryRepository {
+    findMany(queryDto) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { pageNumber, pageSize, sortBy, sortDirection, } = queryDto;
+            const skip = (pageNumber - 1) * pageSize;
+            const filter = {};
+            const [items, totalCount] = yield Promise.all([
+                post_schema_1.PostModel
+                    .find(filter)
+                    .sort({ [sortBy]: sortDirection })
+                    .skip(skip)
+                    .limit(pageSize)
+                    .lean() // Use lean() for better performance when you don't need Mongoose document methods
+                    .exec(),
+                post_schema_1.PostModel.countDocuments(filter).exec()
+            ]);
+            return { items, totalCount };
+        });
+    }
+    findPostsbyBlog(queryDto, blogId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { pageNumber, pageSize, sortBy, sortDirection, } = queryDto;
+            const filter = { blogId: blogId };
+            const skip = (pageNumber - 1) * pageSize;
+            const [items, totalCount] = yield Promise.all([
+                post_schema_1.PostModel
+                    .find(filter)
+                    .sort({ [sortBy]: sortDirection })
+                    .skip(skip)
+                    .limit(pageSize)
+                    .lean()
+                    .exec(),
+                post_schema_1.PostModel.countDocuments(filter).exec(),
+            ]);
+            return { items, totalCount };
+        });
+    }
     findByIdOrFail(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const post = yield post_schema_1.PostModel.findById(id);
+            const post = yield post_schema_1.PostModel.findById(id).exec();
             if (!post) {
                 throw new repositoryNotFoundError_1.repositoryNotFoundError('Post does not exist');
             }
             return post;
         });
     }
-    create(newPost) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const post = new post_schema_1.PostModel(newPost);
-            const savedPost = yield post.save();
-            return savedPost._id.toString();
-        });
-    }
-    update(id, dto) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const result = yield post_schema_1.PostModel.findByIdAndUpdate(id, {
-                title: dto.title,
-                shortDescription: dto.shortDescription,
-                content: dto.content,
-                blogId: dto.blogId,
-            }, { runValidators: true });
-            if (!result) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('Post does not exist');
-            }
-            return;
-        });
-    }
-    delete(id) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const result = yield post_schema_1.PostModel.findByIdAndDelete(id);
-            if (!result) {
-                throw new repositoryNotFoundError_1.repositoryNotFoundError('Post does not exist');
-            }
-            return;
-        });
-    }
 };
-exports.PostsRepository = PostsRepository;
-exports.PostsRepository = PostsRepository = __decorate([
+exports.PostsQueryRepository = PostsQueryRepository;
+exports.PostsQueryRepository = PostsQueryRepository = __decorate([
     (0, inversify_1.injectable)()
-], PostsRepository);
+], PostsQueryRepository);
 ;

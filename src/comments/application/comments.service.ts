@@ -1,6 +1,6 @@
 // src/comments/application/comments.service.ts
 import { CommentsRepository } from "../repositories/comments.repository";
-import { Comment, myStatus } from "../domain/comment"
+import { Comment } from "../domain/comment"
 import { commentAttributes } from "./dtos/comment.attributes";
 import { commentUpdateDto } from "./dtos/comment.update.dto";
 import { inject, injectable } from "inversify";

@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
 import { errorsHandler } from '../../../core/errors/errorsHandler';
-import { postsService } from '../../../posts/application/postsService';
+import { postsService } from '../../../posts/application/posts.service';
 import { mapToPostListPaginatedOutput } from '../mappers/mapToPostListPaginatedOutput';
 import { postQueryInput } from '../../../posts/routers/input/postQueryInput';
 import { postSortField } from '../../../posts/routers/input/postSortField';
 import { sortDirection } from '../../../core/types/sortDirection';
 import { paginationAndSortingDefault } from '../../../core/middlewares/validation/queryPaginationSortingValidationMiddleware';
-import { postsQueryRepository } from '../../../posts/repositories/postsQueryRepository';
+import { postsQueryRepository } from '../../../posts/repositories/posts.query-repository';
 import { repositoryNotFoundError } from '../../../core/errors/repositoryNotFoundError';
 import { blogsQueryRepository } from '../../repositories/blogsQueryRepository';
 import { HttpStatus } from '../../../core/types/httpStatus';

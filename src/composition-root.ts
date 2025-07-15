@@ -17,6 +17,10 @@ import { commentsQueryRepository } from './comments/repositories/comments.query.
 import { CommentsService } from './comments/application/comments.service';
 import { CommentsController } from './comments/routers/comments.controller';
 import { CommentLikesRepository } from './comments/repositories/comment.likes.repository';
+import { PostsRepository } from './posts/repositories/posts.repository';
+import { PostsQueryRepository } from './posts/repositories/posts.query-repository';
+import { PostsService } from './posts/application/posts.service';
+import { PostsController } from './posts/routers/posts.controller';
 
 export const container = new Container();
 
@@ -33,10 +37,10 @@ container.bind(BlogsService).toSelf();
 container.bind(BlogsController).toSelf(); */
 
 // Posts
-/* container.bind(PostsRepository).toSelf();
+container.bind(PostsRepository).toSelf();
 container.bind(PostsQueryRepository).toSelf();
 container.bind(PostsService).toSelf();
-container.bind(PostsController).toSelf(); */
+container.bind(PostsController).toSelf();
 
 // Auth
 container.bind(AuthController).toSelf();

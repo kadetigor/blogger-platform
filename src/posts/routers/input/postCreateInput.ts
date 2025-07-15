@@ -1,6 +1,6 @@
 import { resourceType } from "../../../core/types/resourceType";
 import { blogAttributes } from "../../../blogs/application/dtos/blogAttributes";
-import { postAttributes } from "../../application/dtos/postAttributes";
+import { postAttributes } from "../../application/dtos/post.attributes";
 
 export type postCreateInput = {
   data: {

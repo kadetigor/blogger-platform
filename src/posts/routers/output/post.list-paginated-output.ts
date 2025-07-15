@@ -1,4 +1,4 @@
-import { postViewModel } from "../../types/postViewModel";
+import { postViewModel } from "../../types/post.view-model";
 
 export type postListPaginatedOutput = {
   pagesCount: number;

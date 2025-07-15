@@ -16,7 +16,7 @@ exports.setupApp = void 0;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const blogsRouter_1 = require("./blogs/routers/blogsRouter");
-const postsRouter_1 = require("./posts/routers/postsRouter");
+const posts_router_1 = require("./posts/routers/posts.router");
 const testingRouter_1 = require("./testing/routers/testingRouter");
 const paths_1 = require("./core/paths/paths");
 const usersRouter_1 = require("./users/routers/usersRouter");
@@ -38,7 +38,7 @@ const setupApp = (app) => __awaiter(void 0, void 0, void 0, function* () {
     app.get('/', (_req, res) => {
         res.status(200).send('Hello my blogger-platform');
     });
-    app.use(paths_1.POSTS_PATH, postsRouter_1.postsRouter);
+    app.use(paths_1.POSTS_PATH, posts_router_1.postsRouter);
     app.use(paths_1.BLOGS_PATH, blogsRouter_1.blogsRouter);
     app.use(paths_1.USERS_PATH, usersRouter_1.usersRouter);
     app.use(paths_1.TESTING_PATH, testingRouter_1.testingRouter);

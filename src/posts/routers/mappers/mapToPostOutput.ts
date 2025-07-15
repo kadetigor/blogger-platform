@@ -1,7 +1,7 @@
 import { WithId } from "mongodb";
 import { Post } from "../../domain/post";
 import { resourceType } from "../../../core/types/resourceType";
-import { postOutput } from "../output/postOutput";
+import { postOutput } from "../output/post.output";
 
 export function mapToPostOutput(post: WithId<Post>): postOutput {
   return {

@@ -1,4 +1,5 @@
 import { resourceType } from "../../../core/types/resourceType"
+import { ExtendedLikesInfo } from "../../types/post.view-model";
 
 export type postDataOutput = {
   type: resourceType.Posts;
@@ -10,5 +11,6 @@ export type postDataOutput = {
     blogId: string,
     blogName: string,
     createdAt: Date,
+    extendedLikesInfo: ExtendedLikesInfo;
   };
 };

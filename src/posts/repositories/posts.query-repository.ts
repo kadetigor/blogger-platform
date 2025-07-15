@@ -1,8 +1,10 @@
 import { repositoryNotFoundError } from "../../core/errors/repositoryNotFoundError";
 import { postQueryInput } from "../routers/input/postQueryInput";
 import { PostDocument, PostModel } from "../domain/post.schema";
+import { injectable } from "inversify";
 
-export const postsQueryRepository = {
+@injectable()
+export class PostsQueryRepository {
 
   async findMany(
     queryDto: postQueryInput,
@@ -29,7 +31,7 @@ export const postsQueryRepository = {
     ]);
 
     return { items, totalCount };
-  },
+  }
 
   async findPostsbyBlog(
     queryDto: postQueryInput,
@@ -56,7 +58,7 @@ export const postsQueryRepository = {
       PostModel.countDocuments(filter).exec(),
     ]);
     return { items, totalCount };
-  },
+  }
 
   async findByIdOrFail(id: string): Promise<PostDocument> {
     const post = await PostModel.findById(id).exec();

@@ -1,13 +1,8 @@
 import { Router } from 'express';
 import { postInputDtoValidation } from "./validation/postInputDtoValidationMiddleware";
-import { updatePostHandler } from "./handlers/updatePostHandler";
-import { createPostHandler } from "./handlers/createPostHandler";
-import { getPostHandler } from "./handlers/getPostHandler"
-import { getPostListHandler } from "./handlers/getPostListHandler";
 import { idValidationMiddleware } from "../../core/middlewares/validation/params-id.validation-middleware";
 import { inputValidationResultMiddleware } from "../../core/middlewares/validation/input-validtion-result.middleware";
 import { superAdminGuardMiddleware } from "../../auth/routers/guards/basic.guard.middleware";
-import { deletePostHandler } from "./handlers/deletePostHandler";
 import { postSortField } from './input/postSortField';
 import { paginationAndSortingValidation } from '../../core/middlewares/validation/queryPaginationSortingValidationMiddleware';
 import { accessTokenGuard } from '../../auth/routers/guards/access.token.guard';
@@ -17,7 +12,9 @@ import { validatePostExistsMiddleware } from './validation/post.exists.validatio
 import { commentSortField } from '../../comments/routers/input/comment.sort.field';
 import { container } from '../../composition-root';
 import { CommentsController } from '../../comments/routers/comments.controller';
+import { PostsController } from './posts.controller';
 
+const postsController = container.get(PostsController)
 const commentsController = container.get(CommentsController)
 
 export const postsRouter = Router({})
@@ -27,20 +24,20 @@ postsRouter
     '/',
     paginationAndSortingValidation(postSortField),
     inputValidationResultMiddleware,
-    getPostListHandler
+    postsController.getPostListHandler.bind(postsController)//getPostListHandler
   )
   .get(
     '/:id',
     idValidationMiddleware,
     inputValidationResultMiddleware,
-    getPostHandler
+    postsController.getPostHandler.bind(postsController)//getPostHandler
   )
   .post(
     '/',
     superAdminGuardMiddleware,
     postInputDtoValidation,
     inputValidationResultMiddleware,
-    createPostHandler
+    postsController.createPostHandler.bind(postsController)//createPostHandler
   )
   .put(
     '/:id',
@@ -48,14 +45,14 @@ postsRouter
     idValidationMiddleware,
     postInputDtoValidation,
     inputValidationResultMiddleware,
-    updatePostHandler
+    postsController.updatePostHandler.bind(postsController)//updatePostHandler
   )
   .delete(
     '/:id',
     superAdminGuardMiddleware,
     idValidationMiddleware,
     inputValidationResultMiddleware,
-    deletePostHandler
+    postsController.deletePostHandler.bind(postsController)//deletePostHandler
   )
   .post(
     '/:id/comments',

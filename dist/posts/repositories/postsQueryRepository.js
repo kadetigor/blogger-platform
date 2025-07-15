@@ -1,4 +1,10 @@
 "use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -12,7 +18,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.postsQueryRepository = void 0;
 const repositoryNotFoundError_1 = require("../../core/errors/repositoryNotFoundError");
 const post_schema_1 = require("../domain/post.schema");
-exports.postsQueryRepository = {
+const inversify_1 = require("inversify");
+let postsQueryRepository = class postsQueryRepository {
     findMany(queryDto) {
         return __awaiter(this, void 0, void 0, function* () {
             const { pageNumber, pageSize, sortBy, sortDirection, } = queryDto;
@@ -30,7 +37,7 @@ exports.postsQueryRepository = {
             ]);
             return { items, totalCount };
         });
-    },
+    }
     findPostsbyBlog(queryDto, blogId) {
         return __awaiter(this, void 0, void 0, function* () {
             const { pageNumber, pageSize, sortBy, sortDirection, } = queryDto;
@@ -48,7 +55,7 @@ exports.postsQueryRepository = {
             ]);
             return { items, totalCount };
         });
-    },
+    }
     findByIdOrFail(id) {
         return __awaiter(this, void 0, void 0, function* () {
             const post = yield post_schema_1.PostModel.findById(id).exec();
@@ -59,3 +66,8 @@ exports.postsQueryRepository = {
         });
     }
 };
+exports.postsQueryRepository = postsQueryRepository;
+exports.postsQueryRepository = postsQueryRepository = __decorate([
+    (0, inversify_1.injectable)()
+], postsQueryRepository);
+;

@@ -13,7 +13,7 @@ exports.getBlogPostsListHandler = getBlogPostsListHandler;
 const errorsHandler_1 = require("../../../core/errors/errorsHandler");
 const mapToPostListPaginatedOutput_1 = require("../mappers/mapToPostListPaginatedOutput");
 const queryPaginationSortingValidationMiddleware_1 = require("../../../core/middlewares/validation/queryPaginationSortingValidationMiddleware");
-const postsQueryRepository_1 = require("../../../posts/repositories/postsQueryRepository");
+const posts_query_repository_1 = require("../../../posts/repositories/posts.query-repository");
 const repositoryNotFoundError_1 = require("../../../core/errors/repositoryNotFoundError");
 const blogsQueryRepository_1 = require("../../repositories/blogsQueryRepository");
 function getBlogPostsListHandler(req, res) {
@@ -30,7 +30,7 @@ function getBlogPostsListHandler(req, res) {
                 sortBy: req.query.sortBy || queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.sortBy,
                 sortDirection: req.query.sortDirection || queryPaginationSortingValidationMiddleware_1.paginationAndSortingDefault.sortDirection
             };
-            const { items, totalCount } = yield postsQueryRepository_1.postsQueryRepository.findPostsbyBlog(queryInput, blogId);
+            const { items, totalCount } = yield posts_query_repository_1.postsQueryRepository.findPostsbyBlog(queryInput, blogId);
             const postListOutput = (0, mapToPostListPaginatedOutput_1.mapToPostListPaginatedOutput)(items, {
                 pageNumber: queryInput.pageNumber,
                 pageSize: queryInput.pageSize,
